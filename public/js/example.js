@@ -12,7 +12,9 @@ $(function () {
 
 	if (!Detector.webgl) Detector.addGetWebGLMessage();
 
-
+	var container = $("#container3d");
+	startScene(container);
+	
 });
 
 
@@ -121,6 +123,7 @@ function animate() {
 	}
 
 	renderer.render(scene, camera);
+	window.scrollTo(0, 200);
 }
 
 function onWindowResize() {
@@ -149,6 +152,4 @@ function openFullscreen() {
 	}
 	document.getElementById("fullScreenBtn").style.display="none";
 	
-	var container = $("#container3d");
-	startScene(container);
 }
