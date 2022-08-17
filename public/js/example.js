@@ -8,14 +8,14 @@ var renderer, camera, scene, controls;
 var sceneObject, intersected;
 
 
-$(function() {
+$(function () {
 
 	if (!Detector.webgl) Detector.addGetWebGLMessage();
-	
-	var container = $("#container3d");
-	startScene(container);
+
 
 });
+
+
 
 
 function startScene(container) {
@@ -29,7 +29,7 @@ function startScene(container) {
 	// Load models
 	var loader = new THREE.ObjectLoader();
 
-	loader.load("model/model.json", function(object) {
+	loader.load("model/model.json", function (object) {
 		sceneObject = object;
 		// console.log(sceneObject);
 		sceneObject.scale.set(13, 13, 13);
@@ -85,11 +85,13 @@ function startScene(container) {
 	container.append(renderer.domElement);
 
 	$(window).on("resize", onWindowResize);
-	
-	$(document.body).on("touchmove", function(event) {
+
+	$(document.body).on("touchmove", function (event) {
 		event.preventDefault();
 		event.stopPropagation();
 	});
+
+
 }
 
 function animate() {
@@ -102,7 +104,7 @@ function animate() {
 	var vector = new THREE.Vector3(controls.mouse.x, controls.mouse.y, 1);
 	vector.unproject(camera);
 
-	var raycaster = new THREE.Raycaster( controls.fpsBody.position, vector.sub(controls.fpsBody.position).normalize() );
+	var raycaster = new THREE.Raycaster(controls.fpsBody.position, vector.sub(controls.fpsBody.position).normalize());
 
 	var intersects = raycaster.intersectObjects(sceneObject.children);
 	if (intersects.length > 0) {
@@ -130,4 +132,23 @@ function onWindowResize() {
 	camera.updateProjectionMatrix();
 
 	renderer.setSize(width, height);
+}
+
+/* Get the element you want displayed in fullscreen mode (a video in this example): */
+var elem = document.getElementById("container");
+
+/* When the openFullscreen() function is executed, open the video in fullscreen.
+Note that we must include prefixes for different browsers, as they don't support the requestFullscreen method yet */
+function openFullscreen() {
+	if (elem.requestFullscreen) {
+		elem.requestFullscreen();
+	} else if (elem.webkitRequestFullscreen) { /* Safari */
+		elem.webkitRequestFullscreen();
+	} else if (elem.msRequestFullscreen) { /* IE11 */
+		elem.msRequestFullscreen();
+	}
+	document.getElementById("fullScreenBtn").style.display="none";
+	
+	var container = $("#container3d");
+	startScene(container);
 }
