@@ -138,18 +138,40 @@ function onWindowResize() {
 }
 
 /* Get the element you want displayed in fullscreen mode (a video in this example): */
-var elem = document.getElementById("container");
+// var elem = document.getElementById("container");
 
-/* When the openFullscreen() function is executed, open the video in fullscreen.
-Note that we must include prefixes for different browsers, as they don't support the requestFullscreen method yet */
-function openFullscreen() {
-	if (elem.requestFullscreen) {
-		elem.requestFullscreen();
-	} else if (elem.webkitRequestFullscreen) { /* Safari */
-		elem.webkitRequestFullscreen();
-	} else if (elem.msRequestFullscreen) { /* IE11 */
-		elem.msRequestFullscreen();
+function toggleFullScreen() {
+	var doc = window.document;
+	var docEl = doc.documentElement;
+  
+	var requestFullScreen =
+	  docEl.requestFullscreen ||
+	  docEl.mozRequestFullScreen ||
+	  docEl.webkitRequestFullScreen ||
+	  docEl.msRequestFullscreen;
+	var cancelFullScreen =
+	  doc.exitFullscreen ||
+	  doc.mozCancelFullScreen ||
+	  doc.webkitExitFullscreen ||
+	  doc.msExitFullscreen;
+  
+	if (
+	  !doc.fullscreenElement &&
+	  !doc.mozFullScreenElement &&
+	  !doc.webkitFullscreenElement &&
+	  !doc.msFullscreenElement
+	) {
+	  requestFullScreen.call(docEl);
+	} else {
+	  cancelFullScreen.call(doc);
 	}
-	document.getElementById("fullScreenBtn").style.display="none";
-	
-}
+  }
+  
+  var goFS = document.getElementById('goFS');
+  goFS.addEventListener(
+    'click',
+    function () {
+      document.body.requestFullscreen();
+    },
+    false,
+  );
