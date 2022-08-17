@@ -23,27 +23,29 @@ http.createServer(function (request, response) {
             break;
         case '.png':
             contentType = 'image/png';
-            break;      
+            break;
         case '.jpg':
             contentType = 'image/jpg';
             break;
         case '.wav':
             contentType = 'audio/wav';
             break;
+        case '.mp4':
+            contentType = 'video/mp4';
     }
 
-    fs.readFile(filePath, function(error, content) {
+    fs.readFile(filePath, function (error, content) {
         if (error) {
-            if(error.code == 'ENOENT'){
-                fs.readFile('./404.html', function(error, content) {
+            if (error.code == 'ENOENT') {
+                fs.readFile('./404.html', function (error, content) {
                     response.writeHead(200, { 'Content-Type': contentType });
                     response.end(content, 'utf-8');
                 });
             }
             else {
                 response.writeHead(500);
-                response.end('Sorry, check with the site admin for error: '+error.code+' ..\n');
-                response.end(); 
+                response.end('Sorry, check with the site admin for error: ' + error.code + ' ..\n');
+                response.end();
             }
         }
         else {
