@@ -4,7 +4,7 @@ var viewAngle = 45,
 	far = 10000;
 var aspect;
 
-var renderer, camera, scene, controls, stats;
+var renderer, camera, scene, controls;
 var sceneObject, intersected;
 
 
@@ -20,8 +20,8 @@ $(function() {
 
 function startScene(container) {
 
-	width = window.innerWidth - 50;
-	height = window.innerHeight - 80;
+	width = window.innerWidth;
+	height = window.innerHeight;
 	aspect = width / height;
 
 	scene = new THREE.Scene();
@@ -84,13 +84,12 @@ function startScene(container) {
 	renderer.setSize(width, height);
 	container.append(renderer.domElement);
 
-	stats = new Stats();
-	stats.domElement.style.position = 'absolute';
-	stats.domElement.style.right = '10px';
-	stats.domElement.style.top = '10px';
-	$('body').append(stats.domElement);
-
 	$(window).on("resize", onWindowResize);
+	
+	$(document.body).on("touchmove", function(event) {
+		event.preventDefault();
+		event.stopPropagation();
+	});
 }
 
 function animate() {
@@ -98,7 +97,6 @@ function animate() {
 	requestAnimationFrame(animate);
 
 	controls.update();
-	stats.update();
 
 	// Mouse hit-testing:
 	var vector = new THREE.Vector3(controls.mouse.x, controls.mouse.y, 1);
@@ -125,8 +123,8 @@ function animate() {
 
 function onWindowResize() {
 
-	width = window.innerWidth - 50;
-	height = window.innerHeight - 80;
+	width = window.innerWidth;
+	height = window.innerHeight;
 
 	camera.aspect = width / height;
 	camera.updateProjectionMatrix();
