@@ -28,6 +28,7 @@
 
             this.touchRotSpeed = .3;
             this.touchMoveSpeed = .05;
+            this.touchDeadZone = 30;
 
             let moveForward = false;
             let moveBackward = false;
@@ -140,6 +141,22 @@
                 }
             }
 
+            function getTouchVec(touchStart, touch, deadZone) {
+                let dx = touchStart.x - touch.pageX;
+                let dy = touchStart.y - touch.pageY;
+                let touchVec = new THREE.Vector2(dx, dy);
+                let vecLength = touchVec.length();
+                if(vecLength < deadZone) {
+                    touchVec.x = 0;
+                    touchVec.y = 0;
+                } else {
+                    vecLength -= deadZone;
+                    touchVec.normalize();
+                    touchVec.multiplyScalar(vecLength);
+                }
+
+                return touchVec;
+            }
 
             this.onTouchMove = function (event) {
 
@@ -149,19 +166,19 @@
                 for (let i = 0; i < event.changedTouches.length; i++) {
                     let touch = event.changedTouches[i];
                     if(touch.identifier == moveTouchId) {
+                        let touchVec = getTouchVec(moveTouchStart, touch, this.touchDeadZone);
+                        // let dx = moveTouchStart.x - touch.pageX;
+                        // let dy = moveTouchStart.y - touch.pageY;
 
-                        let dx = moveTouchStart.x - touch.pageX;
-                        let dy = moveTouchStart.y - touch.pageY;
-
-                        axisMovement.x = -this.touchMoveSpeed * dx;
-                        axisMovement.y = this.touchMoveSpeed * dy;
+                        axisMovement.x = -this.touchMoveSpeed * touchVec.x;
+                        axisMovement.y = this.touchMoveSpeed * touchVec.y;
 
                     } else if(touch.identifier == rotTouchId) {
-
-                        let dx = rotTouchStart.x - touch.pageX;
-                        let dy = rotTouchStart.y - touch.pageY;
-                        camRot.x = dx;
-                        camRot.y = dy;
+                        let touchVec = getTouchVec(rotTouchStart, touch, this.touchDeadZone);
+                        // let dx = rotTouchStart.x - touch.pageX;
+                        // let dy = rotTouchStart.y - touch.pageY;
+                        camRot.x = touchVec.x;
+                        camRot.y = touchVec.y;
                     }
                 }
                 if (event.touches.length >= 1) {
