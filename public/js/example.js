@@ -16,7 +16,7 @@ $(function () {
 
 	if (!Detector.webgl) Detector.addGetWebGLMessage();
 
-	var container = $("#container3d");
+	var container = $("#container_3d");
 	startScene(container);
 	
 });
