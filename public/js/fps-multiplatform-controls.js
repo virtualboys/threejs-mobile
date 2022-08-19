@@ -46,6 +46,9 @@
             let axisMovement = new THREE.Vector2();
             let usingAxisMovement = false;
 
+            let moveTouchId = -1;
+            let rotTouchId = -1;
+
             this.onKeyDown = function (event) {
 
                 switch (event.code) {
@@ -111,16 +114,28 @@
 
                 event.preventDefault(); // prevent scrolling
 
+                for (let i = 0; i < event.changedTouches.length; i++) {
+                    let touch = event.changedTouches[i];
+                    if(touch.pageX < window.innerWidth / 2) {
+                        if(moveTouchId == -1) {
+                            moveTouchId = touch.identifier;
+                            moveTouchStart.x = touch.pageX;
+                            moveTouchStart.y = touch.pageY;
+                            usingAxisMovement = true;
+                        }
+                    } else {
+                        if(rotTouchId == -1) {
+                            rotTouchId = touch.identifier;
+                            rotTouchStart.x = touch.pageX;
+                            rotTouchStart.y = touch.pageY;
+                        }
+                    }
+                }
                 switch (event.touches.length) {
                     case 1:
-                        moveTouchStart.x = event.touches[0].pageX;
-                        moveTouchStart.y = event.touches[0].pageY;
-                        usingAxisMovement = true;
                         break;
 
                     case 2:
-                        rotTouchStart.x = event.touches[1].pageX;
-                        rotTouchStart.y = event.touches[1].pageY;
                         break;
                 }
             }
@@ -131,45 +146,63 @@
                 event.preventDefault(); // prevent scrolling
                 event.stopPropagation();
 
-                if (event.touches.length >= 1) {
-                    let dx = moveTouchStart.x - event.touches[0].pageX;
-                    let dy = moveTouchStart.y - event.touches[0].pageY;
+                for (let i = 0; i < event.changedTouches.length; i++) {
+                    let touch = event.changedTouches[i];
+                    if(touch.identifier == moveTouchId) {
 
-                    axisMovement.x = -this.touchMoveSpeed * dx;
-                    axisMovement.y = this.touchMoveSpeed * dy;
+                        let dx = moveTouchStart.x - touch.pageX;
+                        let dy = moveTouchStart.y - touch.pageY;
+
+                        axisMovement.x = -this.touchMoveSpeed * dx;
+                        axisMovement.y = this.touchMoveSpeed * dy;
+
+                    } else if(touch.identifier == rotTouchId) {
+
+                        let dx = rotTouchStart.x - touch.pageX;
+                        let dy = rotTouchStart.y - touch.pageY;
+                        camRot.x = dx;
+                        camRot.y = dy;
+                    }
+                }
+                if (event.touches.length >= 1) {
 
                     // moveLeft = dx > 0;
                     // moveRight = dx < 0;
                     // moveForward = dy > 0;
                     // moveBackward = dy < 0;
                 }
-                if(event.touches.length >= 2) {
+                if (event.touches.length >= 2) {
 
-                    let dx = rotTouchStart.x - event.touches[1].pageX;
-                    let dy = rotTouchStart.y - event.touches[1].pageY;
-                    camRot.x = dx;
-                    camRot.y = dy;
                 }
 
             }
 
             this.onTouchEnd = function (event) {
+
+                for (let i = 0; i < event.changedTouches.length; i++) {
+                    let touch = event.changedTouches[i];
+                    if(touch.identifier == moveTouchId) {
+
+                        moveTouchId = -1;
+                        axisMovement.x = 0;
+                        axisMovement.y = 0;
+                        usingAxisMovement = false;
+
+                    } else if(touch.identifier == rotTouchId) {
+
+                        rotTouchId = -1;
+                        camRot.x = 0;
+                        camRot.y = 0;
+                    }
+                }
+
                 if (event.touches.length == 0) {
                     // moveLeft = false;
                     // moveRight = false;
                     // moveForward = false;
                     // moveBackward = false;
+                } else if (event.touches.length == 1) {
 
-                    axisMovement.x = 0;
-                    axisMovement.y = 0;
-                    usingAxisMovement = false;
-
-                    camRot.x = 0;
-                    camRot.y = 0;
-                } else if(event.touches.length == 1) {
-
-                    camRot.x = 0;
-                    camRot.y = 0;
                 }
             }
 
@@ -188,9 +221,9 @@
                     direction.x = Number(moveRight) - Number(moveLeft);
                     direction.normalize(); // this ensures consistent movements in all directions
 
-                    if(usingAxisMovement) {
+                    if (usingAxisMovement) {
                         // axisMovement.normalize();
-                        if(axisMovement.length() > 1) {
+                        if (axisMovement.length() > 1) {
                             axisMovement.normalize();
                         }
                         velocity.z -= axisMovement.y * this.playerSpeed * delta;
@@ -262,9 +295,9 @@
             window.addEventListener('keyup', _onKeyUp);
 
 
-            window.addEventListener('touchstart', _onTouchStart, {passive: false});
-            window.addEventListener('touchend', _onTouchEnd, {passive: false});
-            window.addEventListener('touchmove', _onTouchMove, {passive: false});
+            window.addEventListener('touchstart', _onTouchStart, { passive: false });
+            window.addEventListener('touchend', _onTouchEnd, { passive: false });
+            window.addEventListener('touchmove', _onTouchMove, { passive: false });
         }
 
     }
