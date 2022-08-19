@@ -104,7 +104,7 @@
 
             this.onTouchStart = function (event) {
 
-                // event.preventDefault(); // prevent scrolling
+                event.preventDefault(); // prevent scrolling
 
                 switch (event.touches.length) {
                     case 1:
@@ -122,8 +122,8 @@
 
             this.onTouchMove = function (event) {
 
-                // event.preventDefault(); // prevent scrolling
-                // event.stopPropagation();
+                event.preventDefault(); // prevent scrolling
+                event.stopPropagation();
 
                 if (event.touches.length >= 1) {
                     let dx = moveTouchStart.x - event.touches[0].pageX;
@@ -240,9 +240,9 @@
             window.addEventListener('keyup', _onKeyUp);
 
 
-            window.addEventListener('touchstart', _onTouchStart, false);
-            window.addEventListener('touchend', _onTouchEnd, false);
-            window.addEventListener('touchmove', _onTouchMove, false);
+            window.addEventListener('touchstart', _onTouchStart, {passive: false});
+            window.addEventListener('touchend', _onTouchEnd, {passive: false});
+            window.addEventListener('touchmove', _onTouchMove, {passive: false});
         }
 
     }
