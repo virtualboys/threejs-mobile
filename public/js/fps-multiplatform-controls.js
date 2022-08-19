@@ -26,6 +26,9 @@
             this.gravity = 20;
             this.deceleration = 10;
 
+            this.touchRotSpeed = .3;
+            this.touchMoveSpeed = .05;
+
             let moveForward = false;
             let moveBackward = false;
             let moveLeft = false;
@@ -40,6 +43,8 @@
 
             let rotTouchStart = new THREE.Vector2();
             let camRot = new THREE.Vector2();
+            let axisMovement = new THREE.Vector2();
+            let usingAxisMovement = false;
 
             this.onKeyDown = function (event) {
 
@@ -110,6 +115,7 @@
                     case 1:
                         moveTouchStart.x = event.touches[0].pageX;
                         moveTouchStart.y = event.touches[0].pageY;
+                        usingAxisMovement = true;
                         break;
 
                     case 2:
@@ -129,11 +135,13 @@
                     let dx = moveTouchStart.x - event.touches[0].pageX;
                     let dy = moveTouchStart.y - event.touches[0].pageY;
 
+                    axisMovement.x = -this.touchMoveSpeed * dx;
+                    axisMovement.y = this.touchMoveSpeed * dy;
 
-                    moveLeft = dx > 0;
-                    moveRight = dx < 0;
-                    moveForward = dy > 0;
-                    moveBackward = dy < 0;
+                    // moveLeft = dx > 0;
+                    // moveRight = dx < 0;
+                    // moveForward = dy > 0;
+                    // moveBackward = dy < 0;
                 }
                 if(event.touches.length >= 2) {
 
@@ -147,10 +155,14 @@
 
             this.onTouchEnd = function (event) {
                 if (event.touches.length == 0) {
-                    moveLeft = false;
-                    moveRight = false;
-                    moveForward = false;
-                    moveBackward = false;
+                    // moveLeft = false;
+                    // moveRight = false;
+                    // moveForward = false;
+                    // moveBackward = false;
+
+                    axisMovement.x = 0;
+                    axisMovement.y = 0;
+                    usingAxisMovement = false;
 
                     camRot.x = 0;
                     camRot.y = 0;
@@ -165,7 +177,7 @@
 
                 return function update(delta) {
 
-                    this.pointerLock.rotateCamera(-.3 * camRot.x, -.3 * camRot.y);
+                    this.pointerLock.rotateCamera(-this.touchRotSpeed * camRot.x, -this.touchRotSpeed * camRot.y);
 
                     velocity.x -= velocity.x * deceleration * delta;
                     velocity.z -= velocity.z * deceleration * delta;
@@ -176,8 +188,18 @@
                     direction.x = Number(moveRight) - Number(moveLeft);
                     direction.normalize(); // this ensures consistent movements in all directions
 
-                    if (moveForward || moveBackward) velocity.z -= direction.z * this.playerSpeed * delta;
-                    if (moveLeft || moveRight) velocity.x -= direction.x * this.playerSpeed * delta;
+                    if(usingAxisMovement) {
+                        // axisMovement.normalize();
+                        if(axisMovement.length() > 1) {
+                            axisMovement.normalize();
+                        }
+                        velocity.z -= axisMovement.y * this.playerSpeed * delta;
+                        velocity.x -= axisMovement.x * this.playerSpeed * delta;
+                    } else {
+                        if (moveForward || moveBackward) velocity.z -= direction.z * this.playerSpeed * delta;
+                        if (moveLeft || moveRight) velocity.x -= direction.x * this.playerSpeed * delta;
+                    }
+
 
                     // if ( onObject === true ) {
 
