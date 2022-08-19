@@ -8,9 +8,23 @@ var viewAngle = 45,
 	far = 10000;
 var aspect;
 
-var renderer, camera, scene, controls;
+var renderer, camera, scene, controls, clock;
 var sceneObject, intersected;
 
+let moveForward = false;
+let moveBackward = false;
+let moveLeft = false;
+let moveRight = false;
+let canJump = false;
+
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+
+const playerHeight = .3;
+const playerSpeed = 50;
+const jumpSpeed = 10;
+const gravity = 20;
+const deceleration = 10;
 
 $(function () {
 
@@ -21,9 +35,6 @@ $(function () {
 	
 });
 
-
-
-
 function startScene(container) {
 
 	width = window.innerWidth;
@@ -31,6 +42,7 @@ function startScene(container) {
 	aspect = width / height;
 
 	scene = new THREE.Scene();
+	clock = new THREE.Clock();
 
 	const loader = new THREE.GLTFLoader().setPath( 'model/' );
 	loader.load( 'scene.gltf', function ( gltf ) {
@@ -43,26 +55,6 @@ function startScene(container) {
 		animate();
 
 	} );
-
-	// Load models
-	// var loader = new THREE.SceneLoader();
-
-	// loader.load("model/newscene.json", function (e) {
-	// 	scene = e.scene;
-	// 	// sceneObject = object;
-	// 	// console.log(sceneObject);
-	// 	sceneObject.scale.set(13, 13, 13);
-	// 	sceneObject.position.set(0, 0, 0);
-	// 	scene.add(sceneObject);
-
-	// 	var axes = new THREE.AxisHelper(700);
-	// 	scene.add(axes);
-
-	// 	addLights();
-	// 	// addControls();
-
-	// 	animate();
-	// });
 
 	function addLights() {
 		// Lights
@@ -84,6 +76,8 @@ function startScene(container) {
 	function addControls() {
 		// Camera
 		camera = new THREE.PerspectiveCamera(viewAngle, aspect, near, far);
+		camera.position.set(0, .3, -5);
+		camera.lookAt(new THREE.Vector3(0, .3, 0));
 		// Controls
 		var options = {
 			speedFactor: 0.04,
@@ -93,14 +87,18 @@ function startScene(container) {
 			hitTest: true,
 			hitTestDistance: 40
 		};
-		// var pos = camera.position;
-		
-		// camera.position.set(0,0,0);
-		// camera.quaternion.identity();
-		controls = new TouchControls(container.parent(), camera, options);
-		// controls.setPosition(pos);
-		controls.addToScene(scene);
-		// controls.setRotation(0.15, -0.15);
+
+		controls = new THREE.FPSMultiplatformControls( camera, document.body );
+
+		scene.add( controls.getObject() );
+
+		document.body.addEventListener( 'click', function () {
+			if(controls.pointerLock.isLocked) {
+				controls.pointerLock.unlock();
+			} else {
+				controls.pointerLock.lock();
+			}
+		} );
 	}
 
 	renderer = new THREE.WebGLRenderer();
@@ -109,12 +107,10 @@ function startScene(container) {
 
 	$(window).on("resize", onWindowResize);
 
-	$(document.body).on("touchmove", function (event) {
-		event.preventDefault();
-		event.stopPropagation();
-	});
-
-
+	// $(document.body).on("touchmove", function (event) {
+	// 	event.preventDefault();
+	// 	event.stopPropagation();
+	// });
 }
 
 function animate() {
@@ -122,31 +118,12 @@ function animate() {
 	requestAnimationFrame(animate);
 
 	if(controls) {
-		controls.update();
 
-		// Mouse hit-testing:
-		var vector = new THREE.Vector3(controls.mouse.x, controls.mouse.y, 1);
-		vector.unproject(camera);
-	
-		var raycaster = new THREE.Raycaster(controls.fpsBody.position, vector.sub(controls.fpsBody.position).normalize());
-	
-		var intersects = raycaster.intersectObjects(scene.children);
-		if (intersects.length > 0) {
-			if (intersected != intersects[0].object) {
-				if (intersected) intersected.material.emissive.setHex(intersected.currentHex);
-				intersected = intersects[0].object;
-				// console.log(intersects);
-				intersected.currentHex = intersected.material.emissive.getHex();
-				intersected.material.emissive.setHex(0xdd0090);
-			}
-		} else {
-			if (intersected) intersected.material.emissive.setHex(intersected.currentHex);
-			intersected = null;
-		}
+		const delta = clock.getDelta();
+		controls.update(delta);
 	}
 
 	renderer.render(scene, camera);
-	// window.scrollTo(0, 200);
 }
 
 function onWindowResize() {
@@ -189,12 +166,3 @@ function toggleFullScreen() {
 	  cancelFullScreen.call(doc);
 	}
   }
-
-  var goFS = document.getElementById('goFS');
-  goFS.addEventListener(
-    'click',
-    function () {
-      document.body.requestFullscreen();
-    },
-    false,
-  );
