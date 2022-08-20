@@ -34,10 +34,33 @@
 	<script type="text/javascript" src="./libs/threejs/SceneLoader.js"></script>
 	<script type="text/javascript" src="./libs/threejs/GLTFLoader.js"></script>
 
+	<script type="text/javascript" src="./libs/cannon.min.js"></script>
+
 	<script type="text/javascript" src="./js/movement-pad.js"></script>
 	<script type="text/javascript" src="./js/rotation-pad.js"></script>
 	<script type="text/javascript" src="./js/touch-controls.js"></script>
 	<script type="text/javascript" src="./js/fps-multiplatform-controls.js"></script>
+	<script type="text/javascript" src="./js/utils.js"></script>
+
+
+	<script type="module">
+
+		import { Storage as _Storage } from './threejs-source/editor/js/Storage.js';
+
+		var storage = new _Storage();
+		storage.init(function () {
+			storage.getPreview(function (gltf) {
+
+				if (gltf !== undefined) {
+					window.previewGLTF = gltf;
+					console.log("loaded!");
+				}
+
+				startScene();
+			});
+		});
+	</script>
+
 	<script type="text/javascript" src="./js/example.js"></script>
 </body>
 

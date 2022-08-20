@@ -8,7 +8,10 @@ var viewAngle = 45,
 	far = 10000;
 var aspect;
 
-var renderer, camera, scene, controls, clock;
+const fixedTimeStep = 1.0 / 60.0; // seconds
+const maxSubSteps = 3;
+
+var renderer, camera, scene, controls, clock, world, physicsBodies;
 var sceneObject, intersected;
 
 let moveForward = false;
@@ -28,14 +31,14 @@ const deceleration = 10;
 
 $(function () {
 
+
+});
+
+function startScene() {
 	if (!Detector.webgl) Detector.addGetWebGLMessage();
 
 	var container = $("#container_3d");
-	startScene(container);
-	
-});
-
-function startScene(container) {
+	// startScene(container);
 
 	width = window.innerWidth;
 	height = window.innerHeight;
@@ -44,17 +47,71 @@ function startScene(container) {
 	scene = new THREE.Scene();
 	clock = new THREE.Clock();
 
-	const loader = new THREE.GLTFLoader().setPath( 'model/' );
-	loader.load( 'scene.gltf', function ( gltf ) {
+	world = new CANNON.World();
+	world.gravity.set(0, -9, 0);
+	world.broadphase = new CANNON.NaiveBroadphase();
+	world.solver.iterations = 10;
 
-		scene.add( gltf.scene );
+	physicsBodies = [];
+
+	const loader = new THREE.GLTFLoader().setPath('model/');
+	if(window.previewGLTF) {
+		console.log("Loading preview!");
+		loader.parse(window.previewGLTF, loader.resourcePath, onGLTFLoad)
+	}else {
+		console.log("loading from disk..");
+		loader.load('scene.gltf', onGLTFLoad);
+	}
+
+	function onGLTFLoad(gltf) {
+
+		scene.add(gltf.scene);
+
+		scene.traverse(function (obj) {
+			if (obj.userData.boxCollider) {
+				console.log("adding box collider");
+
+				var center = new THREE.Vector3();
+				var size = new THREE.Vector3();
+				var bbox = new THREE.Box3().setFromObject(obj);
+				bbox.getCenter(center);
+				bbox.getSize(size);
+
+				var body = new CANNON.Body({
+					mass: 1, // kg
+					position: CANNONVec(center), // m
+					shape: new CANNON.Box(CANNONVec(size)),
+					linearDamping: .5
+				});
+
+				body.type = CANNON.Body.STATIC;
+
+				world.addBody(body);
+
+				physicsBodies.push({ body: body, mesh: obj })
+			}
+			if (obj.userData.meshCollider) {
+				console.log("adding physics object");
+
+				var sphereBody = new CANNON.Body({
+					mass: 1, // kg
+					position: CANNONVec(obj.position), // m
+					shape: new CANNON.Sphere(1),
+					linearDamping: .5
+				});
+
+				world.addBody(sphereBody);
+
+				physicsBodies.push({ body: sphereBody, mesh: obj })
+			}
+		});
+
 		camera = gltf.cameras[0];
 		addLights();
 		onWindowResize();
 		addControls();
 		animate();
-
-	} );
+	}
 
 	function addLights() {
 		// Lights
@@ -88,17 +145,17 @@ function startScene(container) {
 			hitTestDistance: 40
 		};
 
-		controls = new THREE.FPSMultiplatformControls( camera, document.body );
+		controls = new THREE.FPSMultiplatformControls(camera, document.body);
 
-		scene.add( controls.getObject() );
+		scene.add(controls.getObject());
 
-		document.body.addEventListener( 'click', function () {
-			if(controls.pointerLock.isLocked) {
+		document.body.addEventListener('click', function () {
+			if (controls.pointerLock.isLocked) {
 				controls.pointerLock.unlock();
 			} else {
 				controls.pointerLock.lock();
 			}
-		} );
+		});
 	}
 
 	renderer = new THREE.WebGLRenderer();
@@ -106,20 +163,21 @@ function startScene(container) {
 	container.append(renderer.domElement);
 
 	$(window).on("resize", onWindowResize);
-
-	// $(document.body).on("touchmove", function (event) {
-	// 	event.preventDefault();
-	// 	event.stopPropagation();
-	// });
 }
 
 function animate() {
 
 	requestAnimationFrame(animate);
 
-	if(controls) {
+	const delta = clock.getDelta();
 
-		const delta = clock.getDelta();
+	world.step(fixedTimeStep, delta, maxSubSteps);
+
+	for (let i = 0; i < physicsBodies.length; i++) {
+		updateMeshTransform(physicsBodies[i].body, physicsBodies[i].mesh);
+	}
+
+	if (controls) {
 		controls.update(delta);
 	}
 
@@ -143,26 +201,26 @@ function onWindowResize() {
 function toggleFullScreen() {
 	var doc = window.document;
 	var docEl = doc.documentElement;
-  
+
 	var requestFullScreen =
-	  docEl.requestFullscreen ||
-	  docEl.mozRequestFullScreen ||
-	  docEl.webkitRequestFullScreen ||
-	  docEl.msRequestFullscreen;
+		docEl.requestFullscreen ||
+		docEl.mozRequestFullScreen ||
+		docEl.webkitRequestFullScreen ||
+		docEl.msRequestFullscreen;
 	var cancelFullScreen =
-	  doc.exitFullscreen ||
-	  doc.mozCancelFullScreen ||
-	  doc.webkitExitFullscreen ||
-	  doc.msExitFullscreen;
-  
+		doc.exitFullscreen ||
+		doc.mozCancelFullScreen ||
+		doc.webkitExitFullscreen ||
+		doc.msExitFullscreen;
+
 	if (
-	  !doc.fullscreenElement &&
-	  !doc.mozFullScreenElement &&
-	  !doc.webkitFullscreenElement &&
-	  !doc.msFullscreenElement
+		!doc.fullscreenElement &&
+		!doc.mozFullScreenElement &&
+		!doc.webkitFullscreenElement &&
+		!doc.msFullscreenElement
 	) {
-	  requestFullScreen.call(docEl);
+		requestFullScreen.call(docEl);
 	} else {
-	  cancelFullScreen.call(doc);
+		cancelFullScreen.call(doc);
 	}
-  }
+}
