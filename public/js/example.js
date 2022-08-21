@@ -11,7 +11,7 @@ var aspect;
 const fixedTimeStep = 1.0 / 60.0; // seconds
 const maxSubSteps = 3;
 
-var renderer, camera, scene, controls, clock, world, physicsBodies;
+var renderer, camera, scene, controls, clock, world, physicsBodies, playerBody;
 var sceneObject, intersected;
 
 let moveForward = false;
@@ -68,7 +68,24 @@ function startScene() {
 		scene.add(gltf.scene);
 
 		scene.traverse(function (obj) {
-			if (obj.userData.boxCollider) {
+			console.log(obj);
+			var body;
+			if(obj.name == 'Player') {
+
+				playerBody = new CANNON.Body({
+					mass: 1, // kg
+					position: CANNONVec(obj.position), // m
+					shape: new CANNON.Sphere(.5),
+					linearDamping: .5
+				});
+				playerBody.fixedRotation = true;
+				playerBody.updateMassProperties();
+
+				// playerBody.type = CANNON.Body.KINEMATIC;
+
+				body = playerBody;
+			}
+			else if (obj.userData.boxCollider) {
 				console.log("adding box collider");
 
 				var center = new THREE.Vector3();
@@ -77,32 +94,28 @@ function startScene() {
 				bbox.getCenter(center);
 				bbox.getSize(size);
 
-				var body = new CANNON.Body({
-					mass: 1, // kg
+				body = new CANNON.Body({
+					mass: 0, // kg
 					position: CANNONVec(center), // m
-					shape: new CANNON.Box(CANNONVec(size)),
-					linearDamping: .5
+					shape: new CANNON.Box(CANNONVec(size))
 				});
 
 				body.type = CANNON.Body.STATIC;
-
-				world.addBody(body);
-
-				physicsBodies.push({ body: body, mesh: obj })
 			}
-			if (obj.userData.meshCollider) {
+			else if (obj.userData.meshCollider) {
 				console.log("adding physics object");
 
-				var sphereBody = new CANNON.Body({
+				body = new CANNON.Body({
 					mass: 1, // kg
 					position: CANNONVec(obj.position), // m
-					shape: new CANNON.Sphere(1),
-					linearDamping: .5
+					shape: new CANNON.Sphere(.3),
+					// linearDamping: .5
 				});
+			}
 
-				world.addBody(sphereBody);
-
-				physicsBodies.push({ body: sphereBody, mesh: obj })
+			if(body) {
+				world.addBody(body);
+				physicsBodies.push({ body: body, mesh: obj })
 			}
 		});
 
@@ -131,20 +144,6 @@ function startScene() {
 	}
 
 	function addControls() {
-		// Camera
-		camera = new THREE.PerspectiveCamera(viewAngle, aspect, near, far);
-		camera.position.set(0, .3, -5);
-		camera.lookAt(new THREE.Vector3(0, .3, 0));
-		// Controls
-		var options = {
-			speedFactor: 0.04,
-			delta: 1,
-			rotationFactor: 0.002,
-			maxPitch: 55,
-			hitTest: true,
-			hitTestDistance: 40
-		};
-
 		controls = new THREE.FPSMultiplatformControls(camera, document.body);
 
 		scene.add(controls.getObject());
@@ -171,14 +170,19 @@ function animate() {
 
 	const delta = clock.getDelta();
 
-	world.step(fixedTimeStep, delta, maxSubSteps);
-
-	for (let i = 0; i < physicsBodies.length; i++) {
-		updateMeshTransform(physicsBodies[i].body, physicsBodies[i].mesh);
-	}
-
 	if (controls) {
 		controls.update(delta);
+	}
+
+	copyMeshTransform(playerBody, camera);
+	// playerBody.position = CANNONVec(camera.position);
+
+	world.step(fixedTimeStep, delta, maxSubSteps);
+
+	console.log("playerPos: " + playerBody.position);
+
+	for (let i = 0; i < physicsBodies.length; i++) {
+		copyBodyTransform(physicsBodies[i].body, physicsBodies[i].mesh);
 	}
 
 	renderer.render(scene, camera);

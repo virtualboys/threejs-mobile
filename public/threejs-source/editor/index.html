@@ -121,6 +121,8 @@
 
 						editor.fromJSON( state );
 
+					} else {
+						editor.loadDefaultScene();
 					}
 
 					const selected = editor.config.getKey( 'selected' );

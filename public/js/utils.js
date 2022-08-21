@@ -6,7 +6,7 @@ function THREEVec(vec3) {
 	return new THREE.Vector3(vec3.x, vec3.y, vec3.z);
 }
 
-function updateMeshTransform(body, mesh) {
+function copyBodyTransform(body, mesh) {
 	mesh.position.x = body.position.x;
 	mesh.position.y = body.position.y;
 	mesh.position.z = body.position.z;
@@ -14,4 +14,14 @@ function updateMeshTransform(body, mesh) {
 	mesh.quaternion.y = body.quaternion.y;
 	mesh.quaternion.z = body.quaternion.z;
 	mesh.quaternion.w = body.quaternion.w;
+}
+
+function copyMeshTransform(body, mesh) {
+	body.position.x = mesh.position.x;
+	body.position.y = mesh.position.y;
+	body.position.z = mesh.position.z;
+	body.quaternion.x = mesh.quaternion.x;
+	body.quaternion.y = mesh.quaternion.y;
+	body.quaternion.z = mesh.quaternion.z;
+	body.quaternion.w = mesh.quaternion.w;
 }

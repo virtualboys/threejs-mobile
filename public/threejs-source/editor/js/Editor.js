@@ -6,6 +6,7 @@ import { History as _History } from './History.js';
 import { Strings } from './Strings.js';
 import { Storage as _Storage } from './Storage.js';
 import { Selector } from './Viewport.Selector.js';
+import { AddObjectCommand } from './commands/AddObjectCommand.js';
 
 var _DEFAULT_CAMERA = new THREE.PerspectiveCamera( 50, 1, 0.01, 1000 );
 _DEFAULT_CAMERA.name = 'Camera';
@@ -127,6 +128,30 @@ function Editor() {
 }
 
 Editor.prototype = {
+	loadDefaultScene: async function() {
+
+		console.log('loading default scene!!!');
+		
+		const { DRACOLoader } = await import( '../../examples/jsm/loaders/DRACOLoader.js' );
+		const { GLTFLoader } = await import( '../../examples/jsm/loaders/GLTFLoader.js' );
+
+		const dracoLoader = new DRACOLoader();
+		dracoLoader.setDecoderPath( '../examples/js/libs/draco/gltf/' );
+
+		const manager = new THREE.LoadingManager();
+		const loader = new GLTFLoader( manager );
+		loader.setDRACOLoader( dracoLoader );
+		loader.setPath('../../model/');
+
+		var scope = this;
+		loader.load('scene.gltf', function(gltf) {
+			const scene = gltf.scene;
+			scene.name = 'scene';
+
+			scene.animations.push( ...gltf.animations );
+			scope.execute( new AddObjectCommand( scope, scene ) );
+		});
+	},
 
 	setScene: function ( scene ) {
 

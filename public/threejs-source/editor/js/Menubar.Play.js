@@ -17,16 +17,16 @@ function MenubarPlay( editor ) {
 
 		if ( isPlaying === false ) {
 
-			isPlaying = true;
-			title.setTextContent( strings.getKey( 'menubar/play/stop' ) );
+			// isPlaying = true;
+			// title.setTextContent( strings.getKey( 'menubar/play/stop' ) );
 			
 			openPreview();
 			// signals.startPlayer.dispatch();
 
 		} else {
 
-			isPlaying = false;
-			title.setTextContent( strings.getKey( 'menubar/play/play' ) );
+			// isPlaying = false;
+			// title.setTextContent( strings.getKey( 'menubar/play/play' ) );
 			// signals.stopPlayer.dispatch();
 
 		}
