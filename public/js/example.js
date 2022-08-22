@@ -23,7 +23,7 @@ let canJump = false;
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
-const playerHeight = .3;
+const playerHeight = .7;
 const playerSpeed = 50;
 const jumpSpeed = 10;
 const gravity = 20;
@@ -118,6 +118,7 @@ function startScene() {
 				var bbox = new THREE.Box3().setFromObject(obj);
 				bbox.getCenter(center);
 				bbox.getSize(size);
+				size.multiplyScalar(.5);
 
 				body = new CANNON.Body({
 					mass: 0, // kg
