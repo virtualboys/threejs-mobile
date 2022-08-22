@@ -7,7 +7,7 @@ function Strings( config ) {
 		en: {
 
 			'menubar/file': 'File',
-			'menubar/file/new': 'New',
+			'menubar/file/new': 'Reload Server Scene',
 			'menubar/file/import': 'Import',
 			'menubar/file/export/geometry': 'Export Geometry',
 			'menubar/file/export/object': 'Export Object',

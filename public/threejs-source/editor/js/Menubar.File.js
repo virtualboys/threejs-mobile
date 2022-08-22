@@ -31,7 +31,7 @@ function MenubarFile( editor ) {
 		if ( confirm( 'Any unsaved data will be lost. Are you sure?' ) ) {
 
 			editor.clear();
-
+			editor.loadDefaultScene();
 		}
 
 	} );
