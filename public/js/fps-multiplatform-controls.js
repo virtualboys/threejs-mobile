@@ -8,7 +8,7 @@
 
     class FPSMultiplatformControls {
 
-        constructor(object, domElement) {
+        constructor(object, physicsBody, world, domElement) {
 
             if (domElement === undefined) {
 
@@ -18,6 +18,7 @@
             }
 
             this.object = object;
+            this.physicsBody = physicsBody;
             this.domElement = domElement; // API
 
             this.playerHeight = .5;
@@ -38,6 +39,8 @@
 
             let velocity = new THREE.Vector3();
             let direction = new THREE.Vector3();
+
+            const realVelocity = new THREE.Vector3();
             this.pointerLock = new THREE.PointerLockControls(camera, document.body);
 
             let moveTouchStart = new THREE.Vector2();
@@ -49,6 +52,8 @@
 
             let moveTouchId = -1;
             let rotTouchId = -1;
+
+            const raycastTarget = new CANNON.Vec3();
 
             this.onKeyDown = function (event) {
 
@@ -117,15 +122,15 @@
 
                 for (let i = 0; i < event.changedTouches.length; i++) {
                     let touch = event.changedTouches[i];
-                    if(touch.pageX < window.innerWidth / 2) {
-                        if(moveTouchId == -1) {
+                    if (touch.pageX < window.innerWidth / 2) {
+                        if (moveTouchId == -1) {
                             moveTouchId = touch.identifier;
                             moveTouchStart.x = touch.pageX;
                             moveTouchStart.y = touch.pageY;
                             usingAxisMovement = true;
                         }
                     } else {
-                        if(rotTouchId == -1) {
+                        if (rotTouchId == -1) {
                             rotTouchId = touch.identifier;
                             rotTouchStart.x = touch.pageX;
                             rotTouchStart.y = touch.pageY;
@@ -146,7 +151,7 @@
                 let dy = touchStart.y - touch.pageY;
                 let touchVec = new THREE.Vector2(dx, dy);
                 let vecLength = touchVec.length();
-                if(vecLength < deadZone) {
+                if (vecLength < deadZone) {
                     touchVec.x = 0;
                     touchVec.y = 0;
                 } else {
@@ -165,7 +170,7 @@
 
                 for (let i = 0; i < event.changedTouches.length; i++) {
                     let touch = event.changedTouches[i];
-                    if(touch.identifier == moveTouchId) {
+                    if (touch.identifier == moveTouchId) {
                         let touchVec = getTouchVec(moveTouchStart, touch, this.touchDeadZone);
                         // let dx = moveTouchStart.x - touch.pageX;
                         // let dy = moveTouchStart.y - touch.pageY;
@@ -173,7 +178,7 @@
                         axisMovement.x = -this.touchMoveSpeed * touchVec.x;
                         axisMovement.y = this.touchMoveSpeed * touchVec.y;
 
-                    } else if(touch.identifier == rotTouchId) {
+                    } else if (touch.identifier == rotTouchId) {
                         let touchVec = getTouchVec(rotTouchStart, touch, this.touchDeadZone);
                         // let dx = rotTouchStart.x - touch.pageX;
                         // let dy = rotTouchStart.y - touch.pageY;
@@ -198,14 +203,14 @@
 
                 for (let i = 0; i < event.changedTouches.length; i++) {
                     let touch = event.changedTouches[i];
-                    if(touch.identifier == moveTouchId) {
+                    if (touch.identifier == moveTouchId) {
 
                         moveTouchId = -1;
                         axisMovement.x = 0;
                         axisMovement.y = 0;
                         usingAxisMovement = false;
 
-                    } else if(touch.identifier == rotTouchId) {
+                    } else if (touch.identifier == rotTouchId) {
 
                         rotTouchId = -1;
                         camRot.x = 0;
@@ -222,6 +227,25 @@
 
                 }
             }
+            this.moveForward = function (distance) {
+
+                // move forward parallel to the xz-plane
+                // assumes camera.up is y-up
+                _vector.setFromMatrixColumn(camera.matrix, 0);
+
+                _vector.crossVectors(camera.up, _vector);
+
+                camera.position.addScaledVector(_vector, distance);
+
+            };
+
+            this.moveRight = function (distance) {
+
+                _vector.setFromMatrixColumn(camera.matrix, 0);
+
+                camera.position.addScaledVector(_vector, distance);
+
+            };
 
             this.update = function () {
 
@@ -232,7 +256,7 @@
                     velocity.x -= velocity.x * deceleration * delta;
                     velocity.z -= velocity.z * deceleration * delta;
 
-                    velocity.y -= gravity * delta; // 100.0 = mass
+                    // velocity.y -= gravity * delta; // 100.0 = mass
 
                     direction.z = Number(moveForward) - Number(moveBackward);
                     direction.x = Number(moveRight) - Number(moveLeft);
@@ -257,22 +281,65 @@
                     // 	canJump = true;
 
                     // }
+                    var rightMag = - velocity.x;
+                    var forwardMag = - velocity.z;
+                    // this.pointerLock.moveRight(- velocity.x * delta);
+                    // this.pointerLock.moveForward(- velocity.z * delta);
 
-                    this.pointerLock.moveRight(- velocity.x * delta);
-                    this.pointerLock.moveForward(- velocity.z * delta);
+                    // this.pointerLock.getObject().position.y += (velocity.y * delta); // new behavior
 
-                    this.pointerLock.getObject().position.y += (velocity.y * delta); // new behavior
+                    // if (this.pointerLock.getObject().position.y < this.playerHeight) {
 
-                    if (this.pointerLock.getObject().position.y < this.playerHeight) {
+                    //     velocity.y = 0;
+                    //     this.pointerLock.getObject().position.y = this.playerHeight;
 
-                        velocity.y = 0;
-                        this.pointerLock.getObject().position.y = this.playerHeight;
+
+                    // }
+
+                    var forward = new THREE.Vector3();
+                    object.getWorldDirection(forward);
+                    forward.y = 0;
+                    forward.normalize();
+
+                    var right = new THREE.Vector3();
+                    right.copy(forward);
+                    right.cross(new THREE.Vector3(0, 1, 0));
+
+                    forward.multiplyScalar(forwardMag);
+                    right.multiplyScalar(rightMag);
+                    // object.position.add(forward);
+                    // object.position.add(right);
+                    realVelocity.copy(forward);
+                    realVelocity.add(right);
+                    realVelocity.y = physicsBody.velocity.y + velocity.y;
+                    velocity.y = 0;
+                    physicsBody.velocity = CANNONVec(realVelocity);
+                    copyMeshRot(physicsBody, object);
+
+                    raycastTarget.copy(physicsBody.position);
+                    raycastTarget.y -= this.playerHeight;
+
+                    if(world.raycastClosest(physicsBody.position, raycastTarget,{collisionFilterMask: STATIC_GROUP | DYNAMIC_GROUP},new CANNON.RaycastResult())) {
 
                         canJump = true;
-
+                    }else {
+                        canJump = false;
                     }
 
+                    // move forward parallel to the xz-plane
+                    // assumes camera.up is y-up
+                    // realVelocity.setFromMatrixColumn( object.matrix, 0 );
 
+                    // realVelocity.crossVectors( object.up, realVelocity );
+                    // realVelocity.multiplyScalar(forwardMag);
+                    // physicsBody.velocity = CANNONVec(realVelocity);
+
+                    // realVelocity.setFromMatrixColumn( object.matrix, 0 );
+                    // realVelocity.multiplyScalar(rightMag);
+                    // console.log('real vel: ', realVelocity);
+                    // physicsBody.velocity.vadd(CANNONVec(realVelocity));
+
+                    // camera.position.addScaledVector( realVelocity, distance );
                 };
 
             }();

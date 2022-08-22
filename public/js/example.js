@@ -29,6 +29,10 @@ const jumpSpeed = 10;
 const gravity = 20;
 const deceleration = 10;
 
+const PLAYER_GROUP = 1;
+const STATIC_GROUP = 2;
+const DYNAMIC_GROUP = 4;
+
 $(function () {
 
 
@@ -67,6 +71,22 @@ function startScene() {
 
 		scene.add(gltf.scene);
 
+        // Materials
+        var defaultMat = new CANNON.Material("defaultMat");
+
+        // Adjust constraint equation parameters for ground/ground contact
+        var default_default_cm = new CANNON.ContactMaterial(defaultMat, defaultMat, {
+            friction: 0,
+            restitution: 0,
+            contactEquationStiffness: 1e8,
+            contactEquationRelaxation: 3,
+            frictionEquationStiffness: 1e8,
+            frictionEquationRegularizationTime: 3,
+        });
+
+        // Add contact material to the world
+        world.addContactMaterial(default_default_cm);
+
 		scene.traverse(function (obj) {
 			console.log(obj);
 			var body;
@@ -75,13 +95,18 @@ function startScene() {
 				playerBody = new CANNON.Body({
 					mass: 1, // kg
 					position: CANNONVec(obj.position), // m
-					shape: new CANNON.Sphere(.5),
-					linearDamping: .5
+					shape: new CANNON.Sphere(playerHeight),
+					material: defaultMat,
+					// linearDamping: .5
 				});
 				playerBody.fixedRotation = true;
 				playerBody.updateMassProperties();
+				playerBody.addEventListener('collide', function(e){
+					console.log(e);
+				});
 
-				// playerBody.type = CANNON.Body.KINEMATIC;
+				playerBody.collisionFilterGroup = PLAYER_GROUP;  
+				playerBody.collisionFilterMask =  STATIC_GROUP | DYNAMIC_GROUP;
 
 				body = playerBody;
 			}
@@ -97,10 +122,15 @@ function startScene() {
 				body = new CANNON.Body({
 					mass: 0, // kg
 					position: CANNONVec(center), // m
-					shape: new CANNON.Box(CANNONVec(size))
+					shape: new CANNON.Box(CANNONVec(size)),
+					material: defaultMat,
 				});
 
+				body.collisionFilterGroup = STATIC_GROUP;
+				body.collisionFilterMask =  PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
+
 				body.type = CANNON.Body.STATIC;
+				
 			}
 			else if (obj.userData.meshCollider) {
 				console.log("adding physics object");
@@ -109,8 +139,12 @@ function startScene() {
 					mass: 1, // kg
 					position: CANNONVec(obj.position), // m
 					shape: new CANNON.Sphere(.3),
+					material: defaultMat,
 					// linearDamping: .5
 				});
+
+				body.collisionFilterGroup = DYNAMIC_GROUP;
+				body.collisionFilterMask =  PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
 			}
 
 			if(body) {
@@ -120,6 +154,7 @@ function startScene() {
 		});
 
 		camera = gltf.cameras[0];
+		copyMeshTransform(playerBody, camera);
 		addLights();
 		onWindowResize();
 		addControls();
@@ -144,7 +179,8 @@ function startScene() {
 	}
 
 	function addControls() {
-		controls = new THREE.FPSMultiplatformControls(camera, document.body);
+		controls = new THREE.FPSMultiplatformControls(camera, playerBody, world, document.body);
+		controls.playerHeight = playerHeight;
 
 		scene.add(controls.getObject());
 
@@ -173,17 +209,16 @@ function animate() {
 	if (controls) {
 		controls.update(delta);
 	}
+	// console.log(playerBody.position);
 
-	copyMeshTransform(playerBody, camera);
-	// playerBody.position = CANNONVec(camera.position);
+	// copyMeshTransform(playerBody, camera);
 
 	world.step(fixedTimeStep, delta, maxSubSteps);
-
-	console.log("playerPos: " + playerBody.position);
 
 	for (let i = 0; i < physicsBodies.length; i++) {
 		copyBodyTransform(physicsBodies[i].body, physicsBodies[i].mesh);
 	}
+
 
 	renderer.render(scene, camera);
 }
