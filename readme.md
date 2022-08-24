@@ -1,5 +1,5 @@
-make sure to download and put it in public/model & commit for ur work to be put on the server!
+make sure to download gltf and upload it to the <b>google bucket</b> for ur work to be put on the server!
 
-editor: http://wiz.zone:8125/threejs-source/editor/index.html
+editor: https://threejs-mobile-orcin.vercel.app/threejs-source/editor/index.html
 
-player: http://wiz.zone:8125/
+player: https://threejs-mobile-orcin.vercel.app/
