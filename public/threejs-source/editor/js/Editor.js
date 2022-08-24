@@ -141,10 +141,10 @@ Editor.prototype = {
 		const manager = new THREE.LoadingManager();
 		const loader = new GLTFLoader( manager );
 		loader.setDRACOLoader( dracoLoader );
-		loader.setPath('../../model/');
+		// loader.setPath('../../model/');
 
 		var scope = this;
-		loader.load('scene.gltf', function(gltf) {
+		loader.load('https://storage.googleapis.com/oakley-drop/scene.gltf', function(gltf) {
 			const scene = gltf.scene;
 			scene.name = 'scene';
 
