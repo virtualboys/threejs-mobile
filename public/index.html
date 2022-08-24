@@ -24,7 +24,7 @@
 
 		<div id="container_3d"></div>
 	</div>
-	<!-- <button id="goFS">FS</button> -->
+	<button id="stopPreviewButton" onclick="window.stopPreview()">PREVIEWING</br>Reload Scene From Server</button>
 
 	<script type="text/javascript" src="./libs/jquery-2.1.4.js"></script>
 	<script type="text/javascript" src="./libs/threejs/three.js"></script>
@@ -59,6 +59,14 @@
 				startScene();
 			});
 		});
+
+		function stopPreview() {
+			storage.clearPreview(function(){
+				location.reload();
+			});
+		}
+
+		window.stopPreview = stopPreview;
 	</script>
 
 	<script type="text/javascript" src="./js/example.js"></script>

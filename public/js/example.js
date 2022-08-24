@@ -58,13 +58,16 @@ function startScene() {
 
 	physicsBodies = [];
 
-	const loader = new THREE.GLTFLoader().setPath('model/');
+	const loader = new THREE.GLTFLoader();
 	if(window.previewGLTF) {
 		console.log("Loading preview!");
-		loader.parse(window.previewGLTF, loader.resourcePath, onGLTFLoad)
+		loader.parse(window.previewGLTF, loader.resourcePath, onGLTFLoad);
+
+		var stopPreviewBtn = document.getElementById('stopPreviewButton');
+		stopPreviewBtn.style.display = "block";
 	}else {
 		console.log("loading from disk..");
-		loader.load('scene.gltf', onGLTFLoad);
+		loader.load('https://storage.googleapis.com/oakley-drop/scene.gltf', onGLTFLoad);
 	}
 
 	function onGLTFLoad(gltf) {

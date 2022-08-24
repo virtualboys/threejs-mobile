@@ -122,7 +122,17 @@ function Storage() {
 				console.log( '[' + /\d\d\:\d\d\:\d\d/.exec( new Date() )[ 0 ] + ']', 'Cleared IndexedDB.' );
 
 			};
+		},
 
+		clearPreview: function(onSuccess) {
+			const transaction2 = database.transaction( [ 'gltfCache' ], 'readwrite' );
+			const objectStore2 = transaction2.objectStore( 'gltfCache' );
+			const request2 = objectStore2.clear();
+			request2.onsuccess = function () {
+
+				console.log( '[' + /\d\d\:\d\d\:\d\d/.exec( new Date() )[ 0 ] + ']', 'Cleared gltf preview.' );
+				onSuccess();
+			};
 		}
 
 	};

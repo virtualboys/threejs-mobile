@@ -127,6 +127,16 @@ body {
     opacity: 0;
     background: linear-gradient(90deg, #4c3b3b 0%, #272626 100%); }
 
+#stopPreviewButton {
+
+  position: absolute;
+  top: 50;
+  left: 50;
+  width:100;
+  height:50;
+  display:none;
+}
+
 #container_3d {
   overflow: hidden;
   position: absolute;
