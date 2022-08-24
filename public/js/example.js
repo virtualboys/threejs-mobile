@@ -64,7 +64,9 @@ function startScene() {
 		loader.parse(window.previewGLTF, loader.resourcePath, onGLTFLoad);
 
 		var stopPreviewBtn = document.getElementById('stopPreviewButton');
-		stopPreviewBtn.style.display = "block";
+		if(stopPreviewBtn) {
+			stopPreviewBtn.style.display = "block";
+		}
 	}else {
 		console.log("loading from disk..");
 		loader.load('https://storage.googleapis.com/oakley-drop/scene.gltf', onGLTFLoad);
