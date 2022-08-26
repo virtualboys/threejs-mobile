@@ -23,7 +23,7 @@ let canJump = false;
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
-const playerHeight = .7;
+const playerHeight = 2.7;
 const playerSpeed = 50;
 const jumpSpeed = 10;
 const gravity = 20;
@@ -160,6 +160,8 @@ function startScene() {
 		});
 
 		camera = gltf.cameras[0];
+		camera.far = 300;
+		camera.updateProjectionMatrix();
 		copyMeshTransform(playerBody, camera);
 		addLights();
 		onWindowResize();
