@@ -43,14 +43,15 @@
 	<script type="text/javascript" src="./js/utils.js"></script>
 
 	<script type="text/javascript">
-			function pdef(e) {
+		function pdef(e) {
 
-                event.stopPropagation();
-                event.preventDefault(); // prevent scrolling
-			}
-            // window.addEventListener('touchstart',pdef, { passive: false });
-            // window.addEventListener('touchend', pdef, { passive: false });
-            // window.addEventListener('touchmove', pdef, { passive: false });
+			e.stopPropagation();
+			e.preventDefault(); // prevent scrolling
+			e.stopImmediatePropagation();
+		}
+		window.addEventListener('touchstart', pdef, { passive: false });
+		window.addEventListener('touchend', pdef, { passive: false });
+		window.addEventListener('touchmove', pdef, { passive: false });
 
 	</script>
 
@@ -73,7 +74,7 @@
 		});
 
 		function stopPreview() {
-			storage.clearPreview(function(){
+			storage.clearPreview(function () {
 				location.reload();
 			});
 		}
