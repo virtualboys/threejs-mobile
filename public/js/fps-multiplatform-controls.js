@@ -118,6 +118,7 @@
 
             this.onTouchStart = function (event) {
 
+                event.stopPropagation();
                 event.preventDefault(); // prevent scrolling
 
                 for (let i = 0; i < event.changedTouches.length; i++) {

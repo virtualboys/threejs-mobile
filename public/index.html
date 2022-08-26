@@ -42,6 +42,18 @@
 	<script type="text/javascript" src="./js/fps-multiplatform-controls.js"></script>
 	<script type="text/javascript" src="./js/utils.js"></script>
 
+	<script type="text/javascript">
+			function pdef(e) {
+
+                event.stopPropagation();
+                event.preventDefault(); // prevent scrolling
+			}
+            // window.addEventListener('touchstart',pdef, { passive: false });
+            // window.addEventListener('touchend', pdef, { passive: false });
+            // window.addEventListener('touchmove', pdef, { passive: false });
+
+	</script>
+
 
 	<script type="module">
 
