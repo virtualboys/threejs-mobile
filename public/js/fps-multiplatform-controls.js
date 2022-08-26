@@ -8,7 +8,7 @@
 
     class FPSMultiplatformControls {
 
-        constructor(object, physicsBody, world, domElement) {
+        constructor(object, physicsBody, world, domElement, touchEventHandler) {
 
             if (domElement === undefined) {
 
@@ -118,9 +118,9 @@
 
             this.onTouchStart = function (event) {
 
-                event.stopPropagation();
-                event.preventDefault(); // prevent scrolling
-                event.stopImmediatePropagation();
+                // event.stopPropagation();
+                // event.preventDefault(); // prevent scrolling
+                // event.stopImmediatePropagation();
 
                 for (let i = 0; i < event.changedTouches.length; i++) {
                     let touch = event.changedTouches[i];
@@ -167,9 +167,9 @@
 
             this.onTouchMove = function (event) {
 
-                event.stopPropagation();
-                event.preventDefault(); // prevent scrolling
-                event.stopImmediatePropagation();
+                // event.stopPropagation();
+                // event.preventDefault(); // prevent scrolling
+                // event.stopImmediatePropagation();
 
                 for (let i = 0; i < event.changedTouches.length; i++) {
                     let touch = event.changedTouches[i];
@@ -203,9 +203,9 @@
             }
 
             this.onTouchEnd = function (event) {
-                event.stopPropagation();
-                event.preventDefault(); // prevent scrolling
-                event.stopImmediatePropagation();
+                // event.stopPropagation();
+                // event.preventDefault(); // prevent scrolling
+                // event.stopImmediatePropagation();
 
                 for (let i = 0; i < event.changedTouches.length; i++) {
                     let touch = event.changedTouches[i];
@@ -369,25 +369,29 @@
                 window.removeEventListener('keydown', _onKeyDown);
                 window.removeEventListener('keyup', _onKeyUp);
 
-                window.removeEventListener('touchstart', _onTouchStart, false);
-                window.removeEventListener('touchend', _onTouchEnd, false);
-                window.removeEventListener('touchmove', _onTouchMove, false);
+                // window.removeEventListener('touchstart', _onTouchStart, false);
+                // window.removeEventListener('touchend', _onTouchEnd, false);
+                // window.removeEventListener('touchmove', _onTouchMove, false);
 
             };
 
             const _onKeyDown = this.onKeyDown.bind(this);
             const _onKeyUp = this.onKeyUp.bind(this);
-            const _onTouchStart = this.onTouchStart.bind(this);
-            const _onTouchEnd = this.onTouchEnd.bind(this);
-            const _onTouchMove = this.onTouchMove.bind(this);
+            // const _onTouchStart = this.onTouchStart.bind(this);
+            // const _onTouchEnd = this.onTouchEnd.bind(this);
+            // const _onTouchMove = this.onTouchMove.bind(this);
 
             window.addEventListener('keydown', _onKeyDown);
             window.addEventListener('keyup', _onKeyUp);
 
+            touchEventHandler.touchStart = this.onTouchStart.bind(this);
+            touchEventHandler.touchMove = this.onTouchMove.bind(this);
+            touchEventHandler.touchEnd = this.onTouchEnd.bind(this);
 
-            window.addEventListener('touchstart', _onTouchStart, { passive: false });
-            window.addEventListener('touchend', _onTouchEnd, { passive: false });
-            window.addEventListener('touchmove', _onTouchMove, { passive: false });
+
+            // window.addEventListener('touchstart', _onTouchStart, { passive: false });
+            // window.addEventListener('touchend', _onTouchEnd, { passive: false });
+            // window.addEventListener('touchmove', _onTouchMove, { passive: false });
         }
 
     }

@@ -13,6 +13,7 @@ const maxSubSteps = 3;
 
 var renderer, camera, scene, controls, clock, world, physicsBodies, playerBody;
 var sceneObject, intersected;
+const touchEventHandler = new THREE.TouchEventHandler();
 
 let moveForward = false;
 let moveBackward = false;
@@ -190,7 +191,7 @@ function startScene() {
 	}
 
 	function addControls() {
-		controls = new THREE.FPSMultiplatformControls(camera, playerBody, world, document.body);
+		controls = new THREE.FPSMultiplatformControls(camera, playerBody, world, document.body, touchEventHandler);
 		controls.playerHeight = playerHeight;
 
 		scene.add(controls.getObject());
