@@ -120,6 +120,7 @@
 
                 event.stopPropagation();
                 event.preventDefault(); // prevent scrolling
+                event.stopImmediatePropagation();
 
                 for (let i = 0; i < event.changedTouches.length; i++) {
                     let touch = event.changedTouches[i];
@@ -166,8 +167,9 @@
 
             this.onTouchMove = function (event) {
 
-                event.preventDefault(); // prevent scrolling
                 event.stopPropagation();
+                event.preventDefault(); // prevent scrolling
+                event.stopImmediatePropagation();
 
                 for (let i = 0; i < event.changedTouches.length; i++) {
                     let touch = event.changedTouches[i];
@@ -201,6 +203,9 @@
             }
 
             this.onTouchEnd = function (event) {
+                event.stopPropagation();
+                event.preventDefault(); // prevent scrolling
+                event.stopImmediatePropagation();
 
                 for (let i = 0; i < event.changedTouches.length; i++) {
                     let touch = event.changedTouches[i];
