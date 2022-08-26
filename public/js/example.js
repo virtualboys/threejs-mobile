@@ -69,7 +69,8 @@ function startScene() {
 		}
 	}else {
 		console.log("loading from disk..");
-		loader.load('https://storage.googleapis.com/oakley-drop/scene.gltf', onGLTFLoad);
+		// loader.load('https://storage.googleapis.com/oakley-drop/scene.gltf', onGLTFLoad);
+		loader.load('model/scene.gltf', onGLTFLoad);
 	}
 
 	function onGLTFLoad(gltf) {
