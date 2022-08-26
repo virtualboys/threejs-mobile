@@ -69,9 +69,9 @@ function startScene() {
 			stopPreviewBtn.style.display = "block";
 		}
 	}else {
-		console.log("loading from disk..");
-		// loader.load('https://storage.googleapis.com/oakley-drop/scene.gltf', onGLTFLoad);
-		loader.load('model/scene.gltf', onGLTFLoad);
+		console.log("loading from server..");
+		loader.load('https://storage.googleapis.com/oakley-drop/scene.gltf', onGLTFLoad);
+		// loader.load('model/scene.gltf', onGLTFLoad);
 	}
 
 	function onGLTFLoad(gltf) {
@@ -196,13 +196,13 @@ function startScene() {
 
 		scene.add(controls.getObject());
 
-		// document.body.addEventListener('click', function () {
-		// 	if (controls.pointerLock.isLocked) {
-		// 		controls.pointerLock.unlock();
-		// 	} else {
-		// 		controls.pointerLock.lock();
-		// 	}
-		// });
+		document.body.addEventListener('click', function () {
+			if (controls.pointerLock.isLocked) {
+				controls.pointerLock.unlock();
+			} else {
+				controls.pointerLock.lock();
+			}
+		});
 	}
 
 	renderer = new THREE.WebGLRenderer();
