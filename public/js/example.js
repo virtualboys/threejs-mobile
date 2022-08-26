@@ -164,6 +164,8 @@ function startScene() {
 		camera.updateProjectionMatrix();
 		copyMeshTransform(playerBody, camera);
 		addLights();
+
+		$(window).on("resize", onWindowResize);
 		onWindowResize();
 		addControls();
 		animate();
@@ -192,20 +194,18 @@ function startScene() {
 
 		scene.add(controls.getObject());
 
-		document.body.addEventListener('click', function () {
-			if (controls.pointerLock.isLocked) {
-				controls.pointerLock.unlock();
-			} else {
-				controls.pointerLock.lock();
-			}
-		});
+		// document.body.addEventListener('click', function () {
+		// 	if (controls.pointerLock.isLocked) {
+		// 		controls.pointerLock.unlock();
+		// 	} else {
+		// 		controls.pointerLock.lock();
+		// 	}
+		// });
 	}
 
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize(width, height);
 	container.append(renderer.domElement);
-
-	$(window).on("resize", onWindowResize);
 }
 
 function animate() {
