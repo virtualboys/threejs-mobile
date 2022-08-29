@@ -2,6 +2,8 @@
 // import * as THREE from 'three';
 // import { GLTFLoader } from './libs/threejs/GLTFLoader.js';
 
+THREE.Cache.enabled = true;
+
 var width, height;
 var viewAngle = 45,
 	near = 1,
@@ -11,9 +13,11 @@ var aspect;
 const fixedTimeStep = 1.0 / 60.0; // seconds
 const maxSubSteps = 3;
 
-var renderer, camera, scene, controls, clock, world, physicsBodies, playerBody;
+var renderer, camera, uiCam, scene, uiScene, controls, clock, world, physicsBodies, playerBody;
 var sceneObject, intersected;
-const touchEventHandler = new THREE.TouchEventHandler();
+
+const touchEventHandler = new THREE.TouchEventHandler(document);
+var pacControls;
 
 let moveForward = false;
 let moveBackward = false;
@@ -50,6 +54,9 @@ function startScene() {
 	aspect = width / height;
 
 	scene = new THREE.Scene();
+	uiScene = new THREE.Scene();
+	uiCam = new THREE.OrthographicCamera(-1, 1, 1 / aspect, -1 / aspect, .01, 100);
+
 	clock = new THREE.Clock();
 
 	world = new CANNON.World();
@@ -60,17 +67,18 @@ function startScene() {
 	physicsBodies = [];
 
 	const loader = new THREE.GLTFLoader();
-	if(window.previewGLTF) {
+	if (window.previewGLTF) {
 		console.log("Loading preview!");
 		loader.parse(window.previewGLTF, loader.resourcePath, onGLTFLoad);
 
 		var stopPreviewBtn = document.getElementById('stopPreviewButton');
-		if(stopPreviewBtn) {
+		if (stopPreviewBtn) {
 			stopPreviewBtn.style.display = "block";
 		}
-	}else {
+	} else {
 		console.log("loading from server..");
 		loader.load('https://storage.googleapis.com/oakley-drop/scene.gltf', onGLTFLoad);
+		// loader.setPath
 		// loader.load('model/scene.gltf', onGLTFLoad);
 	}
 
@@ -78,26 +86,26 @@ function startScene() {
 
 		scene.add(gltf.scene);
 
-        // Materials
-        var defaultMat = new CANNON.Material("defaultMat");
+		// Materials
+		var defaultMat = new CANNON.Material("defaultMat");
 
-        // Adjust constraint equation parameters for ground/ground contact
-        var default_default_cm = new CANNON.ContactMaterial(defaultMat, defaultMat, {
-            friction: 0,
-            restitution: 0,
-            contactEquationStiffness: 1e8,
-            contactEquationRelaxation: 3,
-            frictionEquationStiffness: 1e8,
-            frictionEquationRegularizationTime: 3,
-        });
+		// Adjust constraint equation parameters for ground/ground contact
+		var default_default_cm = new CANNON.ContactMaterial(defaultMat, defaultMat, {
+			friction: 0,
+			restitution: 0,
+			contactEquationStiffness: 1e8,
+			contactEquationRelaxation: 3,
+			frictionEquationStiffness: 1e8,
+			frictionEquationRegularizationTime: 3,
+		});
 
-        // Add contact material to the world
-        world.addContactMaterial(default_default_cm);
+		// Add contact material to the world
+		world.addContactMaterial(default_default_cm);
 
 		scene.traverse(function (obj) {
 			console.log(obj);
 			var body;
-			if(obj.name == 'Player') {
+			if (obj.name == 'Player') {
 
 				playerBody = new CANNON.Body({
 					mass: 1, // kg
@@ -108,12 +116,12 @@ function startScene() {
 				});
 				playerBody.fixedRotation = true;
 				playerBody.updateMassProperties();
-				playerBody.addEventListener('collide', function(e){
+				playerBody.addEventListener('collide', function (e) {
 					console.log(e);
 				});
 
-				playerBody.collisionFilterGroup = PLAYER_GROUP;  
-				playerBody.collisionFilterMask =  STATIC_GROUP | DYNAMIC_GROUP;
+				playerBody.collisionFilterGroup = PLAYER_GROUP;
+				playerBody.collisionFilterMask = STATIC_GROUP | DYNAMIC_GROUP;
 
 				body = playerBody;
 			}
@@ -135,10 +143,10 @@ function startScene() {
 				});
 
 				body.collisionFilterGroup = STATIC_GROUP;
-				body.collisionFilterMask =  PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
+				body.collisionFilterMask = PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
 
 				body.type = CANNON.Body.STATIC;
-				
+
 			}
 			else if (obj.userData.meshCollider) {
 				console.log("adding physics object");
@@ -152,10 +160,10 @@ function startScene() {
 				});
 
 				body.collisionFilterGroup = DYNAMIC_GROUP;
-				body.collisionFilterMask =  PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
+				body.collisionFilterMask = PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
 			}
 
-			if(body) {
+			if (body) {
 				world.addBody(body);
 				physicsBodies.push({ body: body, mesh: obj })
 			}
@@ -167,9 +175,11 @@ function startScene() {
 		copyMeshTransform(playerBody, camera);
 		addLights();
 
+		addControls();
+
 		$(window).on("resize", onWindowResize);
 		onWindowResize();
-		addControls();
+
 		animate();
 	}
 
@@ -196,6 +206,8 @@ function startScene() {
 
 		scene.add(controls.getObject());
 
+		// pacControls = new THREE.PointAndClickControls(camera, playerBody, uiScene, uiCam, touchEventHandler);
+
 		document.body.addEventListener('click', function () {
 			if (controls.pointerLock.isLocked) {
 				controls.pointerLock.unlock();
@@ -203,6 +215,8 @@ function startScene() {
 				controls.pointerLock.lock();
 			}
 		});
+
+
 	}
 
 	renderer = new THREE.WebGLRenderer();
@@ -219,9 +233,6 @@ function animate() {
 	if (controls) {
 		controls.update(delta);
 	}
-	// console.log(playerBody.position);
-
-	// copyMeshTransform(playerBody, camera);
 
 	world.step(fixedTimeStep, delta, maxSubSteps);
 
@@ -229,8 +240,11 @@ function animate() {
 		copyBodyTransform(physicsBodies[i].body, physicsBodies[i].mesh);
 	}
 
-
+	renderer.autoClear = true;
 	renderer.render(scene, camera);
+	renderer.autoClear = false;
+	renderer.clearDepth();
+	renderer.render(uiScene, uiCam);
 }
 
 function onWindowResize() {
@@ -238,8 +252,17 @@ function onWindowResize() {
 	width = window.innerWidth;
 	height = window.innerHeight;
 
-	camera.aspect = width / height;
+	aspect = width / height;
+	camera.aspect = aspect;
 	camera.updateProjectionMatrix();
+
+	uiCam.left = -1;
+	uiCam.right = 1;
+	uiCam.top = 1 / aspect;
+	uiCam.bottom = -1 / aspect;
+	uiCam.updateProjectionMatrix();
+
+	// pacControls.resize(aspect);
 
 	renderer.setSize(width, height);
 }
