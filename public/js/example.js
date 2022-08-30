@@ -104,6 +104,9 @@ function startScene() {
 
 		scene.traverse(function (obj) {
 			console.log(obj);
+			if(obj.isLight) {
+				console.log('is light!');
+			}
 			var body;
 			if (obj.name == 'Player') {
 
@@ -173,7 +176,7 @@ function startScene() {
 		camera.far = 300;
 		camera.updateProjectionMatrix();
 		copyMeshTransform(playerBody, camera);
-		addLights();
+		// addLights();
 
 		addControls();
 
