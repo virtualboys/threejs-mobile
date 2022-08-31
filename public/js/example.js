@@ -222,8 +222,8 @@ function startScene() {
 
 	}
 
-	// renderer = new THREE.WebGLRenderer({antialias: true});
-	renderer = new THREE.WebGLRenderer();
+	renderer = new THREE.WebGLRenderer({antialias: true});
+	// renderer = new THREE.WebGLRenderer();
 	renderer.setSize(width, height);
 	container.append(renderer.domElement);
 }
