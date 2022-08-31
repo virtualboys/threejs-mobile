@@ -176,7 +176,7 @@ function startScene() {
 		camera.far = 300;
 		camera.updateProjectionMatrix();
 		copyMeshTransform(playerBody, camera);
-		// addLights();
+		addLights();
 
 		addControls();
 
@@ -188,19 +188,19 @@ function startScene() {
 
 	function addLights() {
 		// Lights
-		var ambient = new THREE.AmbientLight(0x404040);
+		var ambient = new THREE.AmbientLight(0x6b6b6b);
 		scene.add(ambient);
 
-		var light1 = new THREE.PointLight(0xffffff);
-		light1.position.set(0, 2000, 750);
-		light1.intensity = 0.45;
-		//light1.castShadow = true;
-		scene.add(light1);
+		// var light1 = new THREE.PointLight(0xffffff);
+		// light1.position.set(0, 2000, 750);
+		// light1.intensity = 0.45;
+		// //light1.castShadow = true;
+		// scene.add(light1);
 
-		var light2 = new THREE.PointLight(0xFFFFFF);
-		light2.position.set(5, 100, -200);
-		light2.intensity = 0.4;
-		scene.add(light2);
+		// var light2 = new THREE.PointLight(0xFFFFFF);
+		// light2.position.set(5, 100, -200);
+		// light2.intensity = 0.4;
+		// scene.add(light2);
 	}
 
 	function addControls() {
@@ -222,6 +222,7 @@ function startScene() {
 
 	}
 
+	// renderer = new THREE.WebGLRenderer({antialias: true});
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize(width, height);
 	container.append(renderer.domElement);
