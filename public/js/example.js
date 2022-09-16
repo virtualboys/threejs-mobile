@@ -104,10 +104,19 @@ function startScene() {
 
 		scene.traverse(function (obj) {
 			console.log(obj);
+			var geom = "";
 			if(obj.isLight) {
 				console.log('is light!');
 			}
 			var body;
+			if(obj.name == "reactor_1") {
+				for(var i = 0; i < obj.geometry.attributes.position.array.length; i++) {
+					geom += obj.geometry.attributes.position.array[i];
+					geom += ",";
+				}
+				// obj.geometry.attributes.position.array.foreach(e => geom += e);
+				console.log(geom);
+			}
 			if (obj.name == 'Player') {
 
 				playerBody = new CANNON.Body({
@@ -223,6 +232,10 @@ function startScene() {
 	}
 
 	renderer = new THREE.WebGLRenderer({antialias: true});
+	renderer.gammaOutput = true;
+	renderer.gammaFactor = 2.2;
+	renderer.outputEncoding = THREE.sRGBEncoding;
+
 	// renderer = new THREE.WebGLRenderer();
 	renderer.setSize(width, height);
 	container.append(renderer.domElement);
