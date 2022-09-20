@@ -13,8 +13,9 @@ var aspect;
 const fixedTimeStep = 1.0 / 60.0; // seconds
 const maxSubSteps = 3;
 
-var renderer, camera, uiCam, scene, uiScene, controls, clock, world, physicsBodies, playerBody;
+var renderer, composer, camera, uiCam, scene, uiScene, controls, clock, world, physicsBodies, playerBody;
 var sceneObject, intersected;
+var bloomPass;
 
 const touchEventHandler = new THREE.TouchEventHandler(document);
 var pacControls;
@@ -189,6 +190,8 @@ function startScene() {
 
 		addControls();
 
+		createRenderer();
+
 		$(window).on("resize", onWindowResize);
 		onWindowResize();
 
@@ -230,15 +233,39 @@ function startScene() {
 
 
 	}
+}
+
+function createRenderer() {
 
 	renderer = new THREE.WebGLRenderer({antialias: true});
 	renderer.gammaOutput = true;
 	renderer.gammaFactor = 2.2;
 	renderer.outputEncoding = THREE.sRGBEncoding;
+	renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
 	// renderer = new THREE.WebGLRenderer();
 	renderer.setSize(width, height);
 	container.append(renderer.domElement);
+	
+	const renderScene = new THREE.RenderPass( scene, camera );
+	
+	const bloomParams = {
+		exposure: .5,
+		bloomStrength: .5,
+		bloomThreshold: .5,
+		bloomRadius: .7
+	};
+
+	bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
+	bloomPass.threshold = bloomParams.bloomThreshold;
+	bloomPass.strength = bloomParams.bloomStrength;
+	bloomPass.radius = bloomParams.bloomRadius;
+
+	composer = new THREE.EffectComposer( renderer );
+	composer.addPass( renderScene );
+	composer.addPass( bloomPass );
+	composer.setSize(width, height);
+
 }
 
 function animate() {
@@ -257,11 +284,12 @@ function animate() {
 		copyBodyTransform(physicsBodies[i].body, physicsBodies[i].mesh);
 	}
 
-	renderer.autoClear = true;
-	renderer.render(scene, camera);
-	renderer.autoClear = false;
-	renderer.clearDepth();
-	renderer.render(uiScene, uiCam);
+	composer.render();
+	//renderer.autoClear = true;
+	// renderer.render(scene, camera);
+	// renderer.autoClear = false;
+	// renderer.clearDepth();
+	// renderer.render(uiScene, uiCam);
 }
 
 function onWindowResize() {
@@ -282,6 +310,7 @@ function onWindowResize() {
 	// pacControls.resize(aspect);
 
 	renderer.setSize(width, height);
+	composer.setSize( width, height );
 }
 
 /* Get the element you want displayed in fullscreen mode (a video in this example): */
