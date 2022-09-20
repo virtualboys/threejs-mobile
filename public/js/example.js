@@ -38,6 +38,22 @@ const PLAYER_GROUP = 1;
 const STATIC_GROUP = 2;
 const DYNAMIC_GROUP = 4;
 
+const loadingManager = new THREE.LoadingManager( () => {
+	
+	const loadingScreen = document.getElementById( 'loading-screen' );
+	loadingScreen.classList.add( 'fade-out' );
+	
+	// optional: remove loader from DOM via event listener
+	loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
+	
+} );
+
+function onTransitionEnd( event ) {
+
+	event.target.remove();
+	
+}
+
 $(function () {
 
 
@@ -66,7 +82,7 @@ function startScene() {
 
 	physicsBodies = [];
 
-	const loader = new THREE.GLTFLoader();
+	const loader = new THREE.GLTFLoader(loadingManager);
 	if (window.previewGLTF) {
 		console.log("Loading preview!");
 		loader.parse(window.previewGLTF, loader.resourcePath, onGLTFLoad);
@@ -190,6 +206,7 @@ function startScene() {
 		addControls();
 
 		$(window).on("resize", onWindowResize);
+		screen.orientation.addEventListener('change', onWindowResize);
 		onWindowResize();
 
 		animate();
