@@ -64,6 +64,8 @@ $(function () {
 function startScene() {
 	if (!Detector.webgl) Detector.addGetWebGLMessage();
 
+	console.log("starting scene");
+
 	var container = $("#container_3d");
 	// startScene(container);
 
@@ -106,7 +108,8 @@ function startScene() {
 	}
 
 	function onGLTFLoad(gltf) {
-
+		
+		console.log("on gltf load");
 		scene.add(gltf.scene);
 
 		// Materials
@@ -284,6 +287,8 @@ function startScene() {
 
 function createRenderer() {
 
+	
+	console.log("creating renderer");
 	renderer = new THREE.WebGLRenderer({antialias: true});
 	renderer.gammaOutput = true;
 	renderer.gammaFactor = 2.2;
@@ -315,6 +320,8 @@ function createRenderer() {
 }
 
 function startGame() {
+	
+	console.log("starting game");
 	const overlay = document.getElementById( 'start-screen' );
 	overlay.remove();
 
