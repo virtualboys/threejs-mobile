@@ -83,7 +83,7 @@ export function startScene() {
 
   console.log("starting scene");
 
-  var container = $("#container_3d");
+  container = $("#container_3d");
   // startScene(container);
 
   width = window.innerWidth;
@@ -362,7 +362,6 @@ function animate() {
   if (controls) {
     controls.update(delta);
   }
-
   world.step(fixedTimeStep, delta, maxSubSteps);
 
   for (let i = 0; i < physicsBodies.length; i++) {
