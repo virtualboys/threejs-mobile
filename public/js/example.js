@@ -1,8 +1,6 @@
-
-// import * as THREE from 'three';
 // import { GLTFLoader } from './libs/threejs/GLTFLoader.js';
 
-THREE.Cache.enabled = true;
+//THREE.Cache.enabled = true;
 
 var width, height;
 var viewAngle = 45,
@@ -13,7 +11,7 @@ var aspect;
 const fixedTimeStep = 1.0 / 60.0; // seconds
 const maxSubSteps = 3;
 
-var renderer, composer, camera, uiCam, scene, uiScene, controls, clock, world, physicsBodies, playerBody;
+var renderer, composer, camera, uiCam, scene, uiScene, controls, clock, world, physicsBodies, playerBody, effects;
 var sceneObject, intersected;
 var bloomPass;
 
@@ -71,17 +69,19 @@ function startScene() {
 	aspect = width / height;
 
 	scene = new THREE.Scene();
+
 	uiScene = new THREE.Scene();
 	uiCam = new THREE.OrthographicCamera(-1, 1, 1 / aspect, -1 / aspect, .01, 100);
-
 	clock = new THREE.Clock();
-
 	world = new CANNON.World();
 	world.gravity.set(0, -9, 0);
 	world.broadphase = new CANNON.NaiveBroadphase();
 	world.solver.iterations = 10;
 
 	physicsBodies = [];
+
+	const rotAxis = new THREE.Vector3(0,1,0);
+	effects = [];
 
 	const loader = new THREE.GLTFLoader(loadingManager);
 	if (window.previewGLTF) {
@@ -192,6 +192,14 @@ function startScene() {
 				body.collisionFilterMask = PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
 			}
 
+			if(obj.userData.invisible) {
+				obj.visible = false;
+			}
+
+			if(obj.userData.rotate) {
+				effects.push(rotateEffect(obj,.1,rotAxis));
+			}
+
 			if (body) {
 				world.addBody(body);
 				physicsBodies.push({ body: body, mesh: obj })
@@ -265,7 +273,6 @@ function createRenderer() {
 	container.append(renderer.domElement);
 	
 	const renderScene = new THREE.RenderPass( scene, camera );
-	
 	const bloomParams = {
 		exposure: .5,
 		bloomStrength: .5,
@@ -301,12 +308,9 @@ function animate() {
 		copyBodyTransform(physicsBodies[i].body, physicsBodies[i].mesh);
 	}
 
+	effects.forEach((effect) => effect.update(delta))
+
 	composer.render();
-	//renderer.autoClear = true;
-	// renderer.render(scene, camera);
-	// renderer.autoClear = false;
-	// renderer.clearDepth();
-	// renderer.render(uiScene, uiCam);
 }
 
 function onWindowResize() {

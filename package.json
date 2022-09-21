@@ -1,0 +1,24 @@
+{
+  "name": "oakley-shoes-promo",
+  "version": "1.0.0",
+  "description": "braindead ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/virtualboys/threejs-mobile.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/virtualboys/threejs-mobile/issues"
+  },
+  "homepage": "https://github.com/virtualboys/threejs-mobile#readme",
+  "devDependencies": {
+    "@types/cannon": "^0.1.8",
+    "@types/three": "^0.144.0",
+    "tsc": "^2.0.4"
+  }
+}
