@@ -330,8 +330,10 @@ function animate() {
 }
 
 function onWindowResize() {
-	width = window.innerWidth;
-	height = window.innerHeight;
+
+    rect = document.documentElement.getBoundingClientRect();
+	width = rect.width;
+	height = rect.height;
 	
 	console.log('on window resize! ', width, ",",height);
 	aspect = width / height;
