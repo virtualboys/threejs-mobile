@@ -1,6 +1,6 @@
 // import { GLTFLoader } from './libs/threejs/GLTFLoader.js';
 
-//THREE.Cache.enabled = true;
+THREE.Cache.enabled = true;
 
 var width, height;
 var viewAngle = 45,
@@ -14,6 +14,9 @@ const maxSubSteps = 3;
 var renderer, composer, camera, uiCam, scene, uiScene, controls, clock, world, physicsBodies, playerBody, effects;
 var sceneObject, intersected;
 var bloomPass;
+
+const audioListener = new THREE.AudioListener();
+let sounds = [];
 
 const touchEventHandler = new THREE.TouchEventHandler(document);
 var pacControls;
@@ -79,11 +82,14 @@ function startScene() {
 	world.solver.iterations = 10;
 
 	physicsBodies = [];
-
+	sounds = [];
+	
 	const rotAxis = new THREE.Vector3(0,0,1);
 	effects = [];
 
 	const loader = new THREE.GLTFLoader(loadingManager);
+	const audioLoader = new THREE.AudioLoader(loadingManager);
+
 	if (window.previewGLTF) {
 		console.log("Loading preview!");
 		loader.parse(window.previewGLTF, loader.resourcePath, onGLTFLoad);
@@ -118,8 +124,6 @@ function startScene() {
 
 		// Add contact material to the world
 		world.addContactMaterial(default_default_cm);
-
-		let rotateObjects = [];
 
 		scene.traverse(function (obj) {
 			console.log(obj);
@@ -211,6 +215,18 @@ function startScene() {
 				effects.push(hoverEffect(obj, .09, .1,rotAxis));
 			}
 
+			if(obj.userData.soundEffect){
+				// load a sound and set it as the PositionalAudio object's buffer
+				const sound = new THREE.PositionalAudio( audioListener );
+				sound.loop = true;
+				audioLoader.load( 'sounds/' + obj.userData.soundEffect + '.ogg', function( buffer ) {
+					sound.setBuffer( buffer );
+					sound.setRefDistance( 1 );
+					sounds.push(sound);
+					obj.add(sound);
+				});
+			}
+
 			if (body) {
 				world.addBody(body);
 				physicsBodies.push({ body: body, mesh: obj })
@@ -226,17 +242,17 @@ function startScene() {
 		camera.far = 300;
 		camera.updateProjectionMatrix();
 		copyMeshTransform(playerBody, camera);
+
+		camera.add( audioListener );
+
 		addLights();
 
 		addControls();
 
 		createRenderer();
 
-		$(window).on("resize", onWindowResize);
-		// screen.orientation.addEventListener('change', onWindowResize);
-		onWindowResize();
-
-		animate();
+		const startButton = document.getElementById( 'start-button' );
+		startButton.addEventListener( 'click', startGame );
 	}
 
 	function addLights() {
@@ -244,16 +260,6 @@ function startScene() {
 		var ambient = new THREE.AmbientLight(0x6b6b6b);
 		scene.add(ambient);
 
-		// var light1 = new THREE.PointLight(0xffffff);
-		// light1.position.set(0, 2000, 750);
-		// light1.intensity = 0.45;
-		// //light1.castShadow = true;
-		// scene.add(light1);
-
-		// var light2 = new THREE.PointLight(0xFFFFFF);
-		// light2.position.set(5, 100, -200);
-		// light2.intensity = 0.4;
-		// scene.add(light2);
 	}
 
 	function addControls() {
@@ -306,6 +312,19 @@ function createRenderer() {
 	composer.addPass( bloomPass );
 	composer.setSize(width, height);
 
+}
+
+function startGame() {
+	const overlay = document.getElementById( 'start-screen' );
+	overlay.remove();
+
+	$(window).on("resize", onWindowResize);
+	// screen.orientation.addEventListener('change', onWindowResize);
+	onWindowResize();
+
+	sounds.forEach((sound)=>{sound.play()});
+
+	animate();
 }
 
 function animate() {
