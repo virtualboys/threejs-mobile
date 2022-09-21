@@ -15,7 +15,7 @@ export const rotateEffect = (
   };
 };
 
-export function hoverEffect(obj, height, frequency, axis) {
+export function hoverEffect(obj, height, frequency, axis): Effect {
   const d = new THREE.Vector3();
   let t = 0.5;
   return {
