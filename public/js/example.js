@@ -233,7 +233,7 @@ function startScene() {
 		createRenderer();
 
 		$(window).on("resize", onWindowResize);
-		screen.orientation.addEventListener('change', onWindowResize);
+		// screen.orientation.addEventListener('change', onWindowResize);
 		onWindowResize();
 
 		animate();
