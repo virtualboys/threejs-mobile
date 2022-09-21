@@ -80,7 +80,7 @@ function startScene() {
 
 	physicsBodies = [];
 
-	const rotAxis = new THREE.Vector3(0,1,0);
+	const rotAxis = new THREE.Vector3(0,0,1);
 	effects = [];
 
 	const loader = new THREE.GLTFLoader(loadingManager);
@@ -119,6 +119,8 @@ function startScene() {
 		// Add contact material to the world
 		world.addContactMaterial(default_default_cm);
 
+		let rotateObjects = [];
+
 		scene.traverse(function (obj) {
 			console.log(obj);
 			var geom = "";
@@ -126,6 +128,7 @@ function startScene() {
 				console.log('is light!');
 			}
 			var body;
+			
 			if(obj.name == "reactor_1") {
 				for(var i = 0; i < obj.geometry.attributes.position.array.length; i++) {
 					geom += obj.geometry.attributes.position.array[i];
@@ -146,7 +149,8 @@ function startScene() {
 				playerBody.fixedRotation = true;
 				playerBody.updateMassProperties();
 				playerBody.addEventListener('collide', function (e) {
-					console.log(e);
+					console.log(e, ' pos: ', playerBody.position);
+
 				});
 
 				playerBody.collisionFilterGroup = PLAYER_GROUP;
@@ -197,7 +201,14 @@ function startScene() {
 			}
 
 			if(obj.userData.rotate) {
-				effects.push(rotateEffect(obj,.1,rotAxis));
+				// rotateObjects.push(obj);
+				
+				effects.push(rotateEffect(obj,.07,rotAxis));
+			}
+
+			if(obj.userData.hover) {
+				// rotateObjects.push(obj);
+				effects.push(hoverEffect(obj, .09, .1,rotAxis));
 			}
 
 			if (body) {
@@ -205,6 +216,11 @@ function startScene() {
 				physicsBodies.push({ body: body, mesh: obj })
 			}
 		});
+
+		// rotateObjects.forEach((obj)=>{
+		// 	const objParent = createParentAtCenter(obj);
+		// 	effects.push(rotateEffect(objParent,.1,rotAxis));
+		// });
 
 		camera = gltf.cameras[0];
 		camera.far = 300;
