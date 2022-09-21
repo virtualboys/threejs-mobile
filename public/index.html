@@ -38,14 +38,14 @@
 		<div id="container_3d"></div>
 	</div>
 	<button id="stopPreviewButton" onclick="window.stopPreview()">PREVIEWING</br>Reload Scene From Server</button>
-
+  <script> var exports = {}; </script>
 	<script type="text/javascript" src="./libs/jquery-2.1.4.js"></script>
 	<script type="text/javascript" src="./libs/threejs/three.js"></script>
 	<script type="text/javascript" src="./libs/threejs/FirstPersonControls.js"></script>
-	<script type="text/javascript" src="./libs/threejs/PointerLockControls.js"></script>
+	<script type="module" src="./libs/threejs/PointerLockControls.js"></script>
 	<script type="text/javascript" src="./libs/threejs/Detector.js"></script>
 	<script type="text/javascript" src="./libs/threejs/SceneLoader.js"></script>
-	<script type="text/javascript" src="./libs/threejs/GLTFLoader.js"></script>
+	<script type="module" src="./libs/threejs/GLTFLoader.js"></script>
 	<script type="text/javascript" src="./libs/threejs/Pass.js"></script>
 	<script type="text/javascript" src="./libs/threejs/ShaderPass.js"></script>
 	<script type="text/javascript" src="./libs/threejs/EffectComposer.js"></script>
@@ -59,11 +59,11 @@
 	<!-- <script type="text/javascript" src="./js/movement-pad.js"></script>
 	<script type="text/javascript" src="./js/rotation-pad.js"></script> -->
 	<!-- <script type="text/javascript" src="./js/touch-controls.js"></script> -->
-	<script type="text/javascript" src="./js/touch-event-handler.js"></script>
+	<script type="module" src="./js/touch-event-handler.js"></script>
 	<!-- <script type="text/javascript" src="./js/point-and-click-controls.js"></script> -->
-	<script type="text/javascript" src="./js/fps-multiplatform-controls.js"></script>
-	<script type="text/javascript" src="./js/utils.js"></script>
-	<script type="text/javascript" src="./js/effects.js"></script>
+	<script type="module" src="./js/ts/fps-multiplatform-controls.js"></script>
+	<script type="module" src="./js/ts/utils.js"></script>
+	<script type="module" src="./js/ts/effects.js"></script>
 
 	<script type="text/javascript">
 		function pdef(e) {
@@ -82,7 +82,7 @@
 	<script type="module">
 
 		import { Storage as _Storage } from './threejs-source/editor/js/Storage.js';
-
+    import { startScene } from './js/ts/example.js'
 		var storage = new _Storage();
 		storage.init(function () {
 			storage.getPreview(function (gltf) {
@@ -105,7 +105,7 @@
 		window.stopPreview = stopPreview;
 	</script>
 
-	<script type="text/javascript" src="./js/example.js"></script>
+	<script type="module" src="./js/ts/example.js"></script>
 </body>
 
 </html>

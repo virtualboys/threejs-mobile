@@ -1,6 +1,4 @@
-( function () {
-
-	class GLTFLoader extends THREE.Loader {
+export class GLTFLoader extends THREE.Loader {
 
 		constructor( manager ) {
 
@@ -4138,6 +4136,3 @@
 
 	}
 
-	THREE.GLTFLoader = GLTFLoader;
-
-} )();

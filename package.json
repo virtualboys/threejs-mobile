@@ -4,6 +4,8 @@
   "description": "braindead ",
   "main": "index.js",
   "scripts": {
+    "format": "prettier --write 'public/js'",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,7 +20,10 @@
   "homepage": "https://github.com/virtualboys/threejs-mobile#readme",
   "devDependencies": {
     "@types/cannon": "^0.1.8",
+    "@types/jquery": "^3.5.14",
     "@types/three": "^0.144.0",
-    "tsc": "^2.0.4"
+    "prettier": "^2.7.1",
+    "tsc": "^2.0.4",
+    "typescript": "^4.8.3"
   }
 }

@@ -1,5 +1,3 @@
-( function () {
-
 	const _euler = new THREE.Euler( 0, 0, 0, 'YXZ' );
 
 	const _vector = new THREE.Vector3();
@@ -16,7 +14,7 @@
 
 	const _PI_2 = Math.PI / 2;
 
-	class PointerLockControls extends THREE.EventDispatcher {
+	export class PointerLockControls extends THREE.EventDispatcher {
 
 		constructor( camera, domElement ) {
 
@@ -158,7 +156,3 @@
 		}
 
 	}
-
-	THREE.PointerLockControls = PointerLockControls;
-
-} )();
