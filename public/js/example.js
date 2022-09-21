@@ -330,10 +330,10 @@ function animate() {
 }
 
 function onWindowResize() {
-
 	width = window.innerWidth;
 	height = window.innerHeight;
-
+	
+	console.log('on window resize! ', width, ",",height);
 	aspect = width / height;
 	camera.aspect = aspect;
 	camera.updateProjectionMatrix();
