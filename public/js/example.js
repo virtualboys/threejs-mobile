@@ -18,7 +18,7 @@ var bloomPass;
 const audioListener = new THREE.AudioListener();
 let sounds = [];
 
-const touchEventHandler = new THREE.TouchEventHandler(document);
+let touchEventHandler;
 var pacControls;
 
 let moveForward = false;
@@ -235,24 +235,21 @@ function startScene() {
 				physicsBodies.push({ body: body, mesh: obj })
 			}
 		});
+	
+		camera = gltf.cameras[0];
+		camera.far = 300;
+		camera.updateProjectionMatrix();
+		copyMeshTransform(playerBody, camera);
+	
+		camera.add( audioListener );
+	
+		addLights();
 
 		// rotateObjects.forEach((obj)=>{
 		// 	const objParent = createParentAtCenter(obj);
 		// 	effects.push(rotateEffect(objParent,.1,rotAxis));
 		// });
 
-		camera = gltf.cameras[0];
-		camera.far = 300;
-		camera.updateProjectionMatrix();
-		copyMeshTransform(playerBody, camera);
-
-		camera.add( audioListener );
-
-		addLights();
-
-		addControls();
-
-		createRenderer();
 
 		const startButton = document.getElementById( 'start-button' );
 		startButton.addEventListener( 'click', startGame );
@@ -265,24 +262,26 @@ function startScene() {
 
 	}
 
-	function addControls() {
-		controls = new THREE.FPSMultiplatformControls(camera, playerBody, world, document.body, touchEventHandler);
-		controls.playerHeight = playerHeight;
+}
 
-		scene.add(controls.getObject());
+function addControls() {
+	touchEventHandler = new THREE.TouchEventHandler(document);
+	controls = new THREE.FPSMultiplatformControls(camera, playerBody, world, document.body, touchEventHandler);
+	controls.playerHeight = playerHeight;
 
-		// pacControls = new THREE.PointAndClickControls(camera, playerBody, uiScene, uiCam, touchEventHandler);
+	scene.add(controls.getObject());
 
-		document.body.addEventListener('click', function () {
-			if (controls.pointerLock.isLocked) {
-				controls.pointerLock.unlock();
-			} else {
-				controls.pointerLock.lock();
-			}
-		});
+	// pacControls = new THREE.PointAndClickControls(camera, playerBody, uiScene, uiCam, touchEventHandler);
+
+	document.body.addEventListener('click', function () {
+		if (controls.pointerLock.isLocked) {
+			controls.pointerLock.unlock();
+		} else {
+			controls.pointerLock.lock();
+		}
+	});
 
 
-	}
 }
 
 function createRenderer() {
@@ -324,6 +323,10 @@ function startGame() {
 	console.log("starting game");
 	const overlay = document.getElementById( 'start-screen' );
 	overlay.remove();
+
+	addControls();
+
+	createRenderer();
 
 	$(window).on("resize", onWindowResize);
 	// screen.orientation.addEventListener('change', onWindowResize);
