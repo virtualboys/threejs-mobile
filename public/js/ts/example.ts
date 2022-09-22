@@ -303,7 +303,7 @@ function createRenderer() {
   console.log("creating renderer");
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  //renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   // renderer = new THREE.WebGLRenderer();
   renderer.setSize(width, height);
