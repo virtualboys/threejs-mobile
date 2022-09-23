@@ -13,6 +13,8 @@ export class FPSMultiplatformControls {
   object: THREE.Camera;
   physicsBody: CANNON.Body;
   domElement: any;
+  rotInputVec: THREE.Vector2;
+  moveInputVec: THREE.Vector2;
 
   pointerLock: PointerLockControls;
 
@@ -54,6 +56,8 @@ export class FPSMultiplatformControls {
     this.object = object;
     this.physicsBody = physicsBody;
     this.domElement = domElement; // API
+
+    this.rotInputVec = new THREE.Vector2;
 
     let moveForward = false;
     let moveBackward = false;
@@ -243,8 +247,8 @@ export class FPSMultiplatformControls {
     this.update = (function () {
       return function update(delta) {
         this.pointerLock.rotateCamera(
-          -this.touchRotSpeed * camRot.x,
-          -this.touchRotSpeed * camRot.y
+          -this.touchRotSpeed * this.rotInputVec.x,
+          -this.touchRotSpeed * this.rotInputVec.y
         );
 
         velocity.x -= velocity.x * this.deceleration * delta;
@@ -270,25 +274,8 @@ export class FPSMultiplatformControls {
             velocity.x -= direction.x * this.playerSpeed * delta;
         }
 
-        // if ( onObject === true ) {
-
-        // 	velocity.y = Math.max( 0, velocity.y );
-        // 	canJump = true;
-
-        // }
         var rightMag = -velocity.x;
         var forwardMag = -velocity.z;
-        // this.pointerLock.moveRight(- velocity.x * delta);
-        // this.pointerLock.moveForward(- velocity.z * delta);
-
-        // this.pointerLock.getObject().position.y += (velocity.y * delta); // new behavior
-
-        // if (this.pointerLock.getObject().position.y < this.playerHeight) {
-
-        //     velocity.y = 0;
-        //     this.pointerLock.getObject().position.y = this.playerHeight;
-
-        // }
 
         var forward = new THREE.Vector3();
         object.getWorldDirection(forward);
@@ -301,8 +288,7 @@ export class FPSMultiplatformControls {
 
         forward.multiplyScalar(forwardMag);
         right.multiplyScalar(rightMag);
-        // object.position.add(forward);
-        // object.position.add(right);
+        
         realVelocity.copy(forward);
         realVelocity.add(right);
         realVelocity.y = physicsBody.velocity.y + velocity.y;
@@ -325,21 +311,6 @@ export class FPSMultiplatformControls {
         } else {
           canJump = false;
         }
-
-        // move forward parallel to the xz-plane
-        // assumes camera.up is y-up
-        // realVelocity.setFromMatrixColumn( object.matrix, 0 );
-
-        // realVelocity.crossVectors( object.up, realVelocity );
-        // realVelocity.multiplyScalar(forwardMag);
-        // physicsBody.velocity = CANNONVec(realVelocity);
-
-        // realVelocity.setFromMatrixColumn( object.matrix, 0 );
-        // realVelocity.multiplyScalar(rightMag);
-        // console.log('real vel: ', realVelocity);
-        // physicsBody.velocity.vadd(CANNONVec(realVelocity));
-
-        // camera.position.addScaledVector( realVelocity, distance );
       };
     })();
 

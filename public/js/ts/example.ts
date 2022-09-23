@@ -5,6 +5,7 @@ THREE.Cache.enabled = true;
 //THREE.Cache.enabled = true;
 import { rotateEffect, Effect, hoverEffect } from "./effects.js";
 import { FPSMultiplatformControls } from "./fps-multiplatform-controls.js";
+import { JoystickControls } from "./joystick/JoystickControls.js";
 import {
   CANNONVec,
   copyMeshRot,
@@ -13,6 +14,9 @@ import {
 } from "./utils.js";
 import { TouchEventHandler } from "../touch-event-handler.js";
 import { GLTFLoader } from "../../libs/threejs/GLTFLoader.js";
+
+const texturesPath = "../../textures/";
+
 var width, height;
 var viewAngle = 45,
   near = 1,
@@ -24,11 +28,15 @@ const maxSubSteps = 3;
 
 var renderer: THREE.WebGLRenderer,
   composer,
+  fxaaPass,
   camera: THREE.PerspectiveCamera,
+  joystickCam: THREE.PerspectiveCamera,
   uiCam: THREE.OrthographicCamera,
   scene: THREE.Scene,
   uiScene: THREE.Scene,
   controls: FPSMultiplatformControls,
+  leftJoystick: JoystickControls,
+  rightJoystick: JoystickControls,
   clock,
   world: CANNON.World,
   physicsBodies: { body: CANNON.Body; mesh: THREE.Object3D }[],
@@ -59,21 +67,12 @@ const jumpSpeed = 10;
 const gravity = 20;
 const deceleration = 10;
 
+let sceneGltf, waterNormals, skyCubeMap;
+
 export const PLAYER_GROUP = 1;
 export const STATIC_GROUP = 2;
 export const DYNAMIC_GROUP = 4;
 
-const loadingManager = new THREE.LoadingManager(() => {
-  const loadingScreen = document.getElementById("loading-screen");
-  loadingScreen.classList.add("fade-out");
-
-  // optional: remove loader from DOM via event listener
-  loadingScreen.addEventListener("transitionend", onTransitionEnd);
-});
-
-function onTransitionEnd(event) {
-  event.target.remove();
-}
 
 $(function () {});
 
@@ -101,6 +100,8 @@ export function startScene() {
     0.01,
     100
   );
+  joystickCam = new THREE.PerspectiveCamera(45, width / height, .1, 100);
+
   clock = new THREE.Clock();
   world = new CANNON.World();
   world.gravity.set(0, -9, 0);
@@ -113,11 +114,32 @@ export function startScene() {
   const rotAxis = new THREE.Vector3(0, 0, 1);
   effects = [];
 
+  const loadingManager = new THREE.LoadingManager(() => {
+    onLoadingDone();
+
+    const loadingScreen = document.getElementById("loading-screen");
+    loadingScreen.classList.add("fade-out");
+
+    // optional: remove loader from DOM via event listener
+    loadingScreen.addEventListener("transitionend", onTransitionEnd);
+  });
+
+  function onTransitionEnd(event) {
+    event.target.remove();
+  }
+
   const audioLoader = new THREE.AudioLoader(loadingManager);
+  const textureLoader = new THREE.TextureLoader(loadingManager);
+  const cubeMapLoader = new THREE.CubeTextureLoader(loadingManager);
+
   const loader = new GLTFLoader(loadingManager);
+
   if (window.previewGLTF) {
     console.log("Loading preview!");
-    loader.parse(window.previewGLTF, loader.resourcePath, onGLTFLoad);
+    loader.parse(window.previewGLTF, loader.resourcePath, function(gltf) {
+      onGLTFLoad(gltf);
+      loadOtherAssets();
+    });
 
     var stopPreviewBtn = document.getElementById("stopPreviewButton");
     if (stopPreviewBtn) {
@@ -129,13 +151,44 @@ export function startScene() {
       "https://storage.googleapis.com/oakley-drop/scene.gltf",
       onGLTFLoad
     );
-    // loader.setPath
-    // loader.load('model/scene.gltf', onGLTFLoad);
+    loadOtherAssets();
   }
 
+
   function onGLTFLoad(gltf) {
-    console.log("on gltf load");
-    scene.add(gltf.scene);
+    console.log("on gltf load!");
+    sceneGltf = gltf;
+  }
+
+  function loadOtherAssets() {
+    textureLoader.load(texturesPath + 'waternormals.jpg', function(tex){
+      waterNormals = tex;
+      waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping; 
+    });
+  
+    cubeMapLoader.load([
+      texturesPath + 'px.jpg',
+      texturesPath + 'nx.jpg',
+      texturesPath + 'py.jpg',
+      texturesPath + 'ny.jpg',
+      texturesPath + 'pz.jpg',
+      texturesPath + 'nz.jpg'
+    ], function(cubeMap) {
+      skyCubeMap = cubeMap;
+      skyCubeMap.format = THREE.RGBFormat;
+    });
+  }
+
+  function onLoadingDone() {
+    
+    console.log("on loading done!");
+    scene.add(sceneGltf.scene);
+
+    camera = sceneGltf.cameras[0];
+    camera.far = 300;
+    camera.updateProjectionMatrix();
+
+    createRenderer();
 
     // Materials
     var defaultMat = new CANNON.Material("defaultMat");
@@ -156,7 +209,8 @@ export function startScene() {
 
     // Add contact material to the world
     world.addContactMaterial(default_default_cm);
-
+		
+    let waterObj;
     scene.traverse(function (obj: THREE.Object3D) {
       console.log(obj);
       var body;
@@ -250,19 +304,11 @@ export function startScene() {
       }
     });
 
-    camera = gltf.cameras[0];
-    camera.far = 300;
-    camera.updateProjectionMatrix();
     copyMeshTransform(playerBody, camera);
 
     camera.add(audioListener);
 
     addLights();
-
-    // rotateObjects.forEach((obj)=>{
-    // 	const objParent = createParentAtCenter(obj);
-    // 	effects.push(rotateEffect(objParent,.1,rotAxis));
-    // });
 
     const startButton = document.getElementById("start-button");
     startButton.addEventListener("click", startGame);
@@ -288,21 +334,27 @@ function addControls() {
 
   scene.add(controls.getObject());
 
-  // pacControls = new THREE.PointAndClickControls(camera, playerBody, uiScene, uiCam, touchEventHandler);
+  //@ts-ignore
+  pacControls = new THREE.PointAndClickControls(camera, playerBody, uiScene, uiCam, touchEventHandler);
 
-  document.body.addEventListener("click", function () {
-    if (controls.pointerLock.isLocked) {
-      controls.pointerLock.unlock();
-    } else {
-      controls.pointerLock.lock();
-    }
-  });
+  // document.body.addEventListener("click", function () {
+  //   if (controls.pointerLock.isLocked) {
+  //     controls.pointerLock.unlock();
+  //   } else {
+  //     controls.pointerLock.lock();
+  //   }
+  // });
+
+  //leftJoystick = new JoystickControls(uiCam, uiScene);
+  rightJoystick = new JoystickControls(joystickCam, uiScene);
 }
 
 function createRenderer() {
   console.log("creating renderer");
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.autoClear = false;
+  renderer.setPixelRatio( window.devicePixelRatio );
   //renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   // renderer = new THREE.WebGLRenderer();
@@ -310,7 +362,10 @@ function createRenderer() {
   container.append(renderer.domElement);
 
   // @ts-ignore
-  const renderScene = new THREE.RenderPass(scene, camera);
+  const renderPass = new THREE.RenderPass(scene, camera);
+  renderPass.clearColor = new THREE.Color( 0, 0, 0 );
+  renderPass.clearAlpha = 0;
+
   const bloomParams = {
     exposure: 0.5,
     bloomStrength: 0.5,
@@ -319,7 +374,7 @@ function createRenderer() {
   };
   // @ts-ignore
   bloomPass = new THREE.UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    new THREE.Vector2(width, height),
     1.5,
     0.4,
     0.85
@@ -327,10 +382,21 @@ function createRenderer() {
   bloomPass.threshold = bloomParams.bloomThreshold;
   bloomPass.strength = bloomParams.bloomStrength;
   bloomPass.radius = bloomParams.bloomRadius;
+
+
+  const pixelRatio = renderer.getPixelRatio();
+
+  // @ts-ignore
+  fxaaPass = new THREE.ShaderPass( THREE.FXAAShader );
+  fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( width * pixelRatio );
+  fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( height * pixelRatio );
+
   // @ts-ignore
   composer = new THREE.EffectComposer(renderer);
-  composer.addPass(renderScene);
+  composer.addPass(renderPass);
   composer.addPass(bloomPass);
+  composer.addPass(fxaaPass);
+
   composer.setSize(width, height);
 }
 
@@ -340,8 +406,6 @@ function startGame() {
   overlay.remove();
 
   addControls();
-
-  createRenderer();
 
   $(window).on("resize", onWindowResize);
   // screen.orientation.addEventListener('change', onWindowResize);
@@ -358,6 +422,15 @@ function animate() {
   requestAnimationFrame(animate);
 
   const delta = clock.getDelta();
+  
+  rightJoystick.update((input) => {
+    if (input) {
+      controls.rotInputVec.set(input.moveX, input.moveY);
+    }
+    else {
+      controls.rotInputVec.set(0,0);
+    }
+  });
 
   if (controls) {
     controls.update(delta);
@@ -370,7 +443,10 @@ function animate() {
 
   effects.forEach((effect) => effect.update(delta));
 
+  renderer.clear();
   composer.render();
+  renderer.clearDepth();
+  renderer.render(uiScene, joystickCam);
 }
 
 function onWindowResize() {
@@ -383,16 +459,24 @@ function onWindowResize() {
   camera.aspect = aspect;
   camera.updateProjectionMatrix();
 
+  joystickCam.aspect = aspect;
+  joystickCam.updateProjectionMatrix();
+
   uiCam.left = -1;
   uiCam.right = 1;
   uiCam.top = 1 / aspect;
   uiCam.bottom = -1 / aspect;
   uiCam.updateProjectionMatrix();
 
-  // pacControls.resize(aspect);
+  pacControls.resize(aspect);
 
   renderer.setSize(width, height);
   composer.setSize(width, height);
+
+  const pixelRatio = renderer.getPixelRatio();
+
+  fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( width * pixelRatio );
+  fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( height * pixelRatio );
 }
 
 /* Get the element you want displayed in fullscreen mode (a video in this example): */

@@ -24,4 +24,9 @@ declare global {
     webkitRequestFullScreen: () => Promise<void>;
     msRequestFullscreen: () => Promise<void>;
   }
+  type TMovement = {
+    moveX: number;
+    moveY: number;
+  }
 }
+

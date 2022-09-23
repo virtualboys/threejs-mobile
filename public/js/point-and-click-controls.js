@@ -1,7 +1,7 @@
 (function () {
   class PointAndClickControls {
     constructor(gameCam, physicsBody, uiScene, uiCam, touchEventHandler) {
-      let dpad;
+      let dpad, joystick;
       const loader = new THREE.TextureLoader();
       const raycaster = new THREE.Raycaster();
       const pointer = new THREE.Vector2();
@@ -14,11 +14,12 @@
       const _PI_2 = Math.PI / 2;
 
       loader.load(
-        "textures/dpad.png",
+        "textures/look_orb_background.png",
         function (texture) {
           const geometry = new THREE.PlaneGeometry(0.1, 0.1);
           const material = new THREE.MeshBasicMaterial({
             map: texture,
+            transparent: true,
           });
 
           dpad = new THREE.Mesh(geometry, material);
