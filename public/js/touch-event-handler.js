@@ -3,7 +3,10 @@ export class TouchEventHandler {
     this.touchStart = function (event) {};
     this.touchMove = function (event) {};
     this.touchEnd = function (event) {};
-    this.clickOrTap = function (x, y) {};
+
+    this.clickOrTouchStart = function(x, y, id){};
+    this.clickOrTouchMove = function(x, y, id){};
+    this.clickOrTouchEnd = function(id){};
 
     function preventGestures(event) {
       event.stopPropagation();
@@ -12,35 +15,60 @@ export class TouchEventHandler {
     }
 
     function onTouchStart(event) {
-      preventGestures(event);
+      preventGestures(event); 
       this.touchStart(event);
-      let touch = event.changedTouches[0];
-      this.clickOrTap(touch.pageX, touch.pageY);
+
+      for (let i = 0; i < event.changedTouches.length; i++) {
+        let touch = event.changedTouches[i];
+        this.clickOrTouchStart(touch.pageX, touch.pageY, touch.identifier);
+      }
     }
 
     function onTouchMove(event) {
       preventGestures(event);
       this.touchMove(event);
+
+      for (let i = 0; i < event.changedTouches.length; i++) {
+        let touch = event.changedTouches[i];
+        this.clickOrTouchMove(touch.pageX, touch.pageY, touch.identifier);
+      }
     }
 
     function onTouchEnd(event) {
       preventGestures(event);
       this.touchEnd(event);
+
+      for (let i = 0; i < event.changedTouches.length; i++) {
+        let touch = event.changedTouches[i];
+        this.clickOrTouchEnd(touch.identifier);
+      }
     }
 
-    function onClick(event) {
-      this.clickOrTap(event.clientX, event.clientY);
+    function onMouseDown(event) {
+      this.clickOrTouchStart(event.clientX, event.clientY, 0);
+    }
+
+    function onMouseMove(event) {
+      this.clickOrTouchMove(event.clientX, event.clientY, 0);
+    }
+
+    function onMouseUp(event) {
+      this.clickOrTouchEnd(0);
     }
 
     const _onTouchStart = onTouchStart.bind(this);
     const _onTouchEnd = onTouchEnd.bind(this);
     const _onTouchMove = onTouchMove.bind(this);
-    const _onClick = onClick.bind(this);
+   
+    const _onMouseDown = onMouseDown.bind(this);
+    const _onMouseMove = onMouseMove.bind(this);
+    const _onMouseUp = onMouseUp.bind(this);
 
     window.addEventListener("touchstart", _onTouchStart, { passive: false });
     window.addEventListener("touchend", _onTouchEnd, { passive: false });
     window.addEventListener("touchmove", _onTouchMove, { passive: false });
-
-    document.body.addEventListener("click", _onClick);
+    window.addEventListener('mousedown', _onMouseDown, {passive: false});
+    window.addEventListener('mousemove', _onMouseMove, {passive: false});
+    window.addEventListener('mouseup', _onMouseUp, {passive: false});
   }
 }

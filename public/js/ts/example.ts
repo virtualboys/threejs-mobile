@@ -22,7 +22,29 @@ var viewAngle = 45,
   near = 1,
   far = 10000;
 var aspect;
-
+type KnobKey = "leftBase" | "leftKnob" | "rightBase" | "rightKnob"
+var textureUrls: {url: string, key: KnobKey }[] = [ 
+  {
+    url: "../../textures/look_orb_background.png",
+    key: "rightBase"
+  },
+  {
+    url: "../../textures/look_orb.png",
+    key: "rightKnob"
+  },
+  {
+    url: "../../textures/move_orb_background.png",
+    key: "leftBase"
+  },
+  {
+    url: "../../textures/move_orb.png",
+    key: "leftKnob"
+  }
+]
+type TextureMap = {
+  [key in KnobKey]?: THREE.Texture;
+};
+var loadedTextures: TextureMap = {};
 const fixedTimeStep = 1.0 / 60.0; // seconds
 const maxSubSteps = 3;
 
@@ -50,7 +72,7 @@ const audioListener = new THREE.AudioListener();
 let sounds = [];
 
 let touchEventHandler;
-var pacControls;
+// var pacControls;
 
 let moveForward = false;
 let moveBackward = false;
@@ -130,10 +152,10 @@ export function startScene() {
 
   const audioLoader = new THREE.AudioLoader(loadingManager);
   const textureLoader = new THREE.TextureLoader(loadingManager);
-  const cubeMapLoader = new THREE.CubeTextureLoader(loadingManager);
+  // const cubeMapLoader = new THREE.CubeTextureLoader(loadingManager);
 
   const loader = new GLTFLoader(loadingManager);
-
+  
   if (window.previewGLTF) {
     console.log("Loading preview!");
     loader.parse(window.previewGLTF, loader.resourcePath, function(gltf) {
@@ -159,24 +181,17 @@ export function startScene() {
     console.log("on gltf load!");
     sceneGltf = gltf;
   }
+  async function loadKnobs () {
+    const texturePromises = textureUrls.map(({url}) => textureLoader.loadAsync(url));
+    const textures = await Promise.all(texturePromises);
+    loadedTextures = textures.reduce((textureMap, texture, index) => {
+      const newKey = textureUrls[index].key;
+      return {...textureMap, [newKey]: texture}
+    }, {})
+  }
 
   function loadOtherAssets() {
-    textureLoader.load(texturesPath + 'waternormals.jpg', function(tex){
-      waterNormals = tex;
-      waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping; 
-    });
-  
-    cubeMapLoader.load([
-      texturesPath + 'px.jpg',
-      texturesPath + 'nx.jpg',
-      texturesPath + 'py.jpg',
-      texturesPath + 'ny.jpg',
-      texturesPath + 'pz.jpg',
-      texturesPath + 'nz.jpg'
-    ], function(cubeMap) {
-      skyCubeMap = cubeMap;
-      skyCubeMap.format = THREE.RGBFormat;
-    });
+    loadKnobs();
   }
 
   function onLoadingDone() {
@@ -323,19 +338,24 @@ export function startScene() {
 
 function addControls() {
   touchEventHandler = new TouchEventHandler(document);
+
+  leftJoystick = new JoystickControls(joystickCam, uiScene, loadedTextures.leftBase, loadedTextures.leftKnob);
+  rightJoystick = new JoystickControls(joystickCam, uiScene, loadedTextures.rightBase, loadedTextures.rightKnob);
   controls = new FPSMultiplatformControls(
     camera,
     playerBody,
     world,
     document.body,
-    touchEventHandler
+    touchEventHandler,
+    leftJoystick,
+    rightJoystick
   );
   controls.playerHeight = playerHeight;
 
   scene.add(controls.getObject());
 
   //@ts-ignore
-  pacControls = new THREE.PointAndClickControls(camera, playerBody, uiScene, uiCam, touchEventHandler);
+  // pacControls = new THREE.PointAndClickControls(camera, playerBody, uiScene, uiCam, touchEventHandler);
 
   // document.body.addEventListener("click", function () {
   //   if (controls.pointerLock.isLocked) {
@@ -345,8 +365,6 @@ function addControls() {
   //   }
   // });
 
-  //leftJoystick = new JoystickControls(uiCam, uiScene);
-  rightJoystick = new JoystickControls(joystickCam, uiScene);
 }
 
 function createRenderer() {
@@ -425,7 +443,7 @@ function animate() {
   
   rightJoystick.update((input) => {
     if (input) {
-      controls.rotInputVec.set(input.moveX, input.moveY);
+      controls.rotInputVec.set(-input.moveX, input.moveY);
     }
     else {
       controls.rotInputVec.set(0,0);
@@ -468,7 +486,7 @@ function onWindowResize() {
   uiCam.bottom = -1 / aspect;
   uiCam.updateProjectionMatrix();
 
-  pacControls.resize(aspect);
+  // pacControls.resize(aspect);
 
   renderer.setSize(width, height);
   composer.setSize(width, height);

@@ -2,6 +2,7 @@
 import isTouchOutOfBounds from './helpers/isTouchOutOfBounds.js';
 import degreesToRadians from './helpers/degreesToRadians.js';
 import getPositionInScene from './helpers/getPositionInScene.js';
+import { ClientRequest } from 'http';
 
 export class JoystickControls {
   /**
@@ -17,7 +18,7 @@ export class JoystickControls {
    * joystick base. It will snap the joystick ball to the bounds
    * of the base of the joystick
    */
-  joystickTouchZone = 50;
+  joystickTouchZone = .3;
   /**
    * Anchor of the joystick base
    */
@@ -42,18 +43,28 @@ export class JoystickControls {
   /**
    * Setting joystickScale will scale the joystick up or down in size
    */
-  joystickScale = 20;
+  joystickScale = 10;
   /**
    * scales the value returned by update 
    */
-  joystickSensitivity = .1;
+  joystickSensitivity = 40;
+
+  baseTex: THREE.Texture;
+  knobTex: THREE.Texture;
+
+  baseObject: THREE.Object3D;
+  knobObject: THREE.Object3D;
 
   constructor(
     camera: THREE.PerspectiveCamera,
     scene: THREE.Scene,
+    baseTex?: THREE.Texture,
+    knobTex?: THREE.Texture
   ) {
     this.camera = camera;
     this.scene = scene;
+    this.baseTex = baseTex;
+    this.knobTex = knobTex;
     this.create();
   }
 
@@ -88,7 +99,7 @@ export class JoystickControls {
   /**
    * Plots the anchor point
    */
-  private onStart = (clientX: number, clientY: number) => {
+  public onStart = (clientX: number, clientY: number) => {
     this.baseAnchorPoint = new THREE.Vector2(clientX, clientY);
     this.interactionHasBegan = true;
   };
@@ -122,7 +133,7 @@ export class JoystickControls {
   /**
    * Updates the joystick position during user interaction
    */
-  private onMove = (clientX: number, clientY: number) => {
+  public onMove = (clientX: number, clientY: number) => {
     if (!this.interactionHasBegan) {
       return;
     }
@@ -160,16 +171,13 @@ export class JoystickControls {
   /**
    * Clean up joystick when the user interaction has finished
    */
-  private onEnd = () => {
-    const joystickBase = this.scene.getObjectByName('joystick-base');
-    const joyStickBall = this.scene.getObjectByName('joystick-ball');
-
-    if (joystickBase){
-        this.scene.remove(joystickBase);
+  public onEnd = () => {
+    if (this.baseObject){
+        this.scene.remove(this.baseObject);
     }
 
-    if ( joyStickBall) {
-      this.scene.remove(joyStickBall);
+    if ( this.knobObject) {
+      this.scene.remove(this.knobObject);
     }
 
     this.isJoystickAttached = false;
@@ -183,43 +191,50 @@ export class JoystickControls {
    * TODO: Add option to change color and size of the joystick
    */
   private attachJoystickUI = (
-    name: string,
+    isBase: boolean,
     position: THREE.Vector3,
-    color: number,
-    size: number,
   ) => {
-    const zoomScale = 1 / this.camera.zoom;
-    const geometry = new THREE.CircleGeometry(size * zoomScale, 72);
-    const material = new THREE.MeshLambertMaterial({
-      color: color,
-      opacity: 0.5,
+    const tex = (isBase) ? this.baseTex : this.knobTex;
+    const renderOrder = (isBase) ? 1 : 2;
+    const name = (isBase) ? 'joystick-base' : 'joystick-ball';
+
+    const size = 1 / this.camera.zoom;
+
+    // const geometry = new THREE.CircleGeometry(size * zoomScale, 72);
+    const geometry = new THREE.PlaneGeometry(size, size,1,1);
+    const material = new THREE.MeshBasicMaterial({
+      map: tex,
       transparent: true,
       depthTest: false,
     });
+    // const material = new THREE.MeshLambertMaterial({
+    //   color: color,
+    //   opacity: 0.5,
+    //   transparent: true,
+    //   depthTest: false,
+    // });
     const uiElement = new THREE.Mesh(geometry, material);
 
-    uiElement.renderOrder = 1;
+    uiElement.renderOrder = renderOrder;
     uiElement.name = name;
     uiElement.position.copy(position);
 
     this.scene.add(uiElement);
+
+    return uiElement;
   };
 
   /**
    * Creates the ball and base of the joystick
    */
   private attachJoystick = (positionInScene: THREE.Vector3) => {
-    this.attachJoystickUI(
-      'joystick-base',
-      positionInScene,
-      0xFFFFFF,
-      0.9,
+    this.baseObject = this.attachJoystickUI(
+      true,
+      positionInScene
     );
-    this.attachJoystickUI(
-      'joystick-ball',
-      positionInScene,
-      0xCCCCCC,
-      0.5,
+    this.knobObject = this.attachJoystickUI(
+      false,
+      positionInScene
     );
 
     this.isJoystickAttached = true;
@@ -235,6 +250,23 @@ export class JoystickControls {
     clientY: number,
     positionInScene: THREE.Vector3,
   ): THREE.Vector3 => {
+
+    const d = positionInScene.clone().sub(this.baseObject.position);
+    d.z = 0;
+
+    if(d.lengthSq() > this.joystickTouchZone * this.joystickTouchZone) {
+      d.set(clientX - this.baseAnchorPoint.x, -(clientY - this.baseAnchorPoint.y), 0);
+      d.normalize();
+      d.multiplyScalar(this.joystickTouchZone);
+      return this.baseObject.position.clone().add(d);
+    }
+
+    /**
+     * Touch was inside the Base so just set the joystick ball to that
+     * position
+     */
+    return positionInScene;    
+    
     const touchWasOutsideJoystick = isTouchOutOfBounds(
       clientX,
       clientY,
@@ -262,12 +294,6 @@ export class JoystickControls {
        */
       return (joyStickBase as THREE.Object3D).position.clone().add(direction);
     }
-
-    /**
-     * Touch was inside the Base so just set the joystick ball to that
-     * position
-     */
-    return positionInScene;
   };
 
   /**
@@ -278,7 +304,6 @@ export class JoystickControls {
     clientY: number,
     positionInScene: THREE.Vector3,
   ) => {
-    const joyStickBall = this.scene.getObjectByName('joystick-ball');
     const joystickBallPosition = this.getJoystickBallPosition(
       clientX,
       clientY,
@@ -288,7 +313,7 @@ export class JoystickControls {
     /**
      * Inside Base so just copy the position
      */
-    joyStickBall?.position.copy(joystickBallPosition);
+    this.knobObject?.position.copy(joystickBallPosition);
   };
 
   /**
@@ -301,8 +326,8 @@ export class JoystickControls {
     }
 
     return {
-      moveX: this.joystickSensitivity * (this.touchPoint.x - this.baseAnchorPoint.x),
-      moveY: this.joystickSensitivity * (this.touchPoint.y - this.baseAnchorPoint.y),
+      moveX: this.joystickSensitivity * (this.knobObject.position.x - this.baseObject.position.x),
+      moveY: this.joystickSensitivity * (this.knobObject.position.y - this.baseObject.position.y),
     };
   };
 
@@ -310,24 +335,24 @@ export class JoystickControls {
    * Adds event listeners to the document
    */
   public create = (): void => {
-    window.addEventListener('touchstart', this.handleTouchStart);
-    window.addEventListener('touchmove', this.handleTouchMove);
-    window.addEventListener('touchend', this.handleEventEnd);
-    window.addEventListener('mousedown', this.handleMouseDown);
-    window.addEventListener('mousemove', this.handleMouseMove);
-    window.addEventListener('mouseup', this.handleEventEnd);
+    // window.addEventListener('touchstart', this.handleTouchStart);
+    // window.addEventListener('touchmove', this.handleTouchMove);
+    // window.addEventListener('touchend', this.handleEventEnd);
+    // window.addEventListener('mousedown', this.handleMouseDown);
+    // window.addEventListener('mousemove', this.handleMouseMove);
+    // window.addEventListener('mouseup', this.handleEventEnd);
   };
 
   /**
    * Removes event listeners from the document
    */
   public destroy = (): void => {
-    window.removeEventListener('touchstart', this.handleTouchStart);
-    window.removeEventListener('touchmove', this.handleTouchMove);
-    window.removeEventListener('touchend', this.handleEventEnd);
-    window.removeEventListener('mousedown', this.handleMouseDown);
-    window.removeEventListener('mousemove', this.handleMouseMove);
-    window.removeEventListener('mouseup', this.handleEventEnd);
+    // window.removeEventListener('touchstart', this.handleTouchStart);
+    // window.removeEventListener('touchmove', this.handleTouchMove);
+    // window.removeEventListener('touchend', this.handleEventEnd);
+    // window.removeEventListener('mousedown', this.handleMouseDown);
+    // window.removeEventListener('mousemove', this.handleMouseMove);
+    // window.removeEventListener('mouseup', this.handleEventEnd);
   };
 
   /**
