@@ -11,6 +11,7 @@ import {
   copyMeshRot,
   copyMeshTransform,
   copyBodyTransform,
+  debounce,
 } from "./utils.js";
 import { TouchEventHandler } from "../touch-event-handler.js";
 import { GLTFLoader } from "../../libs/threejs/GLTFLoader.js";
@@ -425,7 +426,7 @@ function startGame() {
 
   addControls();
 
-  $(window).on("resize", onWindowResize);
+  $(window).on("resize", debounce(onWindowResize));
   // screen.orientation.addEventListener('change', onWindowResize);
   onWindowResize();
 

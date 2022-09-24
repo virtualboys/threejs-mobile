@@ -45,6 +45,14 @@ export function copyMeshRot(body, mesh) {
   body.quaternion.w = mesh.quaternion.w;
 }
 
+export function debounce(func){
+  var timer;
+  return function(event){
+    if(timer) clearTimeout(timer);
+    timer = setTimeout(func,100,event);
+  };
+}
+
 function createParentAtCenter(obj) {
   console.log(obj, "reparenting obj at ", obj.position);
 
@@ -68,3 +76,5 @@ function createParentAtCenter(obj) {
 
   return newParent;
 }
+
+

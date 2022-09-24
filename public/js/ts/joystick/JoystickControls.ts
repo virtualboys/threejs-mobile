@@ -43,11 +43,15 @@ export class JoystickControls {
   /**
    * Setting joystickScale will scale the joystick up or down in size
    */
-  joystickScale = 10;
+  joystickScale = 8;
   /**
    * scales the value returned by update 
    */
-  joystickSensitivity = 40;
+  joystickSensitivity = 15;
+  /**
+   * percentage of touch zone that is dead 
+   */
+  deadZone = .1;
 
   baseTex: THREE.Texture;
   knobTex: THREE.Texture;
@@ -69,65 +73,11 @@ export class JoystickControls {
   }
 
   /**
-   * Touch start event listener
-   */
-  private handleTouchStart = (event: TouchEvent) => {
-    if (this.preventAction()) {
-      return;
-    }
-
-    const touch = event.touches.item(0);
-
-    if (!touch) {
-      return;
-    }
-
-    this.onStart(touch.clientX, touch.clientY);
-  };
-
-  /**
-   * Mouse down event listener
-   */
-  private handleMouseDown = (event: MouseEvent) => {
-    if (this.preventAction()) {
-      return;
-    }
-
-    this.onStart(event.clientX, event.clientY);
-  };
-
-  /**
    * Plots the anchor point
    */
   public onStart = (clientX: number, clientY: number) => {
     this.baseAnchorPoint = new THREE.Vector2(clientX, clientY);
     this.interactionHasBegan = true;
-  };
-
-  /**
-   * Touch move event listener
-   */
-  private handleTouchMove = (event: TouchEvent) => {
-    if (this.preventAction()) {
-      return;
-    }
-
-    const touch = event.touches.item(0);
-
-    if (touch) {
-      this.onMove(touch.clientX, touch.clientY);
-    }
-  };
-
-  /**
-   * Mouse move event listener
-   */
-  private handleMouseMove = (event: MouseEvent) => {
-    if (this.preventAction()) {
-      return;
-    }
-
-    this.onMove(event.clientX, event.clientY);
   };
 
   /**
@@ -155,17 +105,6 @@ export class JoystickControls {
     }
 
     this.updateJoystickBallPosition(clientX, clientY, positionInScene);
-  };
-
-  /**
-   * Handles the touchend and mouseup events
-   */
-  private handleEventEnd = () => {
-    if (!this.isJoystickAttached) {
-      return;
-    }
-
-    this.onEnd();
   };
 
   /**
@@ -254,11 +193,14 @@ export class JoystickControls {
     const d = positionInScene.clone().sub(this.baseObject.position);
     d.z = 0;
 
-    if(d.lengthSq() > this.joystickTouchZone * this.joystickTouchZone) {
+    const dLen = d.length();
+    if(dLen > this.joystickTouchZone) {
       d.set(clientX - this.baseAnchorPoint.x, -(clientY - this.baseAnchorPoint.y), 0);
       d.normalize();
       d.multiplyScalar(this.joystickTouchZone);
       return this.baseObject.position.clone().add(d);
+    } else if(dLen / this.joystickTouchZone < this.deadZone) {
+      return this.baseObject.position.clone();
     }
 
     /**
@@ -325,9 +267,17 @@ export class JoystickControls {
       return null;
     }
 
+    const d = this.knobObject.position.clone().sub(this.baseObject.position);
+    d.z = 0;
+
+    const dAmt = ((d.length() / this.joystickTouchZone) - this.deadZone) / (1 - this.deadZone);
+    const moveLen = this.joystickSensitivity * Math.max(0, dAmt);
+    d.normalize();
+    d.multiplyScalar(moveLen);
+
     return {
-      moveX: this.joystickSensitivity * (this.knobObject.position.x - this.baseObject.position.x),
-      moveY: this.joystickSensitivity * (this.knobObject.position.y - this.baseObject.position.y),
+      moveX: d.x,
+      moveY: d.y,
     };
   };
 

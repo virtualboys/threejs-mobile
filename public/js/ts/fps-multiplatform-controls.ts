@@ -24,7 +24,7 @@ export class FPSMultiplatformControls {
   jumpSpeed = 10;
   gravity = 20;
   deceleration = 10;
-  touchRotSpeed = 0.3;
+  touchRotSpeed = 0.4;
   touchMoveSpeed = 0.05;
   touchDeadZone = 30;
 
@@ -199,78 +199,15 @@ export class FPSMultiplatformControls {
       }
     }
 
-    // this.onTouchStart = function (event) {
-    //   for (let i = 0; i < event.changedTouches.length; i++) {
-    //     let touch = event.changedTouches[i];
-    //     if (touch.pageX < window.innerWidth / 2) {
-    //       if (moveTouchId == -1) {
-    //         moveTouchId = touch.identifier;
-    //         moveTouchStart.x = touch.pageX;
-    //         moveTouchStart.y = touch.pageY;
-    //         usingAxisMovement = true;
-    //       }
-    //     } else {
-    //       if (rotTouchId == -1) {
-    //         rotTouchId = touch.identifier;
-    //         rotTouchStart.x = touch.pageX;
-    //         rotTouchStart.y = touch.pageY;
-    //       }
-    //     }
-    //   }
-    // };
-
     function getTouchVec(touchStart, x, y, deadZone) {
       let dx = touchStart.x - x;
       let dy = touchStart.y - y;
-      let touchVec = new THREE.Vector2(dx, dy);
-      let vecLength = touchVec.length();
-      if (vecLength < deadZone) {
-        touchVec.x = 0;
-        touchVec.y = 0;
-      } else {
-        vecLength -= deadZone;
-        touchVec.normalize();
-        touchVec.multiplyScalar(vecLength);
-      }
-
-      return touchVec;
+      return new THREE.Vector2(dx, dy);
     }
-
-    // this.onTouchMove = function (event) {
-    //   for (let i = 0; i < event.changedTouches.length; i++) {
-    //     let touch = event.changedTouches[i];
-    //     if (touch.identifier == moveTouchId) {
-    //       let touchVec = getTouchVec(moveTouchStart, touch, this.touchDeadZone);
-
-    //       axisMovement.x = -this.touchMoveSpeed * touchVec.x;
-    //       axisMovement.y = this.touchMoveSpeed * touchVec.y;
-    //     } else if (touch.identifier == rotTouchId) {
-    //       let touchVec = getTouchVec(rotTouchStart, touch, this.touchDeadZone);
-
-    //       camRot.x = touchVec.x;
-    //       camRot.y = touchVec.y;
-    //     }
-    //   }
-    // };
-
-    // this.onTouchEnd = function (event) {
-    //   for (let i = 0; i < event.changedTouches.length; i++) {
-    //     let touch = event.changedTouches[i];
-    //     if (touch.identifier == moveTouchId) {
-    //       moveTouchId = -1;
-    //       axisMovement.x = 0;
-    //       axisMovement.y = 0;
-    //       usingAxisMovement = false;
-    //     } else if (touch.identifier == rotTouchId) {
-    //       rotTouchId = -1;
-    //       camRot.x = 0;
-    //       camRot.y = 0;
-    //     }
-    //   }
-    // };
 
     this.update = (function () {
       return function update(delta) {
+        console.log('rot speed: ', this.rotInputVec.length())
         this.pointerLock.rotateCamera(
           -this.touchRotSpeed * this.rotInputVec.x,
           -this.touchRotSpeed * this.rotInputVec.y
@@ -351,17 +288,10 @@ export class FPSMultiplatformControls {
     this.dispose = function () {
       window.removeEventListener("keydown", _onKeyDown);
       window.removeEventListener("keyup", _onKeyUp);
-
-      // window.removeEventListener('touchstart', _onTouchStart, false);
-      // window.removeEventListener('touchend', _onTouchEnd, false);
-      // window.removeEventListener('touchmove', _onTouchMove, false);
     };
 
     const _onKeyDown = this.onKeyDown.bind(this);
     const _onKeyUp = this.onKeyUp.bind(this);
-    // const _onTouchStart = this.onTouchStart.bind(this);
-    // const _onTouchEnd = this.onTouchEnd.bind(this);
-    // const _onTouchMove = this.onTouchMove.bind(this);
 
     window.addEventListener("keydown", _onKeyDown);
     window.addEventListener("keyup", _onKeyUp);
@@ -369,12 +299,5 @@ export class FPSMultiplatformControls {
     touchEventHandler.clickOrTouchStart = this.onClickOrTouchStart.bind(this);
     touchEventHandler.clickOrTouchMove = this.onClickOrTouchMove.bind(this);
     touchEventHandler.clickOrTouchEnd = this.onClickOrTouchEnd.bind(this);
-    //   touchEventHandler.touchStart = this.onTouchStart.bind(this);
-    // touchEventHandler.touchMove = this.onTouchMove.bind(this);
-    // touchEventHandler.touchEnd = this.onTouchEnd.bind(this);
-
-    // window.addEventListener('touchstart', _onTouchStart, { passive: false });
-    // window.addEventListener('touchend', _onTouchEnd, { passive: false });
-    // window.addEventListener('touchmove', _onTouchMove, { passive: false });
   }
 }
