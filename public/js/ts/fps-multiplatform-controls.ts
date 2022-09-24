@@ -24,7 +24,7 @@ export class FPSMultiplatformControls {
   jumpSpeed = 10;
   gravity = 20;
   deceleration = 10;
-  touchRotSpeed = 0.6;
+  touchRotSpeed = 0.48;
   touchYRotMult = .7;
   touchMoveSpeed = 0.05;
   touchDeadZone = 30;
