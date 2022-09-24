@@ -51,7 +51,7 @@ export class JoystickControls {
   /**
    * percentage of touch zone that is dead 
    */
-  deadZone = .1;
+  deadZone = .2;
   /**
    * y offset of joystick from touch 
    */
@@ -107,6 +107,10 @@ export class JoystickControls {
 
     this.baseObject.position.copy(positionInScene);
     this.knobObject.position.copy(positionInScene);
+
+    const scaleMod = (width > 2 * height) ? 1.5 : 1;
+    this.baseObject.scale.set(scaleMod, scaleMod, scaleMod);
+    this.knobObject.scale.set(scaleMod, scaleMod, scaleMod);
   }
 
   /**

@@ -24,7 +24,8 @@ export class FPSMultiplatformControls {
   jumpSpeed = 10;
   gravity = 20;
   deceleration = 10;
-  touchRotSpeed = 0.4;
+  touchRotSpeed = 0.6;
+  touchYRotMult = .7;
   touchMoveSpeed = 0.05;
   touchDeadZone = 30;
 
@@ -207,10 +208,10 @@ export class FPSMultiplatformControls {
 
     this.update = (function () {
       return function update(delta) {
-        console.log('rot speed: ', this.rotInputVec.length())
+        // console.log('rot speed: ', this.rotInputVec.length())
         this.pointerLock.rotateCamera(
           -this.touchRotSpeed * this.rotInputVec.x,
-          -this.touchRotSpeed * this.rotInputVec.y
+          -this.touchRotSpeed * this.touchYRotMult * this.rotInputVec.y
         );
 
         velocity.x -= velocity.x * this.deceleration * delta;

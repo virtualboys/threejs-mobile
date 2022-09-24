@@ -15,6 +15,7 @@ import {
 } from "./utils.js";
 import { TouchEventHandler } from "../touch-event-handler.js";
 import { GLTFLoader } from "../../libs/threejs/GLTFLoader.js";
+import { off } from "process";
 
 const texturesPath = "../../textures/";
 
@@ -24,7 +25,7 @@ var viewAngle = 45,
   far = 10000;
 var aspect;
 type KnobKey = "leftBase" | "leftKnob" | "rightBase" | "rightKnob"
-var textureUrls: {url: string, key: KnobKey }[] = [ 
+var textureUrls: { url: string, key: KnobKey }[] = [
   {
     url: "../../textures/look_orb_background.png",
     key: "rightBase"
@@ -97,7 +98,7 @@ export const STATIC_GROUP = 2;
 export const DYNAMIC_GROUP = 4;
 
 
-$(function () {});
+$(function () { });
 
 export function startScene() {
   //
@@ -156,10 +157,10 @@ export function startScene() {
   // const cubeMapLoader = new THREE.CubeTextureLoader(loadingManager);
 
   const loader = new GLTFLoader(loadingManager);
-  
+
   if (window.previewGLTF) {
     console.log("Loading preview!");
-    loader.parse(window.previewGLTF, loader.resourcePath, function(gltf) {
+    loader.parse(window.previewGLTF, loader.resourcePath, function (gltf) {
       onGLTFLoad(gltf);
       loadOtherAssets();
     });
@@ -182,12 +183,12 @@ export function startScene() {
     console.log("on gltf load!");
     sceneGltf = gltf;
   }
-  async function loadKnobs () {
-    const texturePromises = textureUrls.map(({url}) => textureLoader.loadAsync(url));
+  async function loadKnobs() {
+    const texturePromises = textureUrls.map(({ url }) => textureLoader.loadAsync(url));
     const textures = await Promise.all(texturePromises);
     loadedTextures = textures.reduce((textureMap, texture, index) => {
       const newKey = textureUrls[index].key;
-      return {...textureMap, [newKey]: texture}
+      return { ...textureMap, [newKey]: texture }
     }, {})
   }
 
@@ -196,7 +197,7 @@ export function startScene() {
   }
 
   function onLoadingDone() {
-    
+
     console.log("on loading done!");
     scene.add(sceneGltf.scene);
 
@@ -225,7 +226,7 @@ export function startScene() {
 
     // Add contact material to the world
     world.addContactMaterial(default_default_cm);
-		
+
     let waterObj;
     scene.traverse(function (obj: THREE.Object3D) {
       console.log(obj);
@@ -337,27 +338,39 @@ export function startScene() {
   }
 }
 
+function getJoystickOffset(isRight) : THREE.Vector2 {
+  const offset = new THREE.Vector2();
+  if (width > height) {
+    offset.set(.1,.7);
+  } else {
+    offset.set(.25,.85);
+  }
+
+  if(isRight) {
+    offset.x = 1 - offset.x;
+  }
+
+  return offset;
+}
+
 function addControls() {
   touchEventHandler = new TouchEventHandler(document);
 
-  const xJoyOffset = .2;
-  const yJoyOffset = .8;
-
   leftJoystick = new JoystickControls(
-    joystickCam, 
-    uiScene, 
-    loadedTextures.leftBase, 
+    joystickCam,
+    uiScene,
+    loadedTextures.leftBase,
     loadedTextures.leftKnob,
-    new THREE.Vector2(xJoyOffset, yJoyOffset),
+    getJoystickOffset(false),
     width,
     height);
 
   rightJoystick = new JoystickControls(
-    joystickCam, 
-    uiScene, 
-    loadedTextures.rightBase, 
+    joystickCam,
+    uiScene,
+    loadedTextures.rightBase,
     loadedTextures.rightKnob,
-    new THREE.Vector2(1 - xJoyOffset, yJoyOffset),
+    getJoystickOffset(true),
     width,
     height);
 
@@ -392,7 +405,7 @@ function createRenderer() {
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.autoClear = false;
-  renderer.setPixelRatio( window.devicePixelRatio );
+  renderer.setPixelRatio(window.devicePixelRatio);
   //renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   // renderer = new THREE.WebGLRenderer();
@@ -401,7 +414,7 @@ function createRenderer() {
 
   // @ts-ignore
   const renderPass = new THREE.RenderPass(scene, camera);
-  renderPass.clearColor = new THREE.Color( 0, 0, 0 );
+  renderPass.clearColor = new THREE.Color(0, 0, 0);
   renderPass.clearAlpha = 0;
 
   const bloomParams = {
@@ -421,13 +434,12 @@ function createRenderer() {
   bloomPass.strength = bloomParams.bloomStrength;
   bloomPass.radius = bloomParams.bloomRadius;
 
-
   const pixelRatio = renderer.getPixelRatio();
 
   // @ts-ignore
-  fxaaPass = new THREE.ShaderPass( THREE.FXAAShader );
-  fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( width * pixelRatio );
-  fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( height * pixelRatio );
+  fxaaPass = new THREE.ShaderPass(THREE.FXAAShader);
+  fxaaPass.material.uniforms['resolution'].value.x = 1 / (width * pixelRatio);
+  fxaaPass.material.uniforms['resolution'].value.y = 1 / (height * pixelRatio);
 
   // @ts-ignore
   composer = new THREE.EffectComposer(renderer);
@@ -460,13 +472,13 @@ function animate() {
   requestAnimationFrame(animate);
 
   const delta = clock.getDelta();
-  
+
   rightJoystick.update((input) => {
     if (input) {
       controls.rotInputVec.set(-input.moveX, input.moveY);
     }
     else {
-      controls.rotInputVec.set(0,0);
+      controls.rotInputVec.set(0, 0);
     }
   });
 
@@ -500,7 +512,10 @@ function onWindowResize() {
   joystickCam.aspect = aspect;
   joystickCam.updateProjectionMatrix();
 
+  leftJoystick.viewPos = getJoystickOffset(false);
   leftJoystick.onResize(width, height);
+
+  rightJoystick.viewPos = getJoystickOffset(true);
   rightJoystick.onResize(width, height);
 
   uiCam.left = -1;
@@ -516,8 +531,8 @@ function onWindowResize() {
 
   const pixelRatio = renderer.getPixelRatio();
 
-  fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( width * pixelRatio );
-  fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( height * pixelRatio );
+  fxaaPass.material.uniforms['resolution'].value.x = 1 / (width * pixelRatio);
+  fxaaPass.material.uniforms['resolution'].value.y = 1 / (height * pixelRatio);
 }
 
 /* Get the element you want displayed in fullscreen mode (a video in this example): */
