@@ -52,6 +52,10 @@ export class JoystickControls {
    * percentage of touch zone that is dead 
    */
   deadZone = .1;
+  /**
+   * y offset of joystick from touch 
+   */
+  yOffset = .5;
 
   baseTex: THREE.Texture;
   knobTex: THREE.Texture;
@@ -94,6 +98,7 @@ export class JoystickControls {
       clientX,
       clientY,
       this.camera,
+      this.yOffset,
       this.joystickScale,
     );
 

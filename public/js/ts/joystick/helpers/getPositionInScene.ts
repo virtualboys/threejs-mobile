@@ -8,6 +8,7 @@ const getPositionInScene = (
   clientX: number,
   clientY: number,
   camera: THREE.PerspectiveCamera,
+  yOffset: number,
   scale = 10,
 ): THREE.Vector3 => {
   const relativeX = (clientX / window.innerWidth) * 2 - 1;
@@ -18,11 +19,14 @@ const getPositionInScene = (
     .sub(camera.position)
     .normalize()
     .multiplyScalar(scale);
+  
+
 
   return camera
     .position
     .clone()
-    .add(inSceneTouchVector);
+    .add(inSceneTouchVector)
+    .add(new THREE.Vector3(0,yOffset,0));
 };
 
 export default getPositionInScene;
