@@ -340,8 +340,27 @@ export function startScene() {
 function addControls() {
   touchEventHandler = new TouchEventHandler(document);
 
-  leftJoystick = new JoystickControls(joystickCam, uiScene, loadedTextures.leftBase, loadedTextures.leftKnob);
-  rightJoystick = new JoystickControls(joystickCam, uiScene, loadedTextures.rightBase, loadedTextures.rightKnob);
+  const xJoyOffset = .2;
+  const yJoyOffset = .8;
+
+  leftJoystick = new JoystickControls(
+    joystickCam, 
+    uiScene, 
+    loadedTextures.leftBase, 
+    loadedTextures.leftKnob,
+    new THREE.Vector2(xJoyOffset, yJoyOffset),
+    width,
+    height);
+
+  rightJoystick = new JoystickControls(
+    joystickCam, 
+    uiScene, 
+    loadedTextures.rightBase, 
+    loadedTextures.rightKnob,
+    new THREE.Vector2(1 - xJoyOffset, yJoyOffset),
+    width,
+    height);
+
   controls = new FPSMultiplatformControls(
     camera,
     playerBody,
@@ -480,6 +499,9 @@ function onWindowResize() {
 
   joystickCam.aspect = aspect;
   joystickCam.updateProjectionMatrix();
+
+  leftJoystick.onResize(width, height);
+  rightJoystick.onResize(width, height);
 
   uiCam.left = -1;
   uiCam.right = 1;

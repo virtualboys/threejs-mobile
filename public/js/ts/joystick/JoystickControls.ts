@@ -43,7 +43,7 @@ export class JoystickControls {
   /**
    * Setting joystickScale will scale the joystick up or down in size
    */
-  joystickScale = 8;
+  joystickScale = 5;
   /**
    * scales the value returned by update 
    */
@@ -55,7 +55,7 @@ export class JoystickControls {
   /**
    * y offset of joystick from touch 
    */
-  yOffset = .5;
+  yOffset = 0;
 
   baseTex: THREE.Texture;
   knobTex: THREE.Texture;
@@ -63,25 +63,68 @@ export class JoystickControls {
   baseObject: THREE.Object3D;
   knobObject: THREE.Object3D;
 
+  viewPos: THREE.Vector2
+
   constructor(
     camera: THREE.PerspectiveCamera,
     scene: THREE.Scene,
-    baseTex?: THREE.Texture,
-    knobTex?: THREE.Texture
+    baseTex: THREE.Texture,
+    knobTex: THREE.Texture,
+    viewPos: THREE.Vector2,
+    width: number,
+    height: number,
   ) {
     this.camera = camera;
     this.scene = scene;
     this.baseTex = baseTex;
     this.knobTex = knobTex;
+    this.viewPos = viewPos;
     this.create();
+
+    this.baseAnchorPoint = new THREE.Vector2(this.viewPos.x * width, this.viewPos.y * height);
+
+    const positionInScene = getPositionInScene(
+      this.baseAnchorPoint.x,
+      this.baseAnchorPoint.y,
+      this.camera,
+      this.yOffset,
+      this.joystickScale,
+    );
+
+    this.attachJoystick(positionInScene);
+  }
+
+  public onResize(width: number, height: number) {
+    this.baseAnchorPoint = new THREE.Vector2(this.viewPos.x * width, this.viewPos.y * height);
+
+    const positionInScene = getPositionInScene(
+      this.baseAnchorPoint.x,
+      this.baseAnchorPoint.y,
+      this.camera,
+      this.yOffset,
+      this.joystickScale,
+    );
+
+    this.baseObject.position.copy(positionInScene);
+    this.knobObject.position.copy(positionInScene);
   }
 
   /**
    * Plots the anchor point
    */
   public onStart = (clientX: number, clientY: number) => {
-    this.baseAnchorPoint = new THREE.Vector2(clientX, clientY);
-    this.interactionHasBegan = true;
+    const positionInScene = getPositionInScene(
+      clientX,
+      clientY,
+      this.camera,
+      this.yOffset,
+      this.joystickScale,
+    );
+
+    const startRange = this.joystickTouchZone * 5;
+    if(positionInScene.sub(this.baseObject.position).length() < startRange) {
+      this.interactionHasBegan = true;
+    }
   };
 
   /**
@@ -102,13 +145,6 @@ export class JoystickControls {
       this.joystickScale,
     );
 
-    if (!this.isJoystickAttached) {
-      /**
-       * If there is no base or ball, then we need to attach the joystick
-       */
-      return this.attachJoystick(positionInScene);
-    }
-
     this.updateJoystickBallPosition(clientX, clientY, positionInScene);
   };
 
@@ -116,16 +152,9 @@ export class JoystickControls {
    * Clean up joystick when the user interaction has finished
    */
   public onEnd = () => {
-    if (this.baseObject){
-        this.scene.remove(this.baseObject);
-    }
-
-    if ( this.knobObject) {
-      this.scene.remove(this.knobObject);
-    }
-
-    this.isJoystickAttached = false;
     this.interactionHasBegan = false;
+
+    this.knobObject.position.copy(this.baseObject.position);
   };
 
   /**
