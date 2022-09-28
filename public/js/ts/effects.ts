@@ -7,6 +7,11 @@ export const rotateEffect = (
   axis: THREE.Vector3
 ): Effect => {
   const rotQuat = new THREE.Quaternion();
+  
+  //random offset
+  rotQuat.setFromAxisAngle(axis, 2 * Math.PI * Math.random());
+  obj.quaternion.multiply(rotQuat);
+
   return {
     update: (dt: number) => {
       rotQuat.setFromAxisAngle(axis, 2 * Math.PI * dt * rotsPerSec);

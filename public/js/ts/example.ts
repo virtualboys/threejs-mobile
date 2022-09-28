@@ -314,24 +314,14 @@ export function startScene() {
       if (obj.userData.invisible) {
         obj.visible = false;
       }
-
-      let rotHover = obj.userData.rotate;
-      // let rotHover =  obj.name.includes('flesh') || obj.name.includes('sandal');
-      if(rotHover) {
-        console.log('rot hovering ', obj);
-        rotHoverObjs.push(obj);
-        
+      
+      if (obj.userData.rotate) {
+        console.log('rotating ', obj.name)
+        effects.push(rotateEffect(obj, 0.07, rotAxis));
+        if(!obj.name.includes("tree")) {
+          effects.push(hoverEffect(obj, 0.001, 0.1, hoverAxis));
+        }
       }
-      // if (obj.userData.rotate || obj.name.includes('flesh')) {
-      //   // rotateObjects.push(obj);
-
-      //   effects.push(rotateEffect(obj, 0.07, rotAxis));
-      // }
-
-      // if (obj.userData.hover) {
-      //   // rotateObjects.push(obj);
-      //   effects.push(hoverEffect(obj, 0.09, 0.1, rotAxis));
-      // }
 
       if (obj.userData.soundEffect) {
         // load a sound and set it as the PositionalAudio object's buffer
@@ -360,12 +350,6 @@ export function startScene() {
     }else {
       console.log('didnt find blocker obj!!');
     }
-
-    rotHoverObjs.forEach((obj)=>{
-      // let newParent = createParentAtCenter(obj);
-      effects.push(hoverEffect(obj, 0.009, 0.1, hoverAxis));
-      effects.push(rotateEffect(obj, 0.07, rotAxis));
-    });
 
     copyMeshTransform(playerBody, camera);
 
