@@ -172,7 +172,6 @@ export function startScene() {
 
   const audioLoader = new THREE.AudioLoader(loadingManager);
   const textureLoader = new THREE.TextureLoader(loadingManager);
-  // const cubeMapLoader = new THREE.CubeTextureLoader(loadingManager);
 
   const loader = new GLTFLoader(loadingManager);
 
@@ -191,11 +190,17 @@ export function startScene() {
     console.log("loading from server..");
     loader.load(
       "https://storage.googleapis.com/oakley-drop/scene.gltf",
-      onGLTFLoad
+      onGLTFLoad,
+      function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+      },
+      function ( error ) {
+        console.log( 'An error happened loading the gltf!!' );
+        console.log(error);
+      }
     );
     loadOtherAssets();
   }
-
 
   function onGLTFLoad(gltf) {
     console.log("on gltf load!");
