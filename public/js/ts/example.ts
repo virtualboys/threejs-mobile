@@ -242,9 +242,7 @@ export function startScene() {
     // Add contact material to the world
     world.addContactMaterial(default_default_cm);
 
-    let waterObj;
-    let rotHoverObjs = [];
-    let blockersObj: THREE.Object3D;
+    let blockersParents: THREE.Object3D[] = [];
     scene.traverse(function (obj: THREE.Object3D) {
       // console.log(obj);
 
@@ -307,8 +305,8 @@ export function startScene() {
         body.collisionFilterMask = PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
       }
 
-      if(obj.name == "blockers") {
-        blockersObj = obj;
+      if(obj.name == "blockers" || obj.name == "new_blockers") {
+        blockersParents.push(obj);
       }
 
       if (obj.userData.invisible) {
@@ -344,12 +342,9 @@ export function startScene() {
       }
     });
 
-    if(blockersObj) {
-      console.log('found blockers obj: ', blockersObj);
-      addColliders(blockersObj);
-    }else {
-      console.log('didnt find blocker obj!!');
-    }
+    blockersParents.forEach((parent)=>{
+      addColliders(parent);
+    });
 
     copyMeshTransform(playerBody, camera);
 
@@ -517,8 +512,8 @@ function createRenderer() {
 
   const bloomParams = {
     exposure: 0.5,
-    bloomStrength: 0.5,
-    bloomThreshold: 0.5,
+    bloomStrength: 0.3,
+    bloomThreshold: 0.85,
     bloomRadius: 0.7,
   };
   // @ts-ignore
@@ -532,6 +527,9 @@ function createRenderer() {
   bloomPass.strength = bloomParams.bloomStrength;
   bloomPass.radius = bloomParams.bloomRadius;
   bloomPass.clear = true;
+
+  //@ts-ignore
+  window.BLOOMPASS = bloomPass;
 
   const pixelRatio = renderer.getPixelRatio();
 
