@@ -53,12 +53,13 @@ export function debounce(func){
   };
 }
 
-function createParentAtCenter(obj) {
+export function createParentAtCenter(obj: THREE.Object3D) : THREE.Object3D {
   console.log(obj, "reparenting obj at ", obj.position);
+  // return obj;
 
   // obj.geometry.computeBoundingBox();
   const bbox = new THREE.Box3();
-  bbox.setFromObject(obj);
+  bbox.setFromObject(obj, true);
   console.log("bbox: ", bbox);
   // bbox.copy( obj.geometry.boundingBox ).applyMatrix4( obj.matrixWorld );
   const center = new THREE.Vector3();
@@ -69,9 +70,19 @@ function createParentAtCenter(obj) {
   obj.removeFromParent();
 
   const newParent = new THREE.Group();
-  newParent.add(obj);
-  oldParent.add(newParent);
   newParent.position.copy(center);
+
+  newParent.add(obj);
+
+  obj.traverse((child)=>{
+    if((child as THREE.Mesh).isMesh) {
+      const m = child as THREE.Mesh;
+      m.geometry.center();
+    }
+  });
+
+  // obj.geometry.center();
+  oldParent.add(newParent);
   console.log("ppos ", newParent.position, " pos; ", obj.position);
 
   return newParent;

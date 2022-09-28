@@ -7,7 +7,7 @@
 const getPositionInScene = (
   clientX: number,
   clientY: number,
-  camera: THREE.PerspectiveCamera,
+  camera: THREE.Camera,
   yOffset: number,
   scale = 10,
 ): THREE.Vector3 => {

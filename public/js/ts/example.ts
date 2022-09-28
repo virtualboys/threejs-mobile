@@ -12,6 +12,7 @@ import {
   copyMeshTransform,
   copyBodyTransform,
   debounce,
+  createParentAtCenter,
 } from "./utils.js";
 import { TouchEventHandler } from "../touch-event-handler.js";
 import { GLTFLoader } from "../../libs/threejs/GLTFLoader.js";
@@ -85,7 +86,7 @@ let canJump = false;
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
-const playerHeight = 2.7;
+const playerHeight = 3.5;
 const playerSpeed = 50;
 const jumpSpeed = 10;
 const gravity = 20;
@@ -202,7 +203,7 @@ export function startScene() {
     scene.add(sceneGltf.scene);
 
     camera = sceneGltf.cameras[0];
-    camera.far = 300;
+    camera.far = 100;
     camera.updateProjectionMatrix();
 
     createRenderer();
@@ -228,8 +229,24 @@ export function startScene() {
     world.addContactMaterial(default_default_cm);
 
     let waterObj;
+    let rotHoverObjs = [];
     scene.traverse(function (obj: THREE.Object3D) {
       console.log(obj);
+
+      if ((obj as THREE.Mesh).isMesh) {
+        const m = obj as THREE.Mesh;
+
+        //@ts-ignore
+        if(m.material.map) {
+          //@ts-ignore
+          m.material.map.magFilter = THREE.NearestFilter;
+          //@ts-ignore
+          m.material.map.minFilter = THREE.NearestFilter;
+          //@ts-ignore
+          // m.material.map = undefined;
+        }
+        
+    }
       var body;
       if (obj.name == "Player") {
         playerBody = new CANNON.Body({
@@ -289,16 +306,23 @@ export function startScene() {
         obj.visible = false;
       }
 
-      if (obj.userData.rotate) {
-        // rotateObjects.push(obj);
-
-        effects.push(rotateEffect(obj, 0.07, rotAxis));
+      // let rotHover = obj.userData.rotate;
+      let rotHover =  obj.name.includes('flesh') || obj.name.includes('sandal');
+      if(rotHover) {
+        console.log('rot hovering ', obj);
+        rotHoverObjs.push(obj);
+        
       }
+      // if (obj.userData.rotate || obj.name.includes('flesh')) {
+      //   // rotateObjects.push(obj);
 
-      if (obj.userData.hover) {
-        // rotateObjects.push(obj);
-        effects.push(hoverEffect(obj, 0.09, 0.1, rotAxis));
-      }
+      //   effects.push(rotateEffect(obj, 0.07, rotAxis));
+      // }
+
+      // if (obj.userData.hover) {
+      //   // rotateObjects.push(obj);
+      //   effects.push(hoverEffect(obj, 0.09, 0.1, rotAxis));
+      // }
 
       if (obj.userData.soundEffect) {
         // load a sound and set it as the PositionalAudio object's buffer
@@ -321,6 +345,12 @@ export function startScene() {
       }
     });
 
+    rotHoverObjs.forEach((obj)=>{
+      let newParent = createParentAtCenter(obj);
+      effects.push(hoverEffect(newParent, 0.09, 0.1, rotAxis));
+      effects.push(rotateEffect(newParent, 0.07, rotAxis));
+    });
+
     copyMeshTransform(playerBody, camera);
 
     camera.add(audioListener);
@@ -341,9 +371,10 @@ export function startScene() {
 function getJoystickOffset(isRight) : THREE.Vector2 {
   const offset = new THREE.Vector2();
   if (width > height) {
-    offset.set(.1,.7);
+    offset.set(0,1);
   } else {
-    offset.set(.25,.85);
+    offset.set(0,1);
+    // offset.set(.25,.85);
   }
 
   if(isRight) {
@@ -362,6 +393,7 @@ function addControls() {
     loadedTextures.leftBase,
     loadedTextures.leftKnob,
     getJoystickOffset(false),
+    new THREE.Vector2(.7,-.7),
     width,
     height);
 
@@ -371,6 +403,7 @@ function addControls() {
     loadedTextures.rightBase,
     loadedTextures.rightKnob,
     getJoystickOffset(true),
+    new THREE.Vector2(-.7,-.7),
     width,
     height);
 
@@ -403,9 +436,11 @@ function addControls() {
 function createRenderer() {
   console.log("creating renderer");
   renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.outputEncoding = THREE.sRGBEncoding;
+  // renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.outputEncoding = THREE.LinearEncoding;
   renderer.autoClear = false;
   renderer.setPixelRatio(window.devicePixelRatio);
+  // renderer.toneMapping = THREE.NoToneMapping;
   //renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   // renderer = new THREE.WebGLRenderer();
@@ -416,6 +451,8 @@ function createRenderer() {
   const renderPass = new THREE.RenderPass(scene, camera);
   renderPass.clearColor = new THREE.Color(0, 0, 0);
   renderPass.clearAlpha = 0;
+  renderPass.clearDepth = true;
+  // renderPass.
 
   const bloomParams = {
     exposure: 0.5,
@@ -433,6 +470,7 @@ function createRenderer() {
   bloomPass.threshold = bloomParams.bloomThreshold;
   bloomPass.strength = bloomParams.bloomStrength;
   bloomPass.radius = bloomParams.bloomRadius;
+  bloomPass.clear = true;
 
   const pixelRatio = renderer.getPixelRatio();
 
@@ -442,10 +480,14 @@ function createRenderer() {
   fxaaPass.material.uniforms['resolution'].value.y = 1 / (height * pixelRatio);
 
   // @ts-ignore
+  const gammaCorrectionPass = new THREE.ShaderPass( THREE.GammaCorrectionShader );
+
+  // @ts-ignore
   composer = new THREE.EffectComposer(renderer);
   composer.addPass(renderPass);
-  composer.addPass(bloomPass);
   composer.addPass(fxaaPass);
+  composer.addPass(bloomPass);
+  composer.addPass( gammaCorrectionPass );
 
   composer.setSize(width, height);
 }
@@ -494,6 +536,7 @@ function animate() {
   effects.forEach((effect) => effect.update(delta));
 
   renderer.clear();
+  // renderer.render(scene, camera);
   composer.render();
   renderer.clearDepth();
   renderer.render(uiScene, joystickCam);

@@ -57,13 +57,16 @@ export class JoystickControls {
    */
   yOffset = 0;
 
+  uiOpacity = .75;
+
   baseTex: THREE.Texture;
   knobTex: THREE.Texture;
 
   baseObject: THREE.Object3D;
   knobObject: THREE.Object3D;
 
-  viewPos: THREE.Vector2
+  viewPos: THREE.Vector2;
+  pivot: THREE.Vector2;
 
   constructor(
     camera: THREE.PerspectiveCamera,
@@ -71,6 +74,7 @@ export class JoystickControls {
     baseTex: THREE.Texture,
     knobTex: THREE.Texture,
     viewPos: THREE.Vector2,
+    pivot: THREE.Vector2,
     width: number,
     height: number,
   ) {
@@ -79,9 +83,10 @@ export class JoystickControls {
     this.baseTex = baseTex;
     this.knobTex = knobTex;
     this.viewPos = viewPos;
+    this.pivot = pivot;
     this.create();
 
-    this.baseAnchorPoint = new THREE.Vector2(this.viewPos.x * width, this.viewPos.y * height);
+    this.updateBaseAnchorPoint(width, height);
 
     const positionInScene = getPositionInScene(
       this.baseAnchorPoint.x,
@@ -94,8 +99,36 @@ export class JoystickControls {
     this.attachJoystick(positionInScene);
   }
 
+  private updateBaseAnchorPoint(width, height) {
+    const offsetX = -(this.pivot.x - .5);
+    const offsetY = -(this.pivot.y - .5);
+
+    const worldCenter = getPositionInScene(
+      this.viewPos.x * width,
+      this.viewPos.y * height,
+      this.camera,
+      this.yOffset,
+      this.joystickScale
+    )
+    
+    const worldPivot = worldCenter.clone().add(new THREE.Vector3(offsetX, offsetY));
+    worldPivot.project(this.camera);
+    worldPivot.x = ( worldPivot.x * width / 2 ) + width / 2;
+    worldPivot.y = - ( worldPivot.y * height / 2 ) + height / 2;
+  
+
+    const vFOV = this.camera.fov * Math.PI / 180;        // convert vertical fov to radians
+    const stickWidth = height / (2 * Math.tan( vFOV / 2 ) * this.joystickScale); // visible height'
+      console.log('stick width: ', stickWidth)
+
+    this.baseAnchorPoint = new THREE.Vector2(
+      this.viewPos.x * width + this.pivot.x * stickWidth,
+      this.viewPos.y * height + this.pivot.y * stickWidth);
+
+  }
+
   public onResize(width: number, height: number) {
-    this.baseAnchorPoint = new THREE.Vector2(this.viewPos.x * width, this.viewPos.y * height);
+    this.updateBaseAnchorPoint(width, height);
 
     const positionInScene = getPositionInScene(
       this.baseAnchorPoint.x,
@@ -108,9 +141,9 @@ export class JoystickControls {
     this.baseObject.position.copy(positionInScene);
     this.knobObject.position.copy(positionInScene);
 
-    const scaleMod = (width > 2 * height) ? 1.5 : 1;
-    this.baseObject.scale.set(scaleMod, scaleMod, scaleMod);
-    this.knobObject.scale.set(scaleMod, scaleMod, scaleMod);
+    // const scaleMod = (width > 2 * height) ? 1.5 : 1;
+    // this.baseObject.scale.set(scaleMod, scaleMod, scaleMod);
+    // this.knobObject.scale.set(scaleMod, scaleMod, scaleMod);
   }
 
   /**
@@ -128,6 +161,7 @@ export class JoystickControls {
     const startRange = this.joystickTouchZone * 5;
     if(positionInScene.sub(this.baseObject.position).length() < startRange) {
       this.interactionHasBegan = true;
+      this.onMove(clientX, clientY);
     }
   };
 
@@ -175,21 +209,15 @@ export class JoystickControls {
     const renderOrder = (isBase) ? 1 : 2;
     const name = (isBase) ? 'joystick-base' : 'joystick-ball';
 
-    const size = 1 / this.camera.zoom;
-
     // const geometry = new THREE.CircleGeometry(size * zoomScale, 72);
-    const geometry = new THREE.PlaneGeometry(size, size,1,1);
+    const geometry = new THREE.PlaneGeometry(1, 1,1,1);
     const material = new THREE.MeshBasicMaterial({
       map: tex,
       transparent: true,
       depthTest: false,
+      opacity: this.uiOpacity,
     });
-    // const material = new THREE.MeshLambertMaterial({
-    //   color: color,
-    //   opacity: 0.5,
-    //   transparent: true,
-    //   depthTest: false,
-    // });
+    new THREE.MeshBasicMaterial()
     const uiElement = new THREE.Mesh(geometry, material);
 
     uiElement.renderOrder = renderOrder;
