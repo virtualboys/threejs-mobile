@@ -393,7 +393,7 @@ function addControls() {
     loadedTextures.leftBase,
     loadedTextures.leftKnob,
     getJoystickOffset(false),
-    new THREE.Vector2(.7,-.7),
+    new THREE.Vector2(.6,.6),
     width,
     height);
 
@@ -403,7 +403,7 @@ function addControls() {
     loadedTextures.rightBase,
     loadedTextures.rightKnob,
     getJoystickOffset(true),
-    new THREE.Vector2(-.7,-.7),
+    new THREE.Vector2(-.6,.6),
     width,
     height);
 

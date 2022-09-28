@@ -66,7 +66,7 @@ export class JoystickControls {
   knobObject: THREE.Object3D;
 
   viewPos: THREE.Vector2;
-  pivot: THREE.Vector2;
+  anchorOffset: THREE.Vector2;
 
   constructor(
     camera: THREE.PerspectiveCamera,
@@ -74,7 +74,7 @@ export class JoystickControls {
     baseTex: THREE.Texture,
     knobTex: THREE.Texture,
     viewPos: THREE.Vector2,
-    pivot: THREE.Vector2,
+    anchorOffset: THREE.Vector2,
     width: number,
     height: number,
   ) {
@@ -83,7 +83,7 @@ export class JoystickControls {
     this.baseTex = baseTex;
     this.knobTex = knobTex;
     this.viewPos = viewPos;
-    this.pivot = pivot;
+    this.anchorOffset = anchorOffset;
     this.create();
 
     this.updateBaseAnchorPoint(width, height);
@@ -100,31 +100,32 @@ export class JoystickControls {
   }
 
   private updateBaseAnchorPoint(width, height) {
-    const offsetX = -(this.pivot.x - .5);
-    const offsetY = -(this.pivot.y - .5);
-
     const worldCenter = getPositionInScene(
       this.viewPos.x * width,
       this.viewPos.y * height,
       this.camera,
       this.yOffset,
       this.joystickScale
-    )
+    );
+
+    worldCenter.x += this.anchorOffset.x;
+    worldCenter.y += this.anchorOffset.y;
     
-    const worldPivot = worldCenter.clone().add(new THREE.Vector3(offsetX, offsetY));
-    worldPivot.project(this.camera);
-    worldPivot.x = ( worldPivot.x * width / 2 ) + width / 2;
-    worldPivot.y = - ( worldPivot.y * height / 2 ) + height / 2;
+    const screenPivot = worldCenter.clone().project(this.camera);
+    // worldPivot.project(this.camera);
+    screenPivot.x = ( screenPivot.x * width / 2 ) + width / 2;
+    screenPivot.y = - ( screenPivot.y * height / 2 ) + height / 2;
   
 
-    const vFOV = this.camera.fov * Math.PI / 180;        // convert vertical fov to radians
-    const stickWidth = height / (2 * Math.tan( vFOV / 2 ) * this.joystickScale); // visible height'
-      console.log('stick width: ', stickWidth)
+    // const vFOV = this.camera.fov * Math.PI / 180;        // convert vertical fov to radians
+    // const stickWidth = height / (2 * Math.tan( vFOV / 2 ) * this.joystickScale); // visible height'
+    //   console.log('stick width: ', stickWidth)
 
-    this.baseAnchorPoint = new THREE.Vector2(
-      this.viewPos.x * width + this.pivot.x * stickWidth,
-      this.viewPos.y * height + this.pivot.y * stickWidth);
-
+    // this.baseAnchorPoint = new THREE.Vector2(
+    //   this.viewPos.x * width + this.pivot.x * stickWidth,
+    //   this.viewPos.y * height + this.pivot.y * stickWidth);
+      this.baseAnchorPoint = new THREE.Vector2(screenPivot.x, screenPivot.y);
+      console.log(this.baseAnchorPoint);
   }
 
   public onResize(width: number, height: number) {
