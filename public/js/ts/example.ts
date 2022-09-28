@@ -67,10 +67,13 @@ var renderer: THREE.WebGLRenderer,
   rightJoystick: JoystickControls,
   clock,
   world: CANNON.World,
-  physicsBodies: { body: CANNON.Body; mesh: THREE.Object3D }[],
+  dynamicPhysicsBodies: { body: CANNON.Body; mesh: THREE.Object3D }[],
   playerBody: CANNON.Body,
   effects: Effect[],
   container: JQuery<HTMLElement>;
+
+const physicsBodyMap = new Map<CANNON.Body, THREE.Object3D>();
+
 var sceneObject, intersected;
 var bloomPass;
 
@@ -100,6 +103,17 @@ export const PLAYER_GROUP = 1;
 export const STATIC_GROUP = 2;
 export const DYNAMIC_GROUP = 4;
 
+const colliderTypeOverrides = {
+  pCube19: ShapeType.HULL,
+  pCube29: ShapeType.HULL,
+  pCube6: ShapeType.HULL,
+  pCube7: ShapeType.HULL,
+  pCube9: ShapeType.HULL,
+  polySurface52: undefined,
+  pCube3: undefined,
+  pCube4: undefined,
+  pCube5: undefined,
+}
 
 $(function () { });
 
@@ -135,9 +149,10 @@ export function startScene() {
   world.broadphase = new CANNON.NaiveBroadphase();
   world.solver.iterations = 10;
 
-  physicsBodies = [];
+  dynamicPhysicsBodies = [];
   sounds = [];
 
+  const hoverAxis = new THREE.Vector3(0, 1, 0);
   const rotAxis = new THREE.Vector3(0, 0, 1);
   effects = [];
 
@@ -259,7 +274,13 @@ export function startScene() {
         playerBody.fixedRotation = true;
         playerBody.updateMassProperties();
         playerBody.addEventListener("collide", function (e) {
-          console.log(e, " pos: ", playerBody.position);
+          
+          const threeObj = physicsBodyMap.get(e.body);
+          if(threeObj) {
+            console.log("three onj: ", threeObj.name);
+          } else {
+            console.log("unknown collider ", playerBody.position)
+          }
           
         });
 
@@ -269,7 +290,7 @@ export function startScene() {
         body = playerBody;
       } else if (obj.userData.boxCollider) {
 
-        body = addBoxCollider(obj);
+        body = createStaticCollider(obj, ShapeType.BOX);
 
       } else if (obj.userData.meshCollider) {
         console.log("adding physics object");
@@ -294,8 +315,8 @@ export function startScene() {
         obj.visible = false;
       }
 
-      // let rotHover = obj.userData.rotate;
-      let rotHover =  obj.name.includes('flesh') || obj.name.includes('sandal');
+      let rotHover = obj.userData.rotate;
+      // let rotHover =  obj.name.includes('flesh') || obj.name.includes('sandal');
       if(rotHover) {
         console.log('rot hovering ', obj);
         rotHoverObjs.push(obj);
@@ -329,7 +350,7 @@ export function startScene() {
 
       if (body) {
         world.addBody(body);
-        physicsBodies.push({ body: body, mesh: obj });
+        dynamicPhysicsBodies.push({ body: body, mesh: obj });
       }
     });
 
@@ -342,7 +363,7 @@ export function startScene() {
 
     rotHoverObjs.forEach((obj)=>{
       // let newParent = createParentAtCenter(obj);
-      effects.push(hoverEffect(obj, 0.09, 0.1, rotAxis));
+      effects.push(hoverEffect(obj, 0.009, 0.1, hoverAxis));
       effects.push(rotateEffect(obj, 0.07, rotAxis));
     });
 
@@ -365,62 +386,55 @@ export function startScene() {
   function addColliders(blockersParent: THREE.Object3D) {
     console.log('adding colliders...');
 
-    let boxes: THREE.Object3D[] = [];
+    let cols: {obj: THREE.Object3D, type: ShapeType}[] = [];
+
     blockersParent.traverse((obj: THREE.Object3D)=>{
-      if(obj.name.includes('Cube')) {
-        boxes.push(obj);
-        // body = addBoxCollider(obj);
+      let shapeType: ShapeType;
+      if(obj.name in colliderTypeOverrides) {
+        console.log('overriding! ', obj.name);
+        shapeType = colliderTypeOverrides[obj.name];
+      }else if(obj.name.includes('Cube')) {
+        shapeType = ShapeType.BOX;
+      } else if(obj.name.includes('Cylinder')) {
+        shapeType = ShapeType.HULL;
+      } else if(obj.name.includes('Hull')) {
+        shapeType = ShapeType.HULL;
+      }
+
+      if(shapeType) {
+        cols.push({obj: obj, type: shapeType})
       }
     });
 
     const newParent = new THREE.Group();
     scene.add(newParent);
     
-    boxes.forEach((box)=>{
-      reparentKeepWorldPos(box, newParent);
-      const body = addBoxCollider(box);
+    cols.forEach((col)=>{
+      reparentKeepWorldPos(col.obj, newParent);
+      const body = createStaticCollider(col.obj, col.type);
       world.addBody(body);
+      physicsBodyMap.set(body, col.obj);
+
+      col.obj.removeFromParent();
     });
 
-    // blockersParent.removeFromParent();
+    blockersParent.removeFromParent();
     // scene.remove(blockersParent);
   }
 
-  function addBoxCollider(obj: THREE.Object3D) : CANNON.Body {
+  function createStaticCollider(obj: THREE.Object3D, type: ShapeType) : CANNON.Body {
 
-    console.log("adding box collider to ", obj);
+    console.log("adding ", type, " collider to ", obj.name);
 
-    // const result = threeToCannon(obj, {type: ShapeType.BOX});
-    // const body = new CANNON.Body({
-    //   mass: 0, // kg
-    //   material: defaultCannonMat,
-    // });
-    // body.addShape(result.shape, result.offset, result.orientation);
-
-
-
-    var center = new THREE.Vector3();
-    var size = new THREE.Vector3();
-    var bbox = new THREE.Box3().setFromObject(obj, true);
-    bbox.getCenter(center);
-    bbox.getSize(size);
-    // const parentScale = obj.parent.scale;
-    // center.multiply(parentScale);
-    // size.multiply(parentScale);
-    size.multiplyScalar(0.5);
-
+    const result = threeToCannon(obj, {type: type});
     const body = new CANNON.Body({
       mass: 0, // kg
-      position: CANNONVec(center), // m
-      shape: new CANNON.Box(CANNONVec(size)),
       material: defaultCannonMat,
     });
+    body.addShape(result.shape, result.offset, result.orientation);
+    copyMeshTransform(body, obj);
 
-    //@ts-ignore
-    body.userData = obj.name;
-
-
-    console.log('position:', body.position, ' size:', body.shapes[0].boundingSphereRadius);
+    // console.log('position:', body.position, ' size:', body.shapes[0].boundingSphereRadius);
 
     body.collisionFilterGroup = STATIC_GROUP;
     body.collisionFilterMask = PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
@@ -592,8 +606,8 @@ function animate() {
   }
   world.step(fixedTimeStep, delta, maxSubSteps);
 
-  for (let i = 0; i < physicsBodies.length; i++) {
-    copyBodyTransform(physicsBodies[i].body, physicsBodies[i].mesh);
+  for (let i = 0; i < dynamicPhysicsBodies.length; i++) {
+    copyBodyTransform(dynamicPhysicsBodies[i].body, dynamicPhysicsBodies[i].mesh);
   }
 
   effects.forEach((effect) => effect.update(delta));

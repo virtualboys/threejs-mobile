@@ -71,15 +71,13 @@ export function reparentKeepWorldPos(obj: THREE.Object3D, newParent: THREE.Objec
   const worldPos = obj.getWorldPosition(new THREE.Vector3());
   const worldQuat = obj.getWorldQuaternion(new THREE.Quaternion());
   const worldScale = obj.getWorldScale(new THREE.Vector3());
-  console.log("pos, ", worldPos, " scale: ", worldScale);
+  
   obj.removeFromParent();
   obj.position.copy(worldPos);
   obj.quaternion.copy(worldQuat);
   obj.scale.copy(worldScale);
-  // obj.upda
-
+  
   newParent.attach(obj);
-  console.log("pos, ", obj.getWorldPosition(new THREE.Vector3()), " scale: ", obj.getWorldScale(new THREE.Vector3()));
 }
 
 export function createParentAtCenter(obj: THREE.Object3D) : THREE.Object3D {
