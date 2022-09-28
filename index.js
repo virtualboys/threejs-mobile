@@ -3,13 +3,13 @@ var fs = require('fs');
 var path = require('path');
 
 http.createServer(function (request, response) {
-    
+
     var filePath = './public' + request.url;
     if (filePath == './public/')
         filePath = './public/index.html';
 
     var extname = path.extname(filePath);
-    
+
     var contentType = 'text/html';
     switch (extname) {
         case '.js':
@@ -23,6 +23,9 @@ http.createServer(function (request, response) {
             break;
         case '.png':
             contentType = 'image/png';
+            break;
+        case '.ico':
+            contentType = 'image/x-icon';
             break;
         case '.jpg':
             contentType = 'image/jpg';

@@ -10,18 +10,23 @@
 
 	<title>Touch pad control test</title>
 
+	<link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+
 	<link rel="stylesheet" href="./css/touch-pad.css">
 	<link rel="stylesheet" href="./css/main.css">
 	<link rel="stylesheet" href="./css/loading.css">
+	<link rel="stylesheet" href="./css/loading-bar.css">
 </head>
 
 <body>
 	<section id="loading-screen">
 		<div id="loading-logo-container">
-			<img id="loading-logo" src="images/braindeadlogoTransparent.png"/>
+			<img id="loading-logo" src="images/start_screen.jpg"/>
 		</div>
 
-		<h1 id="loading-text">Loading...</h1>
+		<!-- <h1 id="loading-text">Loading...</h1> -->
+		
+		<div id="loading-bar" class="ldBar" data-value="0"></div>
 	</section>
 
 	<section id="start-screen">
@@ -39,6 +44,7 @@
 	</div>
 	<button id="stopPreviewButton" onclick="window.stopPreview()">PREVIEWING</br>Reload Scene From Server</button>
   <script> var exports = {}; </script>
+  	<script type="text/javascript" src="./js/loading-bar.min.js"></script>
 	<script type="text/javascript" src="./libs/jquery-2.1.4.js"></script>
 	<script type="text/javascript" src="./libs/threejs/three.js"></script>
 	<script type="text/javascript" src="./libs/threejs/FirstPersonControls.js"></script>
@@ -88,7 +94,7 @@
 
 	<script type="module">
 
-		import { Storage as _Storage } from './threejs-source/editor/js/Storage.js';
+	import { Storage as _Storage } from './threejs-source/editor/js/Storage.js';
     import { startScene } from './js/ts/example.js'
 	console.log('entry point');
 		var storage = new _Storage();

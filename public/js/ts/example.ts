@@ -124,7 +124,9 @@ export function startScene() {
   console.log("starting scene");
 
   container = $("#container_3d");
-  // startScene(container);
+  
+  //@ts-ignore
+  const loadingBar = document.getElementById('loading-bar').ldBar;
 
   width = window.innerWidth;
   height = window.innerHeight;
@@ -147,7 +149,7 @@ export function startScene() {
   world = new CANNON.World();
   world.gravity.set(0, -9, 0);
   world.broadphase = new CANNON.NaiveBroadphase();
-  world.solver.iterations = 10;
+  world.solver.iterations = 3;
 
   dynamicPhysicsBodies = [];
   sounds = [];
@@ -175,6 +177,7 @@ export function startScene() {
 
   const loader = new GLTFLoader(loadingManager);
 
+  let lastProgressUpdate = 0;
   if (window.previewGLTF) {
     console.log("Loading preview!");
     loader.parse(window.previewGLTF, loader.resourcePath, function (gltf) {
@@ -192,7 +195,13 @@ export function startScene() {
       "https://storage.googleapis.com/oakley-drop/scene.gltf",
       onGLTFLoad,
       function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        let progress = xhr.loaded / xhr.total * 100;
+        //@ts-ignore
+        loadingBar.set(progress)
+        if(progress - lastProgressUpdate > 10) {
+          console.log( progress + '% loaded' );
+          lastProgressUpdate = progress;
+        }
       },
       function ( error ) {
         console.log( 'An error happened loading the gltf!!' );

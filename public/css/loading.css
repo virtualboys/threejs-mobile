@@ -44,13 +44,38 @@
      max-height:90%;
  }
  #loading-text{
+    padding: 10px;
   margin: auto;
   width: 50%;
-  font-weight: bold;
-  color: white;
+  color: rgb(138, 138, 138);
+  font-size: 2em;
+  font-weight: 1100;
   text-align: center;
  }
-
+#loading-bar {
+  margin: auto;
+  width: 100%;
+}
+.ldBar path.baseline {
+    padding-top: 10px;
+  stroke-width: 14;
+  stroke: #f1f2f3;
+  stroke-linecap: round;
+  filter:url(#custom-shadow);
+}
+.ldBar path.mainline {
+    
+    padding-top: 10px;
+    stroke-width: 10;
+    stroke: rgb(255,255,41);
+    stroke-linecap: round;
+  }  
+  .ldBar-label {
+    color: rgb(138, 138, 138);
+    font-size: 1.5em;
+    font-weight: 900;
+    padding-top:.4em;
+  }
 #loading-screen.fade-out {
     opacity: 0;
 }
