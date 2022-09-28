@@ -6,6 +6,8 @@ THREE.Cache.enabled = true;
 import { rotateEffect, Effect, hoverEffect } from "./effects.js";
 import { FPSMultiplatformControls } from "./fps-multiplatform-controls.js";
 import { JoystickControls } from "./joystick/JoystickControls.js";
+import { threeToCannon, ShapeType } from './three-to-cannon/src/index.js';
+
 import {
   CANNONVec,
   copyMeshRot,
@@ -13,6 +15,7 @@ import {
   copyBodyTransform,
   debounce,
   createParentAtCenter,
+  reparentKeepWorldPos,
 } from "./utils.js";
 import { TouchEventHandler } from "../touch-event-handler.js";
 import { GLTFLoader } from "../../libs/threejs/GLTFLoader.js";
@@ -86,13 +89,12 @@ let canJump = false;
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
+const playerColliderWidth = .5;
 const playerHeight = 3.5;
-const playerSpeed = 50;
-const jumpSpeed = 10;
-const gravity = 20;
-const deceleration = 10;
 
 let sceneGltf, waterNormals, skyCubeMap;
+
+const defaultCannonMat = new CANNON.Material("defaultMat");
 
 export const PLAYER_GROUP = 1;
 export const STATIC_GROUP = 2;
@@ -208,13 +210,10 @@ export function startScene() {
 
     createRenderer();
 
-    // Materials
-    var defaultMat = new CANNON.Material("defaultMat");
-
     // Adjust constraint equation parameters for ground/ground contact
     var default_default_cm = new CANNON.ContactMaterial(
-      defaultMat,
-      defaultMat,
+      defaultCannonMat,
+      defaultCannonMat,
       {
         friction: 0,
         restitution: 0,
@@ -230,36 +229,38 @@ export function startScene() {
 
     let waterObj;
     let rotHoverObjs = [];
+    let blockersObj: THREE.Object3D;
     scene.traverse(function (obj: THREE.Object3D) {
-      console.log(obj);
+      // console.log(obj);
 
-      if ((obj as THREE.Mesh).isMesh) {
-        const m = obj as THREE.Mesh;
+    //   if ((obj as THREE.Mesh).isMesh) {
+    //     const m = obj as THREE.Mesh;
 
-        //@ts-ignore
-        if(m.material.map) {
-          //@ts-ignore
-          m.material.map.magFilter = THREE.NearestFilter;
-          //@ts-ignore
-          m.material.map.minFilter = THREE.NearestFilter;
-          //@ts-ignore
-          // m.material.map = undefined;
-        }
+    //     //@ts-ignore
+    //     if(m.material.map) {
+    //       //@ts-ignore
+    //       m.material.map.magFilter = THREE.NearestFilter;
+    //       //@ts-ignore
+    //       m.material.map.minFilter = THREE.NearestFilter;
+    //       //@ts-ignore
+    //       // m.material.map = undefined;
+    //     }
         
-    }
+    // }
       var body;
       if (obj.name == "Player") {
         playerBody = new CANNON.Body({
           mass: 1, // kg
           position: CANNONVec(obj.position), // m
-          shape: new CANNON.Sphere(playerHeight),
-          material: defaultMat,
+          shape: new CANNON.Sphere(playerColliderWidth),
+          material: defaultCannonMat,
           // linearDamping: .5
         });
         playerBody.fixedRotation = true;
         playerBody.updateMassProperties();
         playerBody.addEventListener("collide", function (e) {
           console.log(e, " pos: ", playerBody.position);
+          
         });
 
         playerBody.collisionFilterGroup = PLAYER_GROUP;
@@ -267,26 +268,9 @@ export function startScene() {
 
         body = playerBody;
       } else if (obj.userData.boxCollider) {
-        console.log("adding box collider");
 
-        var center = new THREE.Vector3();
-        var size = new THREE.Vector3();
-        var bbox = new THREE.Box3().setFromObject(obj);
-        bbox.getCenter(center);
-        bbox.getSize(size);
-        size.multiplyScalar(0.5);
+        body = addBoxCollider(obj);
 
-        body = new CANNON.Body({
-          mass: 0, // kg
-          position: CANNONVec(center), // m
-          shape: new CANNON.Box(CANNONVec(size)),
-          material: defaultMat,
-        });
-
-        body.collisionFilterGroup = STATIC_GROUP;
-        body.collisionFilterMask = PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
-
-        body.type = CANNON.Body.STATIC;
       } else if (obj.userData.meshCollider) {
         console.log("adding physics object");
 
@@ -294,12 +278,16 @@ export function startScene() {
           mass: 1, // kg
           position: CANNONVec(obj.position), // m
           shape: new CANNON.Sphere(0.3),
-          material: defaultMat,
+          material: defaultCannonMat,
           // linearDamping: .5
         });
 
         body.collisionFilterGroup = DYNAMIC_GROUP;
         body.collisionFilterMask = PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
+      }
+
+      if(obj.name == "blockers") {
+        blockersObj = obj;
       }
 
       if (obj.userData.invisible) {
@@ -345,10 +333,17 @@ export function startScene() {
       }
     });
 
+    if(blockersObj) {
+      console.log('found blockers obj: ', blockersObj);
+      addColliders(blockersObj);
+    }else {
+      console.log('didnt find blocker obj!!');
+    }
+
     rotHoverObjs.forEach((obj)=>{
-      let newParent = createParentAtCenter(obj);
-      effects.push(hoverEffect(newParent, 0.09, 0.1, rotAxis));
-      effects.push(rotateEffect(newParent, 0.07, rotAxis));
+      // let newParent = createParentAtCenter(obj);
+      effects.push(hoverEffect(obj, 0.09, 0.1, rotAxis));
+      effects.push(rotateEffect(obj, 0.07, rotAxis));
     });
 
     copyMeshTransform(playerBody, camera);
@@ -365,6 +360,74 @@ export function startScene() {
     // Lights
     var ambient = new THREE.AmbientLight(0x6b6b6b);
     scene.add(ambient);
+  }
+
+  function addColliders(blockersParent: THREE.Object3D) {
+    console.log('adding colliders...');
+
+    let boxes: THREE.Object3D[] = [];
+    blockersParent.traverse((obj: THREE.Object3D)=>{
+      if(obj.name.includes('Cube')) {
+        boxes.push(obj);
+        // body = addBoxCollider(obj);
+      }
+    });
+
+    const newParent = new THREE.Group();
+    scene.add(newParent);
+    
+    boxes.forEach((box)=>{
+      reparentKeepWorldPos(box, newParent);
+      const body = addBoxCollider(box);
+      world.addBody(body);
+    });
+
+    // blockersParent.removeFromParent();
+    // scene.remove(blockersParent);
+  }
+
+  function addBoxCollider(obj: THREE.Object3D) : CANNON.Body {
+
+    console.log("adding box collider to ", obj);
+
+    // const result = threeToCannon(obj, {type: ShapeType.BOX});
+    // const body = new CANNON.Body({
+    //   mass: 0, // kg
+    //   material: defaultCannonMat,
+    // });
+    // body.addShape(result.shape, result.offset, result.orientation);
+
+
+
+    var center = new THREE.Vector3();
+    var size = new THREE.Vector3();
+    var bbox = new THREE.Box3().setFromObject(obj, true);
+    bbox.getCenter(center);
+    bbox.getSize(size);
+    // const parentScale = obj.parent.scale;
+    // center.multiply(parentScale);
+    // size.multiply(parentScale);
+    size.multiplyScalar(0.5);
+
+    const body = new CANNON.Body({
+      mass: 0, // kg
+      position: CANNONVec(center), // m
+      shape: new CANNON.Box(CANNONVec(size)),
+      material: defaultCannonMat,
+    });
+
+    //@ts-ignore
+    body.userData = obj.name;
+
+
+    console.log('position:', body.position, ' size:', body.shapes[0].boundingSphereRadius);
+
+    body.collisionFilterGroup = STATIC_GROUP;
+    body.collisionFilterMask = PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
+
+    body.type = CANNON.Body.STATIC;
+
+    return body;
   }
 }
 
@@ -423,13 +486,13 @@ function addControls() {
   //@ts-ignore
   // pacControls = new THREE.PointAndClickControls(camera, playerBody, uiScene, uiCam, touchEventHandler);
 
-  // document.body.addEventListener("click", function () {
-  //   if (controls.pointerLock.isLocked) {
-  //     controls.pointerLock.unlock();
-  //   } else {
-  //     controls.pointerLock.lock();
-  //   }
-  // });
+  document.body.addEventListener("click", function () {
+    if (controls.pointerLock.isLocked) {
+      controls.pointerLock.unlock();
+    } else {
+      controls.pointerLock.lock();
+    }
+  });
 
 }
 
@@ -534,6 +597,8 @@ function animate() {
   }
 
   effects.forEach((effect) => effect.update(delta));
+
+  camera.position.y += playerHeight;
 
   renderer.clear();
   // renderer.render(scene, camera);

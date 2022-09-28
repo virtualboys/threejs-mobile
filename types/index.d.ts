@@ -28,5 +28,20 @@ declare global {
     moveX: number;
     moveY: number;
   }
+  class HalfEdge {
+    next: HalfEdge;
+    head: () => {point: Vector3};
+  }
+
+  class Face {
+    edge: HalfEdge;
+    normal: Vector3;
+  }
+
+  class ConvexHull {
+    public faces: Face[];
+    setFromObject(mesh: Mesh): this;
+  }
+
 }
 

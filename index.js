@@ -9,6 +9,7 @@ http.createServer(function (request, response) {
         filePath = './public/index.html';
 
     var extname = path.extname(filePath);
+    
     var contentType = 'text/html';
     switch (extname) {
         case '.js':

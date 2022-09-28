@@ -125,7 +125,7 @@ export class JoystickControls {
     //   this.viewPos.x * width + this.pivot.x * stickWidth,
     //   this.viewPos.y * height + this.pivot.y * stickWidth);
       this.baseAnchorPoint = new THREE.Vector2(screenPivot.x, screenPivot.y);
-      console.log(this.baseAnchorPoint);
+      // console.log(this.baseAnchorPoint);
   }
 
   public onResize(width: number, height: number) {

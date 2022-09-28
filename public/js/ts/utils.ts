@@ -11,6 +11,20 @@ export function THREEVec(vec3: UniVec) {
   return new THREE.Vector3(vec3.x, vec3.y, vec3.z);
 }
 
+// export function copyMeshTransform(body: CANNON.Body, mesh: THREE.Object3D) {
+//   const worldPos = mesh.getWorldPosition(new THREE.Vector3());
+//   const worldQuat = mesh.getWorldQuaternion(new THREE.Quaternion());
+//   // const worldScale = mesh.getWorldScale(new THREE.Vector3());
+//   body.position.x = worldPos.x;
+//   body.position.y = worldPos.y;
+//   body.position.z = worldPos.z;
+//   body.quaternion.x = worldQuat.x;
+//   body.quaternion.y = worldQuat.y;
+//   body.quaternion.z = worldQuat.z;
+//   body.quaternion.w = worldQuat.w;
+  
+// }
+
 export function copyBodyTransform(body, mesh) {
   mesh.position.x = body.position.x;
   mesh.position.y = body.position.y;
@@ -51,6 +65,21 @@ export function debounce(func){
     if(timer) clearTimeout(timer);
     timer = setTimeout(func,100,event);
   };
+}
+
+export function reparentKeepWorldPos(obj: THREE.Object3D, newParent: THREE.Object3D) {
+  const worldPos = obj.getWorldPosition(new THREE.Vector3());
+  const worldQuat = obj.getWorldQuaternion(new THREE.Quaternion());
+  const worldScale = obj.getWorldScale(new THREE.Vector3());
+  console.log("pos, ", worldPos, " scale: ", worldScale);
+  obj.removeFromParent();
+  obj.position.copy(worldPos);
+  obj.quaternion.copy(worldQuat);
+  obj.scale.copy(worldScale);
+  // obj.upda
+
+  newParent.attach(obj);
+  console.log("pos, ", obj.getWorldPosition(new THREE.Vector3()), " scale: ", obj.getWorldScale(new THREE.Vector3()));
 }
 
 export function createParentAtCenter(obj: THREE.Object3D) : THREE.Object3D {
