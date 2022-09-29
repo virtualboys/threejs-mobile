@@ -364,7 +364,7 @@ export function startScene() {
     // });
     blockersParents.forEach((parent)=>{
       parent.removeFromParent();
-      // addColliders(parent);
+      addColliders(parent);
     });
 
     copyMeshTransform(playerBody, camera);
