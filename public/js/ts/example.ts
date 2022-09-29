@@ -47,10 +47,24 @@ var textureUrls: { url: string, key: KnobKey }[] = [
     key: "leftKnob"
   }
 ]
+
+type AudioMap = {
+  [key in AudioKey]?: AudioBuffer;
+};
+type AudioKey = "labAmbience";
+var audioUrls: { url: string, key: AudioKey }[] = [
+  {
+    url: "../../audio/labAmbience.mp3",
+    key: "labAmbience"
+  },
+]
 type TextureMap = {
   [key in KnobKey]?: THREE.Texture;
 };
+
 var loadedTextures: TextureMap = {};
+var loadedAudio: AudioMap = {};
+
 const fixedTimeStep = 1.0 / 60.0; // seconds
 const maxSubSteps = 3;
 
@@ -113,6 +127,12 @@ const colliderTypeOverrides = {
   pCube3: undefined,
   pCube4: undefined,
   pCube5: undefined,
+}
+
+const audioObjects = {
+  tree_rotater: "labAmbience",
+  PointLight_4: "labAmbience",
+  flesh_black: "labAmbience",
 }
 
 $(function () { });
@@ -218,6 +238,7 @@ export function startScene() {
     console.log("on gltf load!");
     sceneGltf = gltf;
   }
+
   async function loadKnobs() {
     const texturePromises = textureUrls.map(({ url }) => textureLoader.loadAsync(url));
     const textures = await Promise.all(texturePromises);
@@ -227,8 +248,20 @@ export function startScene() {
     }, {})
   }
 
+  async function loadAudio() {
+    console.log('loading audio...');
+    const promises = audioUrls.map(({ url }) => audioLoader.loadAsync(url));
+    const audios = await Promise.all(promises);
+    console.log('audio loaded');
+    loadedAudio = audios.reduce((AudioMap, audio, index) => {
+      const newKey = audioUrls[index].key;
+      return { ...AudioMap, [newKey]: audio }
+    }, {})
+  }
+
   function loadOtherAssets() {
     loadKnobs();
+    loadAudio();
   }
 
   function onLoadingDone() {
@@ -333,24 +366,31 @@ export function startScene() {
       if (obj.userData.rotate) {
         console.log('rotating ', obj.name)
         effects.push(rotateEffect(obj, 0.07, rotAxis));
-        if(!obj.name.includes("tree")) {
-          effects.push(hoverEffect(obj, 0.001, 0.1, hoverAxis));
-        }
+        // if(!obj.name.includes("tree")) {
+          // effects.push(hoverEffect(obj, 0.001, 0.1, hoverAxis));
+        // }
       }
 
-      if (obj.userData.soundEffect) {
+      if(obj.name in audioObjects){
+        console.log('adding sound effect to ', obj.name);
         // load a sound and set it as the PositionalAudio object's buffer
         const sound = new THREE.PositionalAudio(audioListener);
         sound.loop = true;
-        audioLoader.load(
-          "sounds/" + obj.userData.soundEffect + ".ogg",
-          function (buffer) {
-            sound.setBuffer(buffer);
-            sound.setRefDistance(1);
-            sounds.push(sound);
-            obj.add(sound);
-          }
-        );
+        sound.setBuffer(loadedAudio.labAmbience);
+        sound.setRefDistance(.7);
+        obj.add(sound);
+        sounds.push(sound);
+      }
+
+      if (obj.userData.soundEffect) {
+        console.log('adding sound effect to ', obj.name);
+        // load a sound and set it as the PositionalAudio object's buffer
+        const sound = new THREE.PositionalAudio(audioListener);
+        sound.loop = true;
+        sound.setBuffer(loadedAudio.labAmbience);
+        sound.setRefDistance(1);
+        obj.add(sound);
+        sounds.push(sound);
       }
 
       if (body) {
@@ -390,7 +430,7 @@ export function startScene() {
     blockersParent.traverse((obj: THREE.Object3D)=>{
       let shapeType: ShapeType;
       if(obj.name in colliderTypeOverrides) {
-        console.log('overriding! ', obj.name);
+        // console.log('overriding! ', obj.name);
         shapeType = colliderTypeOverrides[obj.name];
       }else if(obj.name.includes('Cube')) {
         shapeType = ShapeType.BOX;
@@ -423,7 +463,7 @@ export function startScene() {
 
   function createStaticCollider(obj: THREE.Object3D, type: ShapeType) : CANNON.Body {
 
-    console.log("adding ", type, " collider to ", obj.name);
+    // console.log("adding ", type, " collider to ", obj.name);
 
     const result = threeToCannon(obj, {type: type});
     const body = new CANNON.Body({
