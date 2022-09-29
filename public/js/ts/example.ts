@@ -359,13 +359,12 @@ export function startScene() {
       }
     });
 
+    blockersParents.forEach((parent)=>{
+      addColliders(parent);
+    });
     // blockersParents.forEach((parent)=>{
     //   addColliders(parent);
     // });
-    blockersParents.forEach((parent)=>{
-      parent.removeFromParent();
-      addColliders(parent);
-    });
 
     copyMeshTransform(playerBody, camera);
 
