@@ -126,7 +126,7 @@ export function startScene() {
   container = $("#container_3d");
   
   //@ts-ignore
-  const loadingBar = document.getElementById('loading-bar').ldBar;
+  const loadingBar = document.getElementById('loading-bar');
 
   width = window.innerWidth;
   height = window.innerHeight;
@@ -195,12 +195,15 @@ export function startScene() {
       "https://storage.googleapis.com/oakley-drop/scene.gltf",
       onGLTFLoad,
       function ( xhr ) {
-        let progress = xhr.loaded / xhr.total * 100;
         //@ts-ignore
-        loadingBar.set(progress)
-        if(progress - lastProgressUpdate > 10) {
-          console.log( progress + '% loaded' );
-          lastProgressUpdate = progress;
+        if(loadingBar.ldBar) {
+          let progress = xhr.loaded / xhr.total * 100;
+          //@ts-ignore
+          loadingBar.ldBar.set(progress)
+          if(progress - lastProgressUpdate > 10) {
+            console.log( progress + '% loaded' );
+            lastProgressUpdate = progress;
+          }
         }
       },
       function ( error ) {
