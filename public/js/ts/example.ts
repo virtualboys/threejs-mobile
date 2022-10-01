@@ -144,7 +144,7 @@ export function startScene() {
   console.log("starting scene");
 
   container = $("#container_3d");
-  
+
   //@ts-ignore
   const loadingBar = document.getElementById('loading-bar');
 
@@ -214,20 +214,20 @@ export function startScene() {
     loader.load(
       "https://storage.googleapis.com/oakley-drop/scene.gltf",
       onGLTFLoad,
-      function ( xhr ) {
+      function (xhr) {
         //@ts-ignore
-        if(loadingBar.ldBar) {
+        if (loadingBar.ldBar) {
           let progress = xhr.loaded / xhr.total * 100;
           //@ts-ignore
           loadingBar.ldBar.set(progress)
-          if(progress - lastProgressUpdate > 10) {
-            console.log( progress + '% loaded' );
+          if (progress - lastProgressUpdate > 10) {
+            console.log(progress + '% loaded');
             lastProgressUpdate = progress;
           }
         }
       },
-      function ( error ) {
-        console.log( 'An error happened loading the gltf!!' );
+      function (error) {
+        console.log('An error happened loading the gltf!!');
         console.log(error);
       }
     );
@@ -302,21 +302,21 @@ export function startScene() {
           position: CANNONVec(obj.position), // m
           shape: new CANNON.Sphere(playerColliderWidth),
           material: defaultCannonMat,
-          // linearDamping: .5
         });
         playerBody.fixedRotation = true;
         playerBody.updateMassProperties();
 
-        if(window.IS_DEV_BUILD) {
-        playerBody.addEventListener("collide", function (e) {
-          const threeObj = physicsBodyMap.get(e.body);
-          if(threeObj) {
-            console.log("three onj: ", threeObj.name);
-          } else {
-            console.log("unknown collider ", playerBody.position)
-          }
-        });
-      }
+        //@ts-ignore
+        if (window.IS_DEV_BUILD) {
+          playerBody.addEventListener("collide", function (e) {
+            const threeObj = physicsBodyMap.get(e.body);
+            if (threeObj) {
+              console.log("three onj: ", threeObj.name);
+            } else {
+              console.log("unknown collider ", playerBody.position)
+            }
+          });
+        }
 
         playerBody.collisionFilterGroup = PLAYER_GROUP;
         playerBody.collisionFilterMask = STATIC_GROUP | DYNAMIC_GROUP;
@@ -341,23 +341,23 @@ export function startScene() {
         body.collisionFilterMask = PLAYER_GROUP | STATIC_GROUP | DYNAMIC_GROUP;
       }
 
-      if(obj.name == "blockers" || obj.name == "new_blockers") {
+      if (obj.name == "blockers" || obj.name == "new_blockers") {
         blockersParents.push(obj);
       }
 
       if (obj.userData.invisible) {
         obj.visible = false;
       }
-      
+
       if (obj.userData.rotate) {
         console.log('rotating ', obj.name)
         effects.push(rotateEffect(obj, 0.07, rotAxis));
         // if(!obj.name.includes("tree")) {
-          // effects.push(hoverEffect(obj, 0.001, 0.1, hoverAxis));
+        // effects.push(hoverEffect(obj, 0.001, 0.1, hoverAxis));
         // }
       }
 
-      if(obj.name in audioObjects){
+      if (obj.name in audioObjects) {
         console.log('adding sound effect to ', obj.name);
         // load a sound and set it as the PositionalAudio object's buffer
         const sound = new THREE.PositionalAudio(audioListener);
@@ -385,7 +385,7 @@ export function startScene() {
       }
     });
 
-    blockersParents.forEach((parent)=>{
+    blockersParents.forEach((parent) => {
       addColliders(parent);
     });
 
@@ -408,30 +408,30 @@ export function startScene() {
   function addColliders(blockersParent: THREE.Object3D) {
     console.log('adding colliders...');
 
-    let cols: {obj: THREE.Object3D, type: ShapeType}[] = [];
+    let cols: { obj: THREE.Object3D, type: ShapeType }[] = [];
 
-    blockersParent.traverse((obj: THREE.Object3D)=>{
+    blockersParent.traverse((obj: THREE.Object3D) => {
       let shapeType: ShapeType;
-      if(obj.name in colliderTypeOverrides) {
+      if (obj.name in colliderTypeOverrides) {
         // console.log('overriding! ', obj.name);
         shapeType = colliderTypeOverrides[obj.name];
-      }else if(obj.name.includes('Cube')) {
+      } else if (obj.name.includes('Cube')) {
         shapeType = ShapeType.BOX;
-      } else if(obj.name.includes('Cylinder')) {
+      } else if (obj.name.includes('Cylinder')) {
         shapeType = ShapeType.HULL;
-      } else if(obj.name.includes('Hull')) {
+      } else if (obj.name.includes('Hull')) {
         shapeType = ShapeType.HULL;
       }
 
-      if(shapeType) {
-        cols.push({obj: obj, type: shapeType})
+      if (shapeType) {
+        cols.push({ obj: obj, type: shapeType })
       }
     });
 
     const newParent = new THREE.Group();
     scene.add(newParent);
-    
-    cols.forEach((col)=>{
+
+    cols.forEach((col) => {
       reparentKeepWorldPos(col.obj, newParent);
       const body = createStaticCollider(col.obj, col.type);
       world.addBody(body);
@@ -443,11 +443,11 @@ export function startScene() {
     blockersParent.removeFromParent();
   }
 
-  function createStaticCollider(obj: THREE.Object3D, type: ShapeType) : CANNON.Body {
+  function createStaticCollider(obj: THREE.Object3D, type: ShapeType): CANNON.Body {
 
     // console.log("adding ", type, " collider to ", obj.name);
 
-    const result = threeToCannon(obj, {type: type});
+    const result = threeToCannon(obj, { type: type });
     const body = new CANNON.Body({
       mass: 0, // kg
       material: defaultCannonMat,
@@ -466,11 +466,11 @@ export function startScene() {
   }
 }
 
-function getJoystickOffset(isRight) : THREE.Vector2 {
+function getJoystickOffset(isRight): THREE.Vector2 {
   const offset = new THREE.Vector2();
-  offset.set(0,1);
+  offset.set(0, 1);
 
-  if(isRight) {
+  if (isRight) {
     offset.x = 1 - offset.x;
   }
 
@@ -481,24 +481,24 @@ function addControls() {
   touchEventHandler = new TouchEventHandler(document);
 
   //@ts-ignore
-  if(window.IS_MOBILE) {
+  if (window.IS_MOBILE) {
     leftJoystick = new JoystickControls(
       joystickCam,
       uiScene,
       loadedTextures.leftBase,
       loadedTextures.leftKnob,
       getJoystickOffset(false),
-      new THREE.Vector2(.6,.6),
+      new THREE.Vector2(.6, .6),
       width,
       height);
-  
+
     rightJoystick = new JoystickControls(
       joystickCam,
       uiScene,
       loadedTextures.rightBase,
       loadedTextures.rightKnob,
       getJoystickOffset(true),
-      new THREE.Vector2(-.6,.6),
+      new THREE.Vector2(-.6, .6),
       width,
       height);
   } else {
@@ -509,6 +509,8 @@ function addControls() {
         controls.pointerLock.lock();
       }
     });
+
+    document.addEventListener( 'pointerlockchange', updateFocusWarningScreen );
   }
 
   controls = new FPSMultiplatformControls(
@@ -525,7 +527,7 @@ function addControls() {
   scene.add(controls.getObject());
 
   //@ts-ignore
-  if(window.IS_DEV_BUILD) {
+  if (window.IS_DEV_BUILD) {
     controls.jumpEnabled = true;
     controls.playerSpeed = 150;
   }
@@ -580,14 +582,14 @@ function createRenderer() {
   fxaaPass.material.uniforms['resolution'].value.y = 1 / (height * pixelRatio);
 
   // @ts-ignore
-  const gammaCorrectionPass = new THREE.ShaderPass( THREE.GammaCorrectionShader );
+  const gammaCorrectionPass = new THREE.ShaderPass(THREE.GammaCorrectionShader);
 
   // @ts-ignore
   composer = new THREE.EffectComposer(renderer);
   composer.addPass(renderPass);
   composer.addPass(fxaaPass);
   composer.addPass(bloomPass);
-  composer.addPass( gammaCorrectionPass );
+  composer.addPass(gammaCorrectionPass);
 
   composer.setSize(width, height);
 }
@@ -596,6 +598,8 @@ function startGame() {
   console.log("starting game");
   const overlay = document.getElementById("start-screen");
   overlay.remove();
+
+  updateFocusWarningScreen();
 
   addControls();
 
@@ -654,16 +658,16 @@ function onWindowResize() {
   camera.aspect = aspect;
   camera.updateProjectionMatrix();
 
-  if(leftJoystick) {
+  if (leftJoystick) {
     joystickCam.aspect = aspect;
     joystickCam.updateProjectionMatrix();
-  
+
     leftJoystick.viewPos = getJoystickOffset(false);
     leftJoystick.onResize(width, height);
-  
+
     rightJoystick.viewPos = getJoystickOffset(true);
     rightJoystick.onResize(width, height);
-  
+
     uiCam.left = -1;
     uiCam.right = 1;
     uiCam.top = 1 / aspect;
@@ -682,8 +686,15 @@ function onWindowResize() {
   fxaaPass.material.uniforms['resolution'].value.y = 1 / (height * pixelRatio);
 }
 
-/* Get the element you want displayed in fullscreen mode (a video in this example): */
-// var elem = document.getElementById("container");
+function updateFocusWarningScreen() {
+  //@ts-ignore
+  const shouldShowFocusWarning = !window.IS_MOBILE && controls?.pointerLock.isLocked;
+
+  const focusWarningScreen = document.getElementById('focus-warning-screen');
+  focusWarningScreen.style.display = (shouldShowFocusWarning) ? 'block' : 'none';
+
+  console.log('showing focus message: ', shouldShowFocusWarning);
+}
 
 function toggleFullScreen() {
   var doc = window.document;
