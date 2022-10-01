@@ -210,9 +210,11 @@ export function startScene() {
       stopPreviewBtn.style.display = "block";
     }
   } else {
-    console.log("loading from server..");
+    //@ts-ignore
+    const gltfURL = window.GLTF_URL
+    console.log("loading from server.. ", gltfURL);
     loader.load(
-      "https://storage.googleapis.com/oakley-drop/scene.gltf",
+      gltfURL,
       onGLTFLoad,
       function (xhr) {
         //@ts-ignore
