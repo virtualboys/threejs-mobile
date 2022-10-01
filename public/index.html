@@ -97,11 +97,15 @@
 
 	</script>
 
+	<script type="module">
+		import { Storage as _Storage } from './threejs-source/editor/js/Storage.js';
+		window.STORAGE = _Storage;
+	</script>
+
 
 	<script type="module">
 		import { startScene } from './js/ts/example.js';
 		import { isMobileBrowser } from './js/ts/utils.js';
-		import { Storage as _Storage } from './threejs-source/editor/js/Storage.js';
 
 		console.log('entry point');
 
@@ -111,9 +115,9 @@
 
 		console.log('is mobile: ', window.IS_MOBILE);
 
-		if (_Storage) {
+		if (window.STORAGE) {
 			console.log('found storage');
-			var storage = new _Storage();
+			var storage = new window.STORAGE();
 			storage.init(function () {
 				storage.getPreview(function (gltf) {
 
