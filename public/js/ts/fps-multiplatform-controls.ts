@@ -21,6 +21,7 @@ export class FPSMultiplatformControls {
 
   playerHeight = 0.5;
   playerSpeed = 50;
+  jumpEnabled = false;
   jumpSpeed = 10;
   gravity = 20;
   deceleration = 10;
@@ -28,6 +29,7 @@ export class FPSMultiplatformControls {
   touchYRotMult = .7;
   touchMoveSpeed = 0.05;
   touchDeadZone = 30;
+
 
   onKeyDown: (event: KeyboardEvent) => void;
   onKeyUp: (event: KeyboardEvent) => void;
@@ -51,7 +53,7 @@ export class FPSMultiplatformControls {
     world,
     domElement,
     touchEventHandler,
-    moveJoystick : JoystickControls,
+    moveJoystick: JoystickControls,
     lookJoystick: JoystickControls,
   ) {
     if (domElement === undefined) {
@@ -114,7 +116,7 @@ export class FPSMultiplatformControls {
           break;
 
         case "Space":
-          if (canJump === true) velocity.y += this.jumpSpeed;
+          if (canJump === true && this.jumpEnabled) velocity.y += this.jumpSpeed;
           canJump = false;
           break;
       }
@@ -152,7 +154,7 @@ export class FPSMultiplatformControls {
           moveTouchStart.y = y;
           usingAxisMovement = true;
 
-          moveJoystick.onStart(x, y);
+          moveJoystick?.onStart(x, y);
         }
       } else {
         if (rotTouchId == -1) {
@@ -160,7 +162,7 @@ export class FPSMultiplatformControls {
           rotTouchStart.x = x;
           rotTouchStart.y = y;
 
-          lookJoystick.onStart(x, y);
+          lookJoystick?.onStart(x, y);
         }
       }
     }
@@ -172,14 +174,14 @@ export class FPSMultiplatformControls {
         axisMovement.x = -this.touchMoveSpeed * touchVec.x;
         axisMovement.y = this.touchMoveSpeed * touchVec.y;
 
-        moveJoystick.onMove(x, y);
+        moveJoystick?.onMove(x, y);
       } else if (id == rotTouchId) {
         let touchVec = getTouchVec(rotTouchStart, x, y, this.touchDeadZone);
 
         camRot.x = touchVec.x;
         camRot.y = touchVec.y;
 
-        lookJoystick.onMove(x, y);
+        lookJoystick?.onMove(x, y);
       }
     }
 
@@ -190,13 +192,13 @@ export class FPSMultiplatformControls {
         axisMovement.y = 0;
         usingAxisMovement = false;
 
-        moveJoystick.onEnd();
+        moveJoystick?.onEnd();
       } else if (id == rotTouchId) {
         rotTouchId = -1;
         camRot.x = 0;
         camRot.y = 0;
 
-        lookJoystick.onEnd();
+        lookJoystick?.onEnd();
       }
     }
 

@@ -21,11 +21,11 @@
 <body>
 	<section id="loading-screen">
 		<div id="loading-logo-container">
-			<img id="loading-logo" src="images/start_screen.jpg"/>
+			<img id="loading-logo" src="images/start_screen.jpg" />
 		</div>
 
 		<!-- <h1 id="loading-text">Loading...</h1> -->
-		
+
 		<div id="loading-bar" class="ldBar" data-value="0"></div>
 	</section>
 
@@ -33,7 +33,7 @@
 		<button id="start-button">Play</button>
 	</section>
 
-	<div id="container" >
+	<div id="container">
 
 		<div class="container_bg">
 			<div id="solid"></div>
@@ -43,8 +43,8 @@
 		<div id="container_3d"></div>
 	</div>
 	<button id="stopPreviewButton" onclick="window.stopPreview()">PREVIEWING</br>Reload Scene From Server</button>
-  <script> var exports = {}; </script>
-  	<script type="text/javascript" src="./js/loading-bar.min.js"></script>
+	<script> var exports = {}; </script>
+	<script type="text/javascript" src="./js/loading-bar.min.js"></script>
 	<script type="text/javascript" src="./libs/jquery-2.1.4.js"></script>
 	<script type="text/javascript" src="./libs/threejs/three.js"></script>
 	<script type="text/javascript" src="./libs/threejs/FirstPersonControls.js"></script>
@@ -93,30 +93,43 @@
 
 
 	<script type="module">
+		import { startScene } from './js/ts/example.js';
+		import { isMobileBrowser } from './js/ts/utils.js';
+		import { Storage as _Storage } from './threejs-source/editor/js/Storage.js';
 
-	import { Storage as _Storage } from './threejs-source/editor/js/Storage.js';
-    import { startScene } from './js/ts/example.js'
-	console.log('entry point');
-		var storage = new _Storage();
-		storage.init(function () {
-			storage.getPreview(function (gltf) {
+		console.log('entry point');
 
-				if (gltf !== undefined) {
-					window.previewGLTF = gltf;
-					console.log("loaded!");
-				}
+		window.IS_MOBILE = isMobileBrowser();
+		window.IS_DEV_BUILD = window.location.origin.includes('localhost');
 
-				startScene();
+		console.log('is mobile: ', window.IS_MOBILE);
+
+		if (_Storage) {
+			console.log('found storage');
+			var storage = new _Storage();
+			storage.init(function () {
+				storage.getPreview(function (gltf) {
+
+					if (gltf !== undefined) {
+						window.previewGLTF = gltf;
+						console.log("loaded!");
+					}
+
+					startScene();
+				});
 			});
-		});
 
-		function stopPreview() {
-			storage.clearPreview(function () {
-				location.reload();
-			});
+			function stopPreview() {
+				storage.clearPreview(function () {
+					location.reload();
+				});
+			}
+			window.stopPreview = stopPreview;
+		} else {
+			console.log('didnt find storage');
+			startScene();
 		}
 
-		window.stopPreview = stopPreview;
 	</script>
 
 	<script type="module" src="./js/ts/example.js"></script>

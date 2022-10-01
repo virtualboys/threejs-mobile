@@ -107,7 +107,7 @@ const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
 const playerColliderWidth = .5;
-const playerHeight = 3.5;
+const playerHeight = 2.6;
 
 let sceneGltf, waterNormals, skyCubeMap;
 
@@ -294,22 +294,7 @@ export function startScene() {
 
     let blockersParents: THREE.Object3D[] = [];
     scene.traverse(function (obj: THREE.Object3D) {
-      // console.log(obj);
 
-    //   if ((obj as THREE.Mesh).isMesh) {
-    //     const m = obj as THREE.Mesh;
-
-    //     //@ts-ignore
-    //     if(m.material.map) {
-    //       //@ts-ignore
-    //       m.material.map.magFilter = THREE.NearestFilter;
-    //       //@ts-ignore
-    //       m.material.map.minFilter = THREE.NearestFilter;
-    //       //@ts-ignore
-    //       // m.material.map = undefined;
-    //     }
-        
-    // }
       var body;
       if (obj.name == "Player") {
         playerBody = new CANNON.Body({
@@ -321,16 +306,17 @@ export function startScene() {
         });
         playerBody.fixedRotation = true;
         playerBody.updateMassProperties();
+
+        if(window.IS_DEV_BUILD) {
         playerBody.addEventListener("collide", function (e) {
-          
           const threeObj = physicsBodyMap.get(e.body);
           if(threeObj) {
             console.log("three onj: ", threeObj.name);
           } else {
             console.log("unknown collider ", playerBody.position)
           }
-          
         });
+      }
 
         playerBody.collisionFilterGroup = PLAYER_GROUP;
         playerBody.collisionFilterMask = STATIC_GROUP | DYNAMIC_GROUP;
@@ -402,9 +388,6 @@ export function startScene() {
     blockersParents.forEach((parent)=>{
       addColliders(parent);
     });
-    // blockersParents.forEach((parent)=>{
-    //   addColliders(parent);
-    // });
 
     copyMeshTransform(playerBody, camera);
 
@@ -458,7 +441,6 @@ export function startScene() {
     });
 
     blockersParent.removeFromParent();
-    // scene.remove(blockersParent);
   }
 
   function createStaticCollider(obj: THREE.Object3D, type: ShapeType) : CANNON.Body {
@@ -486,12 +468,7 @@ export function startScene() {
 
 function getJoystickOffset(isRight) : THREE.Vector2 {
   const offset = new THREE.Vector2();
-  if (width > height) {
-    offset.set(0,1);
-  } else {
-    offset.set(0,1);
-    // offset.set(.25,.85);
-  }
+  offset.set(0,1);
 
   if(isRight) {
     offset.x = 1 - offset.x;
@@ -503,25 +480,36 @@ function getJoystickOffset(isRight) : THREE.Vector2 {
 function addControls() {
   touchEventHandler = new TouchEventHandler(document);
 
-  leftJoystick = new JoystickControls(
-    joystickCam,
-    uiScene,
-    loadedTextures.leftBase,
-    loadedTextures.leftKnob,
-    getJoystickOffset(false),
-    new THREE.Vector2(.6,.6),
-    width,
-    height);
-
-  rightJoystick = new JoystickControls(
-    joystickCam,
-    uiScene,
-    loadedTextures.rightBase,
-    loadedTextures.rightKnob,
-    getJoystickOffset(true),
-    new THREE.Vector2(-.6,.6),
-    width,
-    height);
+  //@ts-ignore
+  if(window.IS_MOBILE) {
+    leftJoystick = new JoystickControls(
+      joystickCam,
+      uiScene,
+      loadedTextures.leftBase,
+      loadedTextures.leftKnob,
+      getJoystickOffset(false),
+      new THREE.Vector2(.6,.6),
+      width,
+      height);
+  
+    rightJoystick = new JoystickControls(
+      joystickCam,
+      uiScene,
+      loadedTextures.rightBase,
+      loadedTextures.rightKnob,
+      getJoystickOffset(true),
+      new THREE.Vector2(-.6,.6),
+      width,
+      height);
+  } else {
+    document.body.addEventListener("click", function () {
+      if (controls.pointerLock.isLocked) {
+        controls.pointerLock.unlock();
+      } else {
+        controls.pointerLock.lock();
+      }
+    });
+  }
 
   controls = new FPSMultiplatformControls(
     camera,
@@ -537,15 +525,10 @@ function addControls() {
   scene.add(controls.getObject());
 
   //@ts-ignore
-  // pacControls = new THREE.PointAndClickControls(camera, playerBody, uiScene, uiCam, touchEventHandler);
-
-  document.body.addEventListener("click", function () {
-    if (controls.pointerLock.isLocked) {
-      controls.pointerLock.unlock();
-    } else {
-      controls.pointerLock.lock();
-    }
-  });
+  if(window.IS_DEV_BUILD) {
+    controls.jumpEnabled = true;
+    controls.playerSpeed = 150;
+  }
 
 }
 
@@ -559,7 +542,6 @@ function createRenderer() {
   // renderer.toneMapping = THREE.NoToneMapping;
   //renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
-  // renderer = new THREE.WebGLRenderer();
   renderer.setSize(width, height);
   container.append(renderer.domElement);
 
@@ -568,7 +550,6 @@ function createRenderer() {
   renderPass.clearColor = new THREE.Color(0, 0, 0);
   renderPass.clearAlpha = 0;
   renderPass.clearDepth = true;
-  // renderPass.
 
   const bloomParams = {
     exposure: 0.5,
@@ -634,7 +615,7 @@ function animate() {
 
   const delta = clock.getDelta();
 
-  rightJoystick.update((input) => {
+  rightJoystick?.update((input) => {
     if (input) {
       controls.rotInputVec.set(-input.moveX, input.moveY);
     }
@@ -673,20 +654,22 @@ function onWindowResize() {
   camera.aspect = aspect;
   camera.updateProjectionMatrix();
 
-  joystickCam.aspect = aspect;
-  joystickCam.updateProjectionMatrix();
-
-  leftJoystick.viewPos = getJoystickOffset(false);
-  leftJoystick.onResize(width, height);
-
-  rightJoystick.viewPos = getJoystickOffset(true);
-  rightJoystick.onResize(width, height);
-
-  uiCam.left = -1;
-  uiCam.right = 1;
-  uiCam.top = 1 / aspect;
-  uiCam.bottom = -1 / aspect;
-  uiCam.updateProjectionMatrix();
+  if(leftJoystick) {
+    joystickCam.aspect = aspect;
+    joystickCam.updateProjectionMatrix();
+  
+    leftJoystick.viewPos = getJoystickOffset(false);
+    leftJoystick.onResize(width, height);
+  
+    rightJoystick.viewPos = getJoystickOffset(true);
+    rightJoystick.onResize(width, height);
+  
+    uiCam.left = -1;
+    uiCam.right = 1;
+    uiCam.top = 1 / aspect;
+    uiCam.bottom = -1 / aspect;
+    uiCam.updateProjectionMatrix();
+  }
 
   // pacControls.resize(aspect);
 
