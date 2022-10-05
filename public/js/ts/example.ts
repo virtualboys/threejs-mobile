@@ -555,12 +555,12 @@ function addControls() {
 function createRenderer() {
   console.log("creating renderer");
   renderer = new THREE.WebGLRenderer({ antialias: false });
-  renderer.outputEncoding = THREE.sRGBEncoding;
-  // renderer.outputEncoding = THREE.LinearEncoding;
+  // renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.outputEncoding = THREE.LinearEncoding;
   renderer.autoClear = false;
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.toneMapping = THREE.NoToneMapping;
-  // renderer.toneMapping = THREE.CineonToneMapping;
+  // renderer.toneMapping = THREE.NoToneMapping;
+  renderer.toneMapping = THREE.CineonToneMapping;
 
   // const color = 0x000000;  // white
   // const near = 15;
@@ -612,7 +612,7 @@ function createRenderer() {
   composer.addPass(renderPass);
   // composer.addPass(fxaaPass);
   composer.addPass(bloomPass);
-  // composer.addPass(gammaCorrectionPass);
+  composer.addPass(gammaCorrectionPass);
 
   composer.setSize(width, height);
 }
