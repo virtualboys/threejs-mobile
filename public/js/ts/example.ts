@@ -351,12 +351,28 @@ export function startScene() {
         obj.visible = false;
       }
 
-      if (obj.userData.rotate) {
+      if (obj.userData.rotate || obj.name.includes('fan')) {
         console.log('rotating ', obj.name)
-        effects.push(rotateEffect(obj, 0.07, rotAxis));
+        let axis = rotAxis;
+        if(obj.name.includes('rotater_thing') || obj.name.includes('fan') || obj.name == 'Cylinder') {
+          axis = hoverAxis;
+        }
+        let rps = .07;
+        if(obj.name.includes('fan')) {
+          rps = .8;
+        } else if(obj.name == 'Cylinder') {
+          rps = .006;
+        }
+        effects.push(rotateEffect(obj, rps, axis));
         // if(!obj.name.includes("tree")) {
         // effects.push(hoverEffect(obj, 0.001, 0.1, hoverAxis));
         // }
+      }
+
+      if(obj.userData.hover) {
+
+        console.log('hovering ', obj.name)
+        effects.push(hoverEffect(obj, 0.001, 0.1, hoverAxis));
       }
 
       if (obj.name in audioObjects) {
@@ -365,7 +381,7 @@ export function startScene() {
         const sound = new THREE.PositionalAudio(audioListener);
         sound.loop = true;
         sound.setBuffer(loadedAudio.labAmbience);
-        sound.setRefDistance(.7);
+        sound.setRefDistance(2);
         obj.add(sound);
         sounds.push(sound);
       }
@@ -418,7 +434,7 @@ export function startScene() {
         // console.log('overriding! ', obj.name);
         shapeType = colliderTypeOverrides[obj.name];
       } else if (obj.name.includes('Cube')) {
-        shapeType = ShapeType.BOX;
+        shapeType = ShapeType.HULL;
       } else if (obj.name.includes('Cylinder')) {
         shapeType = ShapeType.HULL;
       } else if (obj.name.includes('Hull')) {
@@ -531,20 +547,25 @@ function addControls() {
   //@ts-ignore
   if (window.IS_DEV_BUILD) {
     controls.jumpEnabled = true;
-    controls.playerSpeed = 150;
+    // controls.playerSpeed = 150;
   }
 
 }
 
 function createRenderer() {
   console.log("creating renderer");
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  // renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.outputEncoding = THREE.LinearEncoding;
+  renderer = new THREE.WebGLRenderer({ antialias: false });
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  // renderer.outputEncoding = THREE.LinearEncoding;
   renderer.autoClear = false;
   renderer.setPixelRatio(window.devicePixelRatio);
-  // renderer.toneMapping = THREE.NoToneMapping;
-  //renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMapping = THREE.NoToneMapping;
+  // renderer.toneMapping = THREE.CineonToneMapping;
+
+  // const color = 0x000000;  // white
+  // const near = 15;
+  // const far = 50;
+  // scene.fog = new THREE.Fog(color, near, far);
 
   renderer.setSize(width, height);
   container.append(renderer.domElement);
@@ -589,9 +610,9 @@ function createRenderer() {
   // @ts-ignore
   composer = new THREE.EffectComposer(renderer);
   composer.addPass(renderPass);
-  composer.addPass(fxaaPass);
+  // composer.addPass(fxaaPass);
   composer.addPass(bloomPass);
-  composer.addPass(gammaCorrectionPass);
+  // composer.addPass(gammaCorrectionPass);
 
   composer.setSize(width, height);
 }
