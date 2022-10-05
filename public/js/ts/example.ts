@@ -359,7 +359,7 @@ export function startScene() {
         }
         let rps = .07;
         if(obj.name.includes('fan')) {
-          rps = .8;
+          rps = .4;
         } else if(obj.name == 'Cylinder') {
           rps = .006;
         }
