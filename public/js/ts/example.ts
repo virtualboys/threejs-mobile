@@ -51,11 +51,27 @@ var textureUrls: { url: string, key: KnobKey }[] = [
 type AudioMap = {
   [key in AudioKey]?: AudioBuffer;
 };
-type AudioKey = "labAmbience";
-var audioUrls: { url: string, key: AudioKey }[] = [
+type AudioKey = "labAmbience" | "sandal" | "flesh" | "saw";
+var audioUrls: { url: string, key: AudioKey, pos: THREE.Vector3 }[] = [
   {
     url: "../../audio/labAmbience.mp3",
-    key: "labAmbience"
+    key: "labAmbience",
+    pos: new THREE.Vector3(-.5, 0, 25)
+  },
+  {
+    url: "../../audio/sandal_seamless.mp3",
+    key: "sandal",
+    pos: new THREE.Vector3(-27, .6, -23)
+  },
+  {
+    url: "../../audio/flesh_seamless.mp3",
+    key: "flesh",
+    pos: new THREE.Vector3(23, .6, -29)
+  },
+  {
+    url: "../../audio/saw_seamless.mp3",
+    key: "saw",
+    pos: new THREE.Vector3(29, .6, 19)
   },
 ]
 type TextureMap = {
@@ -63,7 +79,7 @@ type TextureMap = {
 };
 
 var loadedTextures: TextureMap = {};
-var loadedAudio: AudioMap = {};
+var loadedAudio: { buffer: AudioBuffer, pos: THREE.Vector3 }[] = [];
 
 const fixedTimeStep = 1.0 / 60.0; // seconds
 const maxSubSteps = 3;
@@ -255,7 +271,8 @@ export function startScene() {
     const promises = audioUrls.map(({ url }) => audioLoader.loadAsync(url));
     const audios = await Promise.all(promises);
     console.log('audio loaded');
-    loadedAudio = audios.reduce((AudioMap, audio, index) => {
+    audios.reduce((AudioMap, audio, index) => {
+      loadedAudio.push({ buffer: audio, pos: audioUrls[index].pos });
       const newKey = audioUrls[index].key;
       return { ...AudioMap, [newKey]: audio }
     }, {})
@@ -355,13 +372,13 @@ export function startScene() {
       if (obj.userData.rotate || obj.name.includes('fan')) {
         console.log('rotating ', obj.name)
         let axis = rotAxis;
-        if(obj.name.includes('rotater_thing') || obj.name.includes('fan') || obj.name == 'Cylinder') {
+        if (obj.name.includes('rotater_thing') || obj.name.includes('fan') || obj.name == 'Cylinder') {
           axis = hoverAxis;
         }
         let rps = .07;
-        if(obj.name.includes('fan')) {
+        if (obj.name.includes('fan')) {
           rps = .4;
-        } else if(obj.name == 'Cylinder') {
+        } else if (obj.name == 'Cylinder') {
           rps = .006;
         }
         effects.push(rotateEffect(obj, rps, axis));
@@ -370,38 +387,51 @@ export function startScene() {
         // }
       }
 
-      if(obj.userData.hover) {
+      if (obj.userData.hover) {
 
         console.log('hovering ', obj.name)
         effects.push(hoverEffect(obj, 0.001, 0.1, hoverAxis));
       }
 
-      if (obj.name in audioObjects) {
-        console.log('adding sound effect to ', obj.name);
-        // load a sound and set it as the PositionalAudio object's buffer
-        const sound = new THREE.PositionalAudio(audioListener);
-        sound.loop = true;
-        sound.setBuffer(loadedAudio.labAmbience);
-        sound.setRefDistance(2);
-        obj.add(sound);
-        sounds.push(sound);
-      }
+      // if (obj.name in audioObjects) {
+      //   console.log('adding sound effect to ', obj.name);
+      //   // load a sound and set it as the PositionalAudio object's buffer
+      //   const sound = new THREE.PositionalAudio(audioListener);
+      //   sound.loop = true;
+      //   sound.setBuffer(loadedAudio.labAmbience);
+      //   sound.setRefDistance(2);
+      //   obj.add(sound);
+      //   sounds.push(sound);
+      // }
 
-      if (obj.userData.soundEffect) {
-        console.log('adding sound effect to ', obj.name);
-        // load a sound and set it as the PositionalAudio object's buffer
-        const sound = new THREE.PositionalAudio(audioListener);
-        sound.loop = true;
-        sound.setBuffer(loadedAudio.labAmbience);
-        sound.setRefDistance(1);
-        obj.add(sound);
-        sounds.push(sound);
-      }
+      // if (obj.userData.soundEffect) {
+      //   console.log('adding sound effect to ', obj.name);
+      //   // load a sound and set it as the PositionalAudio object's buffer
+      //   const sound = new THREE.PositionalAudio(audioListener);
+      //   sound.loop = true;
+      //   sound.setBuffer(loadedAudio.labAmbience);
+      //   sound.setRefDistance(1);
+      //   obj.add(sound);
+      //   sounds.push(sound);
+      // }
 
       if (body) {
         world.addBody(body);
         dynamicPhysicsBodies.push({ body: body, mesh: obj });
       }
+    });
+
+    loadedAudio.forEach((aud) => {
+      var audObj = new THREE.Group();
+      scene.add(audObj);
+      audObj.position.copy(aud.pos);
+      const sound = new THREE.PositionalAudio(audioListener);
+      sound.loop = true;
+      sound.setBuffer(aud.buffer);
+      sound.setRefDistance(4);
+      sound.setMaxDistance(6);
+      audObj.add(sound);
+      sounds.push(sound);
     });
 
     blockersParents.forEach((parent) => {
@@ -529,7 +559,7 @@ function addControls() {
       }
     });
 
-    document.addEventListener( 'pointerlockchange', updateFocusWarningScreen );
+    document.addEventListener('pointerlockchange', updateFocusWarningScreen);
   }
 
   controls = new FPSMultiplatformControls(
