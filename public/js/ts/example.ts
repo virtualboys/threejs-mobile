@@ -393,28 +393,6 @@ export function startScene() {
         effects.push(hoverEffect(obj, 0.001, 0.1, hoverAxis));
       }
 
-      // if (obj.name in audioObjects) {
-      //   console.log('adding sound effect to ', obj.name);
-      //   // load a sound and set it as the PositionalAudio object's buffer
-      //   const sound = new THREE.PositionalAudio(audioListener);
-      //   sound.loop = true;
-      //   sound.setBuffer(loadedAudio.labAmbience);
-      //   sound.setRefDistance(2);
-      //   obj.add(sound);
-      //   sounds.push(sound);
-      // }
-
-      // if (obj.userData.soundEffect) {
-      //   console.log('adding sound effect to ', obj.name);
-      //   // load a sound and set it as the PositionalAudio object's buffer
-      //   const sound = new THREE.PositionalAudio(audioListener);
-      //   sound.loop = true;
-      //   sound.setBuffer(loadedAudio.labAmbience);
-      //   sound.setRefDistance(1);
-      //   obj.add(sound);
-      //   sounds.push(sound);
-      // }
-
       if (body) {
         world.addBody(body);
         dynamicPhysicsBodies.push({ body: body, mesh: obj });
@@ -585,7 +563,7 @@ function addControls() {
 
 function createRenderer() {
   console.log("creating renderer");
-  renderer = new THREE.WebGLRenderer({ antialias: false });
+  renderer = new THREE.WebGLRenderer({ antialias: false, logarithmicDepthBuffer: true });
   // renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.outputEncoding = THREE.LinearEncoding;
   renderer.autoClear = false;
