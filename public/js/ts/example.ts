@@ -167,7 +167,7 @@ export function startScene() {
 
   clock = new THREE.Clock();
   world = new CANNON.World();
-  world.gravity.set(0, -9, 0);
+  world.gravity.set(0, -19, 0);
   world.broadphase = new CANNON.NaiveBroadphase();
   world.solver.iterations = 3;
 
@@ -299,6 +299,7 @@ export function startScene() {
 
       var body;
       if (obj.name == "Player") {
+        obj.position.y = .54;
         playerBody = new CANNON.Body({
           mass: 1, // kg
           position: CANNONVec(obj.position), // m
