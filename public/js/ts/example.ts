@@ -579,7 +579,7 @@ function createRenderer() {
   const bloomParams = {
     exposure: 0.5,
     bloomStrength: 0.5,
-    bloomThreshold: 0.7,
+    bloomThreshold: 0.55,
     bloomRadius: 0.7,
   };
   // @ts-ignore
