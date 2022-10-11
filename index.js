@@ -36,6 +36,9 @@ http.createServer(function (request, response) {
         case '.svg':
             contentType = 'image/svg+xml';
             break;
+        case '.ttf':
+            contentType = 'font/ttf';
+            break;
     }
 
     fs.readFile(filePath, function (error, content) {

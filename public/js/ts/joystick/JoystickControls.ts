@@ -53,6 +53,10 @@ export class JoystickControls {
    */
   deadZone = .2;
   /**
+   * how much to add for quick joystick movement 
+   */
+  // speedMult = .1;
+  /**
    * y offset of joystick from touch 
    */
   yOffset = 0;
@@ -67,6 +71,7 @@ export class JoystickControls {
 
   viewPos: THREE.Vector2;
   anchorOffset: THREE.Vector2;
+  lastKnobPos: THREE.Vector3;
 
   constructor(
     camera: THREE.PerspectiveCamera,
@@ -84,6 +89,7 @@ export class JoystickControls {
     this.knobTex = knobTex;
     this.viewPos = viewPos;
     this.anchorOffset = anchorOffset;
+    this.lastKnobPos = new THREE.Vector3();
     this.create();
 
     this.updateBaseAnchorPoint(width, height);
@@ -110,22 +116,16 @@ export class JoystickControls {
 
     worldCenter.x += this.anchorOffset.x;
     worldCenter.y += this.anchorOffset.y;
-    
+
+    this.lastKnobPos.copy(worldCenter);
+
     const screenPivot = worldCenter.clone().project(this.camera);
-    // worldPivot.project(this.camera);
-    screenPivot.x = ( screenPivot.x * width / 2 ) + width / 2;
-    screenPivot.y = - ( screenPivot.y * height / 2 ) + height / 2;
-  
+    
+    screenPivot.x = (screenPivot.x * width / 2) + width / 2;
+    screenPivot.y = - (screenPivot.y * height / 2) + height / 2;
 
-    // const vFOV = this.camera.fov * Math.PI / 180;        // convert vertical fov to radians
-    // const stickWidth = height / (2 * Math.tan( vFOV / 2 ) * this.joystickScale); // visible height'
-    //   console.log('stick width: ', stickWidth)
+    this.baseAnchorPoint = new THREE.Vector2(screenPivot.x, screenPivot.y);
 
-    // this.baseAnchorPoint = new THREE.Vector2(
-    //   this.viewPos.x * width + this.pivot.x * stickWidth,
-    //   this.viewPos.y * height + this.pivot.y * stickWidth);
-      this.baseAnchorPoint = new THREE.Vector2(screenPivot.x, screenPivot.y);
-      // console.log(this.baseAnchorPoint);
   }
 
   public onResize(width: number, height: number) {
@@ -160,7 +160,7 @@ export class JoystickControls {
     );
 
     const startRange = this.joystickTouchZone * 5;
-    if(positionInScene.sub(this.baseObject.position).length() < startRange) {
+    if (positionInScene.sub(this.baseObject.position).length() < startRange) {
       this.interactionHasBegan = true;
       this.onMove(clientX, clientY);
     }
@@ -211,7 +211,7 @@ export class JoystickControls {
     const name = (isBase) ? 'joystick-base' : 'joystick-ball';
 
     // const geometry = new THREE.CircleGeometry(size * zoomScale, 72);
-    const geometry = new THREE.PlaneGeometry(1, 1,1,1);
+    const geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
     const material = new THREE.MeshBasicMaterial({
       map: tex,
       transparent: true,
@@ -261,12 +261,12 @@ export class JoystickControls {
     d.z = 0;
 
     const dLen = d.length();
-    if(dLen > this.joystickTouchZone) {
+    if (dLen > this.joystickTouchZone) {
       d.set(clientX - this.baseAnchorPoint.x, -(clientY - this.baseAnchorPoint.y), 0);
       d.normalize();
       d.multiplyScalar(this.joystickTouchZone);
       return this.baseObject.position.clone().add(d);
-    } else if(dLen / this.joystickTouchZone < this.deadZone) {
+    } else if (dLen / this.joystickTouchZone < this.deadZone) {
       return this.baseObject.position.clone();
     }
 
@@ -274,35 +274,7 @@ export class JoystickControls {
      * Touch was inside the Base so just set the joystick ball to that
      * position
      */
-    return positionInScene;    
-    
-    const touchWasOutsideJoystick = isTouchOutOfBounds(
-      clientX,
-      clientY,
-      this.baseAnchorPoint,
-      this.joystickTouchZone,
-    );
-
-    if (touchWasOutsideJoystick) {
-      /**
-       * Touch was outside Base so restrict the ball to the base perimeter
-       */
-      const angle = Math.atan2(
-        clientY - this.baseAnchorPoint.y,
-        clientX - this.baseAnchorPoint.x,
-      ) - degreesToRadians(90);
-      const xDistance = Math.sin(angle) * this.joystickTouchZone;
-      const yDistance = Math.cos(angle) * this.joystickTouchZone;
-      const direction = new THREE.Vector3(-xDistance, -yDistance, 0)
-        .normalize();
-      const joyStickBase = this.scene.getObjectByName('joystick-base');
-
-      /**
-       * positionInScene restricted to the perimeter of the joystick
-       * base
-       */
-      return (joyStickBase as THREE.Object3D).position.clone().add(direction);
-    }
+    return positionInScene;
   };
 
   /**
@@ -338,7 +310,14 @@ export class JoystickControls {
     d.z = 0;
 
     const dAmt = ((d.length() / this.joystickTouchZone) - this.deadZone) / (1 - this.deadZone);
-    const moveLen = this.joystickSensitivity * Math.max(0, dAmt);
+    let moveLen = this.joystickSensitivity * Math.max(0, dAmt);
+
+    // const joyVel = this.knobObject.position.clone().sub(this.lastKnobPos);
+    // joyVel.z = 0;
+    // const joySpd = joyVel.length();
+    // moveLen += joySpd * this.speedMult;
+    // this.lastKnobPos.copy(this.knobObject.position);
+
     d.normalize();
     d.multiplyScalar(moveLen);
 
@@ -352,24 +331,12 @@ export class JoystickControls {
    * Adds event listeners to the document
    */
   public create = (): void => {
-    // window.addEventListener('touchstart', this.handleTouchStart);
-    // window.addEventListener('touchmove', this.handleTouchMove);
-    // window.addEventListener('touchend', this.handleEventEnd);
-    // window.addEventListener('mousedown', this.handleMouseDown);
-    // window.addEventListener('mousemove', this.handleMouseMove);
-    // window.addEventListener('mouseup', this.handleEventEnd);
   };
 
   /**
    * Removes event listeners from the document
    */
   public destroy = (): void => {
-    // window.removeEventListener('touchstart', this.handleTouchStart);
-    // window.removeEventListener('touchmove', this.handleTouchMove);
-    // window.removeEventListener('touchend', this.handleEventEnd);
-    // window.removeEventListener('mousedown', this.handleMouseDown);
-    // window.removeEventListener('mousemove', this.handleMouseMove);
-    // window.removeEventListener('mouseup', this.handleEventEnd);
   };
 
   /**

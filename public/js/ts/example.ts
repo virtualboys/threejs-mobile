@@ -422,7 +422,8 @@ export function startScene() {
 
     addLights();
 
-    const startButton = document.getElementById("start-button");
+    const startButton = document.getElementById("start-button") as HTMLButtonElement;
+    startButton.addEventListener("click", ()=>{ startButton.disabled = true; });
     startButton.addEventListener("click", startGame);
   }
 

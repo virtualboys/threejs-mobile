@@ -1,4 +1,7 @@
-
+@font-face {
+    font-family: industrial;
+    src: url(../fonts/basica_industrial.ttf);
+}
 #loading-screen {
 	position: absolute;
 	z-index: 3;
@@ -44,9 +47,31 @@
     margin: auto;
     width: 300px;
     height: 100px;
-    font-weight: bold;
-    color: black;
+    font-family: industrial;
+    background-color: rgb(136,136,136);
+    color: rgb(255, 255, 255);
+    /* font-weight: bold; */
+    font-size: 3em;
+    border-radius: .4em;
 }
+#start-button:disabled{
+  background-color: rgb(77, 77, 77);
+  color: rgb(149, 149, 149);
+}
+#play-logo-container{
+    width:100%;
+     height:80%;
+     display:flex;
+     justify-content:center;
+     align-items:center;
+     overflow:hidden
+ }
+ #play-logo{
+   flex-shrink:0;
+     -webkit-flex-shrink: 0;
+     max-width:70%;
+     max-height:90%;
+ }
 #stopPreviewButton {
     z-index: 3;
 }
