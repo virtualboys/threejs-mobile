@@ -155,6 +155,9 @@ export class FPSMultiplatformControls {
           usingAxisMovement = true;
 
           moveJoystick?.onStart(x, y);
+          
+          if (canJump === true && this.jumpEnabled) velocity.y += this.jumpSpeed;
+          canJump = false;
         }
       } else {
         if (rotTouchId == -1) {

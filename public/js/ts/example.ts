@@ -321,9 +321,9 @@ export function startScene() {
     let blockersParents: THREE.Object3D[] = [];
     scene.traverse(function (obj: THREE.Object3D) {
 
-      if(obj.name.includes('tree')) {
-        obj.visible = false;
-      }
+      // if(obj.name.includes('tree')) {
+      //   obj.visible = false;
+      // }
       var body;
       if (obj.name == "Player") {
         obj.position.y = .54;
