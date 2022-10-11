@@ -139,6 +139,8 @@ const colliderTypeOverrides = {
   pCube6: ShapeType.HULL,
   pCube7: ShapeType.HULL,
   pCube9: ShapeType.HULL,
+  pCube33: ShapeType.HULL,
+  pCube34: ShapeType.HULL,
   polySurface52: undefined,
   pCube3: undefined,
   pCube4: undefined,
@@ -444,7 +446,7 @@ export function startScene() {
         // console.log('overriding! ', obj.name);
         shapeType = colliderTypeOverrides[obj.name];
       } else if (obj.name.includes('Cube')) {
-        shapeType = ShapeType.HULL;
+        shapeType = ShapeType.BOX;
       } else if (obj.name.includes('Cylinder')) {
         shapeType = ShapeType.HULL;
       } else if (obj.name.includes('Hull')) {
@@ -474,13 +476,17 @@ export function startScene() {
   function createStaticCollider(obj: THREE.Object3D, type: ShapeType): CANNON.Body {
 
     // console.log("adding ", type, " collider to ", obj.name);
-
+    // const originalRot = obj.quaternion.clone();
+    // obj.quaternion.identity();
+    // obj.updateWorldMatrix(false, true);
     const result = threeToCannon(obj, { type: type });
     const body = new CANNON.Body({
       mass: 0, // kg
       material: defaultCannonMat,
     });
     body.addShape(result.shape, result.offset, result.orientation);
+    // obj.quaternion.copy(originalRot);
+
     copyMeshTransform(body, obj);
 
     // console.log('position:', body.position, ' size:', body.shapes[0].boundingSphereRadius);
