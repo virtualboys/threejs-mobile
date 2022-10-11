@@ -1,8 +1,8 @@
 // import { GLTFLoader } from './libs/threejs/GLTFLoader.js';
 
 THREE.Cache.enabled = true;
+const gltfCacheKey = 'GLTF_CACHE';
 
-//THREE.Cache.enabled = true;
 import { rotateEffect, Effect, hoverEffect } from "./effects.js";
 import { FPSMultiplatformControls } from "./fps-multiplatform-controls.js";
 import { JoystickControls } from "./joystick/JoystickControls.js";
@@ -216,6 +216,10 @@ export function startScene() {
   const loader = new GLTFLoader(loadingManager);
 
   let lastProgressUpdate = 0;
+  const cachedGLTF = THREE.Cache.get(gltfCacheKey);
+  if(!window.previewGLTF) {
+    window.previewGLTF = cachedGLTF;
+  }
   if (window.previewGLTF) {
     console.log("Loading preview!");
     loader.parse(window.previewGLTF, loader.resourcePath, function (gltf) {
@@ -257,6 +261,7 @@ export function startScene() {
   function onGLTFLoad(gltf) {
     console.log("on gltf load!");
     sceneGltf = gltf;
+    THREE.Cache.add(gltfCacheKey, gltf);
   }
 
   async function loadKnobs() {
@@ -273,11 +278,11 @@ export function startScene() {
     const promises = audioUrls.map(({ url }) => audioLoader.loadAsync(url));
     const audios = await Promise.all(promises);
     console.log('audio loaded');
-    audios.reduce((AudioMap, audio, index) => {
-      loadedAudio.push({ buffer: audio, pos: audioUrls[index].pos });
-      const newKey = audioUrls[index].key;
-      return { ...AudioMap, [newKey]: audio }
-    }, {})
+    // audios.reduce((AudioMap, audio, index) => {
+    //   loadedAudio.push({ buffer: audio, pos: audioUrls[index].pos });
+    //   const newKey = audioUrls[index].key;
+    //   return { ...AudioMap, [newKey]: audio }
+    // }, {})
   }
 
   function loadOtherAssets() {
@@ -316,6 +321,9 @@ export function startScene() {
     let blockersParents: THREE.Object3D[] = [];
     scene.traverse(function (obj: THREE.Object3D) {
 
+      if(obj.name.includes('tree')) {
+        obj.visible = false;
+      }
       var body;
       if (obj.name == "Player") {
         obj.position.y = .54;
@@ -401,18 +409,18 @@ export function startScene() {
       }
     });
 
-    loadedAudio.forEach((aud) => {
-      var audObj = new THREE.Group();
-      scene.add(audObj);
-      audObj.position.copy(aud.pos);
-      const sound = new THREE.PositionalAudio(audioListener);
-      sound.loop = true;
-      sound.setBuffer(aud.buffer);
-      sound.setRefDistance(4);
-      sound.setMaxDistance(6);
-      audObj.add(sound);
-      sounds.push(sound);
-    });
+    // loadedAudio.forEach((aud) => {
+    //   var audObj = new THREE.Group();
+    //   scene.add(audObj);
+    //   audObj.position.copy(aud.pos);
+    //   const sound = new THREE.PositionalAudio(audioListener);
+    //   sound.loop = true;
+    //   sound.setBuffer(aud.buffer);
+    //   sound.setRefDistance(4);
+    //   sound.setMaxDistance(6);
+    //   audObj.add(sound);
+    //   sounds.push(sound);
+    // });
 
     blockersParents.forEach((parent) => {
       addColliders(parent);
