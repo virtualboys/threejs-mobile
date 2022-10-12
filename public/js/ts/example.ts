@@ -445,8 +445,8 @@ export function startScene() {
       const sound = new THREE.PositionalAudio(audioListener);
       sound.loop = true;
       sound.setBuffer(aud.buffer);
-      sound.setRefDistance(4);
-      sound.setMaxDistance(6);
+      sound.setRefDistance(1);
+      sound.setMaxDistance(3);
       audObj.add(sound);
       sounds.push(sound);
     });
