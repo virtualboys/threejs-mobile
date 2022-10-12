@@ -1,6 +1,6 @@
 // import { GLTFLoader } from './libs/threejs/GLTFLoader.js';
 
-import { rotateEffect, Effect, hoverEffect } from "./effects.js";
+import { rotateEffect, Effect, hoverEffect, bloomModEffect } from "./effects.js";
 import { FPSMultiplatformControls } from "./fps-multiplatform-controls.js";
 import { JoystickControls } from "./joystick/JoystickControls.js";
 import { threeToCannon, ShapeType } from './three-to-cannon/src/index.js';
@@ -622,6 +622,15 @@ function createRenderer() {
   bloomPass.radius = bloomParams.bloomRadius;
   bloomPass.clear = true;
 
+  effects.push(bloomModEffect(
+    new THREE.Vector3(-28.1, 0, -2.829), 
+    camera,
+    bloomPass,
+    .3,
+    .8,
+    1.3,
+    10));
+
   //@ts-ignore
   window.BLOOMPASS = bloomPass;
 
@@ -759,7 +768,7 @@ function onWindowResize() {
 
 function updateFocusWarningScreen() {
   //@ts-ignore
-  const shouldShowFocusWarning = !window.IS_MOBILE && controls?.pointerLock.isLocked;
+  const shouldShowFocusWarning = !window.IS_MOBILE && controls?.pointerLock.isLocked && !window.IS_DEV_BUILD;
 
   const focusWarningScreen = document.getElementById('focus-warning-screen');
   focusWarningScreen.style.display = (shouldShowFocusWarning) ? 'block' : 'none';
