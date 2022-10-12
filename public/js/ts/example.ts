@@ -5,6 +5,7 @@ import { FPSMultiplatformControls } from "./fps-multiplatform-controls.js";
 import { JoystickControls } from "./joystick/JoystickControls.js";
 import { threeToCannon, ShapeType } from './three-to-cannon/src/index.js';
 import { OcclusionZones } from './occlusion-zones.js';
+import { AudioSource3D, AudioListener3D } from './Audio3D.js';
 
 import {
   CANNONVec,
@@ -65,35 +66,11 @@ var audioElements: { elementId: string, pos: THREE.Vector3 }[] = [
   },
 ]
 
-type AudioKey = "labAmbience" | "sandal" | "flesh" | "saw";
-var audioUrls: { url: string, key: AudioKey, pos: THREE.Vector3 }[] = [
-  {
-    url: "../../audio/labAmbience_reduced.mp3",
-    key: "labAmbience",
-    pos: new THREE.Vector3(-.5, 0, 25)
-  },
-  // {
-  //   url: "../../audio/sandal_seamless_reduced.mp3",
-  //   key: "sandal",
-  //   pos: new THREE.Vector3(-27, .6, -23)
-  // },
-  // {
-  //   url: "../../audio/flesh_seamless_reduced.mp3",
-  //   key: "flesh",
-  //   pos: new THREE.Vector3(23, .6, -29)
-  // },
-  // {
-  //   url: "../../audio/saw_seamless_reduced.mp3",
-  //   key: "saw",
-  //   pos: new THREE.Vector3(29, .6, 19)
-  // },
-]
 type TextureMap = {
   [key in KnobKey]?: THREE.Texture;
 };
 
 var loadedTextures: TextureMap = {};
-var loadedAudio: { buffer: AudioBuffer, pos: THREE.Vector3, name: string }[] = [];
 
 interface ZoneDef {
   zoneName: string,
@@ -158,6 +135,7 @@ var renderer: THREE.WebGLRenderer,
   world: CANNON.World,
   dynamicPhysicsBodies: { body: CANNON.Body; mesh: THREE.Object3D }[],
   playerBody: CANNON.Body,
+  // audioListener: THREE.AudioListener,
   effects: Effect[],
   container: JQuery<HTMLElement>;
 
@@ -298,19 +276,8 @@ export function startScene() {
     });
   }
 
-  // function loadAudio() {
-  //   console.log('loading audio...');
-  //   audioUrls.forEach((audioUrl) => {
-  //     audioLoader.load(audioUrl.url, (audioBuffer) => {
-  //       console.log('loaded ', audioUrl.url);
-  //       loadedAudio.push({ buffer: audioBuffer, pos: audioUrl.pos, name: audioUrl.key });
-  //     });
-  //   })
-  // }
-
   function loadOtherAssets() {
     loadKnobs();
-    // loadAudio();
   }
 
   async function onLoadingDone() {
@@ -339,11 +306,6 @@ export function startScene() {
       event.target.remove();
     });
 
-    // // @ts-ignore
-    // if (loadingBar.ldBar) {
-    //   // @ts-ignore
-    //   loadingBar.ldBar.set(100)
-    // }
 
     scene.add(sceneGltf.scene);
 
@@ -685,8 +647,16 @@ function createRenderer() {
 
 function playAudio() {
 
-  const audioListener = new THREE.AudioListener();
-  camera.add(audioListener);
+  const listener = new AudioListener3D();
+  // scene.add(listener);
+  // listener.position.copy(camera.position);
+  camera.add(listener);
+
+
+  // audioListener = new THREE.AudioListener();
+  // scene.add(audioListener);
+  // audioListener.position.copy(camera.position);
+  // camera.add(audioListener);
   // console.log('audio list pos, ', audioListener.getWorldPosition(new THREE.Vector3()).x);
   audioElements.forEach((audioElement) => {
     const elem = document.getElementById(audioElement.elementId) as HTMLAudioElement;
@@ -695,14 +665,17 @@ function playAudio() {
     // var audObj = new THREE.Group();
     // audObj.position.copy(audioElement.pos);
     // audObj.updateWorldMatrix(false, false);
-    const positionalAudio = new THREE.PositionalAudio(audioListener);
-    positionalAudio.setMediaElementSource(elem);
-    positionalAudio.setRefDistance(1);
-    positionalAudio.setMaxDistance(2);
-    positionalAudio.position.copy(audioElement.pos);
-    scene.add(positionalAudio);
+    const audio = new AudioSource3D(listener, elem);
+    audio.position.copy(audioElement.pos);
+    scene.add(audio);
+    // const positionalAudio = new THREE.PositionalAudio(audioListener);
+    // positionalAudio.setMediaElementSource(elem);
+    // positionalAudio.setRefDistance(1);
+    // positionalAudio.setMaxDistance(2);
+    // positionalAudio.position.copy(audioElement.pos);
+    // scene.add(positionalAudio);
 
-    console.log('aud pos, ', positionalAudio.getWorldPosition(new THREE.Vector3()).sub(audioListener.getWorldPosition(new THREE.Vector3())).length());
+    // console.log('aud pos, ', positionalAudio.getWorldPosition(new THREE.Vector3()).sub(audioListener.getWorldPosition(new THREE.Vector3())).length());
 
     // sound.setMediaElementSource(elem);
     // sound.setRefDistance(8000);
@@ -737,10 +710,18 @@ function startGame() {
   animate();
 }
 
+let listenerUpdateTimer = 0;
 function animate() {
   requestAnimationFrame(animate);
 
   const delta = clock.getDelta();
+
+  listenerUpdateTimer -= delta;
+  if(listenerUpdateTimer < 0) {
+    listenerUpdateTimer = 1;
+    // audioListener.position.copy(camera.position);
+    // console.log('updating listener');
+  }
 
   rightJoystick?.update((input) => {
     if (input) {
