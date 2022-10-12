@@ -687,7 +687,7 @@ function playAudio() {
 
   const audioListener = new THREE.AudioListener();
   camera.add(audioListener);
-  console.log('audio list pos, ', audioListener.getWorldPosition(new THREE.Vector3()));
+  // console.log('audio list pos, ', audioListener.getWorldPosition(new THREE.Vector3()).x);
   audioElements.forEach((audioElement) => {
     const elem = document.getElementById(audioElement.elementId) as HTMLAudioElement;
     elem.play();
@@ -697,12 +697,12 @@ function playAudio() {
     // audObj.updateWorldMatrix(false, false);
     const positionalAudio = new THREE.PositionalAudio(audioListener);
     positionalAudio.setMediaElementSource(elem);
-    positionalAudio.setRefDistance(4);
-    positionalAudio.setMaxDistance(6);
+    positionalAudio.setRefDistance(1);
+    positionalAudio.setMaxDistance(2);
     positionalAudio.position.copy(audioElement.pos);
     scene.add(positionalAudio);
 
-    console.log('aud pos, ', positionalAudio.getWorldPosition(new THREE.Vector3()));
+    console.log('aud pos, ', positionalAudio.getWorldPosition(new THREE.Vector3()).sub(audioListener.getWorldPosition(new THREE.Vector3())).length());
 
     // sound.setMediaElementSource(elem);
     // sound.setRefDistance(8000);
