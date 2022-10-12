@@ -1,12 +1,10 @@
 // import { GLTFLoader } from './libs/threejs/GLTFLoader.js';
 
-THREE.Cache.enabled = true;
-const gltfCacheKey = 'GLTF_CACHE';
-
 import { rotateEffect, Effect, hoverEffect } from "./effects.js";
 import { FPSMultiplatformControls } from "./fps-multiplatform-controls.js";
 import { JoystickControls } from "./joystick/JoystickControls.js";
 import { threeToCannon, ShapeType } from './three-to-cannon/src/index.js';
+import { OcclusionZones } from './occlusion-zones.js';
 
 import {
   CANNONVec,
@@ -81,13 +79,50 @@ type TextureMap = {
 var loadedTextures: TextureMap = {};
 var loadedAudio: { buffer: AudioBuffer, pos: THREE.Vector3, name: string }[] = [];
 
-var occlusionZoneDefs: {bounds: THREE.Box3, objNames: string[]}[] = [
+interface ZoneDef {
+  zoneName: string, 
+  bounds: THREE.Box3, 
+  objNames: string[]
+}
+
+var occlusionZoneDefs: ZoneDef[] = [
   {
-    //sandal
+    zoneName: "sandal",
     bounds: new THREE.Box3(new THREE.Vector3(-50, -27, -45), new THREE.Vector3(-10, 40, 7)),
-    objNames: []
+    objNames: [
+      "sandal_dome",
+      "sandal_consoles",
+      "vent_01_goodglb_2",
+      "shoe_brown_sandalglb",
+      "shoe_tan_sandalglb"
+    ]
+  },
+  {
+    zoneName: "flesh",
+    bounds: new THREE.Box3(new THREE.Vector3(-8, -27, -46), new THREE.Vector3(40, 40, -13)),
+    objNames: [
+      "flesh_dome",
+      "flesh_consoles",
+      "shoe_flesh_militaryglb",
+      "shoe_white_fleshglb",
+      "shoe_flesh_blackglb",
+    ]
+  },
+  {
+    zoneName: "saw",
+    bounds: new THREE.Box3(new THREE.Vector3(14, -27, -7), new THREE.Vector3(41, 40, 31)),
+    objNames: [
+      "saw_dome",
+      "saw_console",
+      "shoe_white_sawglb",
+      "shoe_brown_sawglb",
+    ]
   }
 ]
+let occlusionZones = new OcclusionZones();
+occlusionZoneDefs.forEach((zoneDef)=>{
+  occlusionZones.addZone(zoneDef.bounds, zoneDef.zoneName);
+});
 
 const fixedTimeStep = 1.0 / 60.0; // seconds
 const maxSubSteps = 3;
@@ -112,28 +147,17 @@ var renderer: THREE.WebGLRenderer,
 
 const physicsBodyMap = new Map<CANNON.Body, THREE.Object3D>();
 
-var sceneObject, intersected;
 var bloomPass;
 
 const audioListener = new THREE.AudioListener();
 let sounds = [];
 
 let touchEventHandler;
-// var pacControls;
-
-let moveForward = false;
-let moveBackward = false;
-let moveLeft = false;
-let moveRight = false;
-let canJump = false;
-
-const velocity = new THREE.Vector3();
-const direction = new THREE.Vector3();
 
 const playerColliderWidth = .5;
 const playerHeight = 2.6;
 
-let sceneGltf, waterNormals, skyCubeMap;
+let sceneGltf;
 
 const defaultCannonMat = new CANNON.Material("defaultMat");
 
@@ -153,12 +177,6 @@ const colliderTypeOverrides = {
   pCube3: undefined,
   pCube4: undefined,
   pCube5: undefined,
-}
-
-const audioObjects = {
-  tree_rotater: "labAmbience",
-  PointLight_4: "labAmbience",
-  flesh_black: "labAmbience",
 }
 
 $(function () { });
@@ -224,10 +242,7 @@ export function startScene() {
   const loader = new GLTFLoader(loadingManager);
 
   let lastProgressUpdate = 0;
-  const cachedGLTF = THREE.Cache.get(gltfCacheKey);
-  if(!window.previewGLTF) {
-    window.previewGLTF = cachedGLTF;
-  }
+  
   if (window.previewGLTF) {
     console.log("Loading preview!");
     loader.parse(window.previewGLTF, loader.resourcePath, function (gltf) {
@@ -269,7 +284,6 @@ export function startScene() {
   function onGLTFLoad(gltf) {
     console.log("on gltf load!");
     sceneGltf = gltf;
-    THREE.Cache.add(gltfCacheKey, gltf);
   }
 
   async function loadKnobs() {
@@ -329,12 +343,15 @@ export function startScene() {
     let blockersParents: THREE.Object3D[] = [];
     scene.traverse(function (obj: THREE.Object3D) {
 
-      if(obj instanceof THREE.Mesh) {
-        const objMesh = obj as THREE.Mesh;
-        // @ts-ignore
-        console.log(objMesh.name, ' transparent: ', objMesh.material.transparent);
-      }
-     
+      occlusionZoneDefs.forEach((zoneDef)=> {
+        zoneDef.objNames.forEach((objName) => {
+          if(objName == obj.name) {
+            console.log('adding ', obj.name, ' to zone: ', zoneDef.zoneName);
+            occlusionZones.addObject(zoneDef.zoneName, obj);
+          }
+        })
+      })
+      
       var body;
       if (obj.name == "Player") {
         obj.position.y = .54;
@@ -696,6 +713,8 @@ function animate() {
   effects.forEach((effect) => effect.update(delta));
 
   camera.position.y += playerHeight;
+
+  occlusionZones.update(camera.position);
 
   renderer.clear();
   // renderer.render(scene, camera);

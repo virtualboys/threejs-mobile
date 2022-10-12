@@ -1,26 +1,36 @@
+import { stringify } from "querystring";
+
+interface Zone {
+    bounds: THREE.Box3,
+    objects: THREE.Object3D[],
+    visible: boolean
+}
+
 export class OcclusionZones {
 
-    addZone: (bounds: THREE.Box3, objects: THREE.Object3D[]) => void;
-    update: (playerPos: THREE.Vector3) => void;
+    zones: Record<string, Zone> = {};
 
-    zones: {bounds: THREE.Box3, objects: THREE.Object3D[], visible: boolean}[];
+    public addZone(bounds: THREE.Box3, zoneName: string) {
+        this.zones[zoneName] = {bounds: bounds, objects: [], visible: true};
+    }
+
+    public addObject(zoneName: string, obj: THREE.Object3D) {
+        this.zones[zoneName].objects.push(obj);
+    }
+
+    public update(playerPos: THREE.Vector3) {
+        Object.entries(this.zones).forEach(([name, zone])=>{
+            const visible = zone.bounds.containsPoint(playerPos);
+            if(zone.visible != visible) {
+                console.log('setting ', name, ' visible: ', visible);
+                zone.objects.forEach((obj: THREE.Object3D) => {
+                    obj.visible = visible;
+                });
+                zone.visible = visible;
+            }
+        });
+    }
 
     constructor() {
-        this.zones = [];
-
-        this.addZone = function (bounds: THREE.Box3, objects: THREE.Object3D[]) {
-            this.zones.push({bounds: bounds, objects: objects, visible: true});
-        }
-
-        this.update = function(playerPos: THREE.Vector3) {
-            this.zones.forEach((zone) => {
-                const visible = zone.bounds.containsPoint(playerPos);
-                if(zone.visible != visible) {
-                    zone.objects.forEach((obj: THREE.Object3D) => {
-                        obj.visible = visible;
-                    });
-                }
-            });
-        }
     }
 }

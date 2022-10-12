@@ -47,6 +47,8 @@
     font-weight: 1100;
     font-family: industrial;
     height: 300px;
+    position: relative;
+    top: 50vh;
 }
 #start-button{
     margin: auto;
