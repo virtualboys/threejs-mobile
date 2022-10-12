@@ -33,6 +33,7 @@ export class FPSMultiplatformControls {
 
   onKeyDown: (event: KeyboardEvent) => void;
   onKeyUp: (event: KeyboardEvent) => void;
+  resetKeysDown: () => void;
   onTouchStart: (event: TouchEvent) => void;
   onTouchMove: (event: TouchEvent) => void;
   onTouchEnd: (event: TouchEvent) => void;
@@ -144,6 +145,13 @@ export class FPSMultiplatformControls {
           moveRight = false;
           break;
       }
+    };
+
+    this.resetKeysDown = function() {
+      moveForward = false;
+      moveLeft = false;
+      moveRight = false;
+      moveBackward = false;
     };
 
     this.onClickOrTouchStart = function (x, y, id) {
@@ -298,9 +306,12 @@ export class FPSMultiplatformControls {
 
     const _onKeyDown = this.onKeyDown.bind(this);
     const _onKeyUp = this.onKeyUp.bind(this);
-
+    const _resetKeysDown = this.resetKeysDown.bind(this);
+    
     window.addEventListener("keydown", _onKeyDown);
     window.addEventListener("keyup", _onKeyUp);
+    document.addEventListener('pointerlockchange', _resetKeysDown);
+
 
     touchEventHandler.clickOrTouchStart = this.onClickOrTouchStart.bind(this);
     touchEventHandler.clickOrTouchMove = this.onClickOrTouchMove.bind(this);

@@ -46,9 +46,25 @@ var textureUrls: { url: string, key: KnobKey }[] = [
   }
 ]
 
-type AudioMap = {
-  [key in AudioKey]?: AudioBuffer;
-};
+var audioElements: { elementId: string, pos: THREE.Vector3 }[] = [
+  {
+    elementId: "lab-audio",
+    pos: new THREE.Vector3(-.5, 0, 25)
+  },
+  {
+    elementId: "sandal-audio",
+    pos: new THREE.Vector3(-27, .6, -23)
+  },
+  {
+    elementId: "flesh-audio",
+    pos: new THREE.Vector3(23, .6, -29)
+  },
+  {
+    elementId: "saw-audio",
+    pos: new THREE.Vector3(29, .6, 19)
+  },
+]
+
 type AudioKey = "labAmbience" | "sandal" | "flesh" | "saw";
 var audioUrls: { url: string, key: AudioKey, pos: THREE.Vector3 }[] = [
   {
@@ -149,7 +165,6 @@ const physicsBodyMap = new Map<CANNON.Body, THREE.Object3D>();
 
 var bloomPass;
 
-const audioListener = new THREE.AudioListener();
 let sounds = [];
 
 let touchEventHandler;
@@ -227,12 +242,11 @@ export function startScene() {
   const audioLoader = new THREE.AudioLoader(loadingManager);
   const textureLoader = new THREE.TextureLoader(loadingManager);
 
-  const loader = new GLTFLoader(loadingManager);
-
   let lastProgressUpdate = 0;
 
   if (window.previewGLTF) {
     console.log("Loading preview!");
+    const loader = new GLTFLoader();
     loader.parse(window.previewGLTF, loader.resourcePath, function (gltf) {
       onGLTFLoad(gltf);
     });
@@ -242,6 +256,7 @@ export function startScene() {
       stopPreviewBtn.style.display = "block";
     }
   } else {
+    const loader = new GLTFLoader(loadingManager);
     //@ts-ignore
     const gltfURL = window.GLTF_URL
     console.log("loading from server.. ", gltfURL);
@@ -275,49 +290,36 @@ export function startScene() {
   }
 
   function loadKnobs() {
+    console.log('loading knobs');
     textureUrls.forEach((texUrl) => {
       textureLoader.load(texUrl.url, (tex) => {
         loadedTextures[texUrl.key] = tex;
       });
     });
-    // const texturePromises = textureUrls.map(({ url }) => textureLoader.loadAsync(url));
-    // const textures = await Promise.all(texturePromises);
-    // loadedTextures = textures.reduce((textureMap, texture, index) => {
-    //   const newKey = textureUrls[index].key;
-    //   return { ...textureMap, [newKey]: texture }
-    // }, {})
   }
 
-  function loadAudio() {
-    console.log('loading audio...');
-    audioUrls.forEach((audioUrl) => {
-      audioLoader.load(audioUrl.url, (audioBuffer) => {
-        console.log('loaded ', audioUrl.url);
-        loadedAudio.push({ buffer: audioBuffer, pos: audioUrl.pos, name: audioUrl.key });
-      });
-    })
-    // const promises = audioUrls.map(({ url }) => audioLoader.loadAsync(url));
-    // const audios = await Promise.all(promises);
-    // console.log('audio loaded');
-    // audios.reduce((AudioMap, audio, index) => {
-    //   const newKey = audioUrls[index].key;
-    //   loadedAudio.push({ buffer: audio, pos: audioUrls[index].pos, name: newKey });
-    //   return { ...AudioMap, [newKey]: audio }
-    // }, {})
-  }
+  // function loadAudio() {
+  //   console.log('loading audio...');
+  //   audioUrls.forEach((audioUrl) => {
+  //     audioLoader.load(audioUrl.url, (audioBuffer) => {
+  //       console.log('loaded ', audioUrl.url);
+  //       loadedAudio.push({ buffer: audioBuffer, pos: audioUrl.pos, name: audioUrl.key });
+  //     });
+  //   })
+  // }
 
   function loadOtherAssets() {
     loadKnobs();
-    loadAudio();
+    // loadAudio();
   }
 
   async function onLoadingDone() {
-    if(!sceneGltf) {
+    if (!sceneGltf) {
       console.log('awaiting scene gltf...');
     }
     while (true) {
-      if (sceneGltf) { 
-        initScene(); 
+      if (sceneGltf) {
+        initScene();
         return;
       }
       await null;
@@ -465,29 +467,11 @@ export function startScene() {
       }
     });
 
-    loadedAudio.forEach((aud) => {
-      var audObj = new THREE.Group();
-      scene.add(audObj);
-      audObj.position.copy(aud.pos);
-      const sound = new THREE.PositionalAudio(audioListener);
-      sound.loop = true;
-      sound.setBuffer(aud.buffer);
-      sound.setRefDistance(1);
-      sound.setMaxDistance(3);
-      audObj.add(sound);
-      sounds.push(sound);
-
-      console.log('playing ', aud.name, ' at ', aud.pos);
-      console.log('distModel: ', sound.getDistanceModel(), sound.getMaxDistance(), sound.getRefDistance(), sound.getRolloffFactor(), sound.getVolume());
-    });
-
     blockersParents.forEach((parent) => {
       addColliders(parent);
     });
 
     copyMeshTransform(playerBody, camera);
-
-    camera.add(audioListener);
 
     addLights();
 
@@ -699,6 +683,42 @@ function createRenderer() {
   composer.setSize(width, height);
 }
 
+function playAudio() {
+
+  const audioListener = new THREE.AudioListener();
+  camera.add(audioListener);
+  console.log('audio list pos, ', audioListener.getWorldPosition(new THREE.Vector3()));
+  audioElements.forEach((audioElement) => {
+    const elem = document.getElementById(audioElement.elementId) as HTMLAudioElement;
+    elem.play();
+
+    // var audObj = new THREE.Group();
+    // audObj.position.copy(audioElement.pos);
+    // audObj.updateWorldMatrix(false, false);
+    const positionalAudio = new THREE.PositionalAudio(audioListener);
+    positionalAudio.setMediaElementSource(elem);
+    positionalAudio.setRefDistance(4);
+    positionalAudio.setMaxDistance(6);
+    positionalAudio.position.copy(audioElement.pos);
+    scene.add(positionalAudio);
+
+    console.log('aud pos, ', positionalAudio.getWorldPosition(new THREE.Vector3()));
+
+    // sound.setMediaElementSource(elem);
+    // sound.setRefDistance(8000);
+    // sound.setDirectionalCone( 180, 230, .5 );
+    // sound.loop = true;
+    // // sound.setBuffer(aud.buffer);
+    // // sound.setMaxDistance(3);
+    // audObj.add(sound);
+    // scene.add(audObj);
+    // // sounds.push(sound);
+
+    // console.log('playing ', audioElement.elementId, ' at ', sound.getWorldPosition(new THREE.Vector3()));
+    // console.log('distModel: ', sound.getDistanceModel(), sound.getMaxDistance(), sound.getRefDistance(), sound.getRolloffFactor(), sound.getVolume());
+  });
+}
+
 function startGame() {
   console.log("starting game");
   const overlay = document.getElementById("start-screen");
@@ -712,9 +732,7 @@ function startGame() {
   // screen.orientation.addEventListener('change', onWindowResize);
   onWindowResize();
 
-  sounds.forEach((sound) => {
-    sound.play();
-  });
+  playAudio();
 
   animate();
 }

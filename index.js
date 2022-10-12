@@ -33,6 +33,9 @@ http.createServer(function (request, response) {
         case '.wav':
             contentType = 'audio/wav';
             break;
+        case '.mp3':
+            contentType = 'audio/mpeg';
+            break;
         case '.svg':
             contentType = 'image/svg+xml';
             break;
