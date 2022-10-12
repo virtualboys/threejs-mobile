@@ -164,9 +164,6 @@ export class FPSMultiplatformControls {
           usingAxisMovement = true;
 
           moveJoystick?.onStart(x, y);
-
-          if (canJump === true && this.jumpEnabled) velocity.y += this.jumpSpeed;
-          canJump = false;
         }
       } else {
         if (rotTouchId == -1) {
@@ -215,6 +212,7 @@ export class FPSMultiplatformControls {
     }
 
     this.onClicksOrTouchesCancelled = function () {
+      console.log('click or touch cancelled');
       moveTouchId = -1;
       axisMovement.x = 0;
       axisMovement.y = 0;

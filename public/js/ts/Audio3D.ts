@@ -42,7 +42,7 @@ export class AudioSource3D extends THREE.Object3D {
         this.listenerForward.set(e[8], e[9], e[10]).normalize();
 
         const dot = this.d.dot(this.listenerForward);
-        console.log('dot: ', dot);
+        // console.log('dot: ', dot);
         // console.log(this.audio.id, 'distance:', distance);
 
         // if(distance < this.minRadius) {
@@ -54,7 +54,7 @@ export class AudioSource3D extends THREE.Object3D {
         // // keep volume within the range of 0 and 1
         // this.audio.volume = Math.min(1, Math.max(0, 1 - ((distance - this.minRadius) / (this.maxRadius - this.minRadius))));
         let vol = (this.falloffDist / dLen) * (1 + (dot / 2) * this.lookAwayDamping);
-        console.log('voL: ', vol);
+        // console.log('voL: ', vol);
         vol = Math.min(1, Math.max(0, vol));
         this.audio.volume = vol;
     }

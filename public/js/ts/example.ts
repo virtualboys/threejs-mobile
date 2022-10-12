@@ -648,54 +648,27 @@ function createRenderer() {
 function playAudio() {
 
   const listener = new AudioListener3D();
-  // scene.add(listener);
-  // listener.position.copy(camera.position);
+
   camera.add(listener);
 
-
-  // audioListener = new THREE.AudioListener();
-  // scene.add(audioListener);
-  // audioListener.position.copy(camera.position);
-  // camera.add(audioListener);
-  // console.log('audio list pos, ', audioListener.getWorldPosition(new THREE.Vector3()).x);
   audioElements.forEach((audioElement) => {
     const elem = document.getElementById(audioElement.elementId) as HTMLAudioElement;
     elem.play();
 
-    // var audObj = new THREE.Group();
-    // audObj.position.copy(audioElement.pos);
-    // audObj.updateWorldMatrix(false, false);
     const audio = new AudioSource3D(listener, elem);
     audio.position.copy(audioElement.pos);
     scene.add(audio);
-    // const positionalAudio = new THREE.PositionalAudio(audioListener);
-    // positionalAudio.setMediaElementSource(elem);
-    // positionalAudio.setRefDistance(1);
-    // positionalAudio.setMaxDistance(2);
-    // positionalAudio.position.copy(audioElement.pos);
-    // scene.add(positionalAudio);
-
-    // console.log('aud pos, ', positionalAudio.getWorldPosition(new THREE.Vector3()).sub(audioListener.getWorldPosition(new THREE.Vector3())).length());
-
-    // sound.setMediaElementSource(elem);
-    // sound.setRefDistance(8000);
-    // sound.setDirectionalCone( 180, 230, .5 );
-    // sound.loop = true;
-    // // sound.setBuffer(aud.buffer);
-    // // sound.setMaxDistance(3);
-    // audObj.add(sound);
-    // scene.add(audObj);
-    // // sounds.push(sound);
-
-    // console.log('playing ', audioElement.elementId, ' at ', sound.getWorldPosition(new THREE.Vector3()));
-    // console.log('distModel: ', sound.getDistanceModel(), sound.getMaxDistance(), sound.getRefDistance(), sound.getRolloffFactor(), sound.getVolume());
   });
 }
 
 function startGame() {
   console.log("starting game");
   const overlay = document.getElementById("start-screen");
-  overlay.remove();
+  overlay.classList.add("fade-out");
+  overlay.addEventListener("transitionend", (event) => {
+    //@ts-ignore
+    event.target.remove();
+  });
 
   updateFocusWarningScreen();
 
@@ -710,18 +683,10 @@ function startGame() {
   animate();
 }
 
-let listenerUpdateTimer = 0;
 function animate() {
   requestAnimationFrame(animate);
 
   const delta = clock.getDelta();
-
-  listenerUpdateTimer -= delta;
-  if(listenerUpdateTimer < 0) {
-    listenerUpdateTimer = 1;
-    // audioListener.position.copy(camera.position);
-    // console.log('updating listener');
-  }
 
   rightJoystick?.update((input) => {
     if (input) {
@@ -745,13 +710,13 @@ function animate() {
 
   camera.position.y += playerHeight;
 
-  occlusionZones.update(camera.position);
-
   renderer.clear();
   // renderer.render(scene, camera);
   composer.render();
   renderer.clearDepth();
   renderer.render(uiScene, joystickCam);
+
+  occlusionZones.update(camera.position);
 }
 
 function onWindowResize() {
