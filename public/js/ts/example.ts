@@ -56,21 +56,21 @@ var audioUrls: { url: string, key: AudioKey, pos: THREE.Vector3 }[] = [
     key: "labAmbience",
     pos: new THREE.Vector3(-.5, 0, 25)
   },
-  {
-    url: "../../audio/sandal_seamless_reduced.mp3",
-    key: "sandal",
-    pos: new THREE.Vector3(-27, .6, -23)
-  },
-  {
-    url: "../../audio/flesh_seamless_reduced.mp3",
-    key: "flesh",
-    pos: new THREE.Vector3(23, .6, -29)
-  },
-  {
-    url: "../../audio/saw_seamless_reduced.mp3",
-    key: "saw",
-    pos: new THREE.Vector3(29, .6, 19)
-  },
+  // {
+  //   url: "../../audio/sandal_seamless_reduced.mp3",
+  //   key: "sandal",
+  //   pos: new THREE.Vector3(-27, .6, -23)
+  // },
+  // {
+  //   url: "../../audio/flesh_seamless_reduced.mp3",
+  //   key: "flesh",
+  //   pos: new THREE.Vector3(23, .6, -29)
+  // },
+  // {
+  //   url: "../../audio/saw_seamless_reduced.mp3",
+  //   key: "saw",
+  //   pos: new THREE.Vector3(29, .6, 19)
+  // },
 ]
 type TextureMap = {
   [key in KnobKey]?: THREE.Texture;
@@ -80,8 +80,8 @@ var loadedTextures: TextureMap = {};
 var loadedAudio: { buffer: AudioBuffer, pos: THREE.Vector3, name: string }[] = [];
 
 interface ZoneDef {
-  zoneName: string, 
-  bounds: THREE.Box3, 
+  zoneName: string,
+  bounds: THREE.Box3,
   objNames: string[]
 }
 
@@ -120,7 +120,7 @@ var occlusionZoneDefs: ZoneDef[] = [
   }
 ]
 let occlusionZones = new OcclusionZones();
-occlusionZoneDefs.forEach((zoneDef)=>{
+occlusionZoneDefs.forEach((zoneDef) => {
   occlusionZones.addZone(zoneDef.bounds, zoneDef.zoneName);
 });
 
@@ -222,19 +222,7 @@ export function startScene() {
   const rotAxis = new THREE.Vector3(0, 0, 1);
   effects = [];
 
-  const loadingManager = new THREE.LoadingManager(() => {
-    onLoadingDone();
-
-    const loadingScreen = document.getElementById("loading-screen");
-    loadingScreen.classList.add("fade-out");
-
-    // optional: remove loader from DOM via event listener
-    loadingScreen.addEventListener("transitionend", onTransitionEnd);
-  });
-
-  function onTransitionEnd(event) {
-    event.target.remove();
-  }
+  const loadingManager = new THREE.LoadingManager(onLoadingDone);
 
   const audioLoader = new THREE.AudioLoader(loadingManager);
   const textureLoader = new THREE.TextureLoader(loadingManager);
@@ -242,12 +230,11 @@ export function startScene() {
   const loader = new GLTFLoader(loadingManager);
 
   let lastProgressUpdate = 0;
-  
+
   if (window.previewGLTF) {
     console.log("Loading preview!");
     loader.parse(window.previewGLTF, loader.resourcePath, function (gltf) {
       onGLTFLoad(gltf);
-      loadOtherAssets();
     });
 
     var stopPreviewBtn = document.getElementById("stopPreviewButton");
@@ -278,33 +265,45 @@ export function startScene() {
         console.log(error);
       }
     );
-    loadOtherAssets();
   }
+
+  loadOtherAssets();
 
   function onGLTFLoad(gltf) {
     console.log("on gltf load!");
     sceneGltf = gltf;
   }
 
-  async function loadKnobs() {
-    const texturePromises = textureUrls.map(({ url }) => textureLoader.loadAsync(url));
-    const textures = await Promise.all(texturePromises);
-    loadedTextures = textures.reduce((textureMap, texture, index) => {
-      const newKey = textureUrls[index].key;
-      return { ...textureMap, [newKey]: texture }
-    }, {})
+  function loadKnobs() {
+    textureUrls.forEach((texUrl) => {
+      textureLoader.load(texUrl.url, (tex) => {
+        loadedTextures[texUrl.key] = tex;
+      });
+    });
+    // const texturePromises = textureUrls.map(({ url }) => textureLoader.loadAsync(url));
+    // const textures = await Promise.all(texturePromises);
+    // loadedTextures = textures.reduce((textureMap, texture, index) => {
+    //   const newKey = textureUrls[index].key;
+    //   return { ...textureMap, [newKey]: texture }
+    // }, {})
   }
 
-  async function loadAudio() {
+  function loadAudio() {
     console.log('loading audio...');
-    const promises = audioUrls.map(({ url }) => audioLoader.loadAsync(url));
-    const audios = await Promise.all(promises);
-    console.log('audio loaded');
-    audios.reduce((AudioMap, audio, index) => {
-      const newKey = audioUrls[index].key;
-      loadedAudio.push({ buffer: audio, pos: audioUrls[index].pos, name: newKey });
-      return { ...AudioMap, [newKey]: audio }
-    }, {})
+    audioUrls.forEach((audioUrl) => {
+      audioLoader.load(audioUrl.url, (audioBuffer) => {
+        console.log('loaded ', audioUrl.url);
+        loadedAudio.push({ buffer: audioBuffer, pos: audioUrl.pos, name: audioUrl.key });
+      });
+    })
+    // const promises = audioUrls.map(({ url }) => audioLoader.loadAsync(url));
+    // const audios = await Promise.all(promises);
+    // console.log('audio loaded');
+    // audios.reduce((AudioMap, audio, index) => {
+    //   const newKey = audioUrls[index].key;
+    //   loadedAudio.push({ buffer: audio, pos: audioUrls[index].pos, name: newKey });
+    //   return { ...AudioMap, [newKey]: audio }
+    // }, {})
   }
 
   function loadOtherAssets() {
@@ -312,9 +311,38 @@ export function startScene() {
     loadAudio();
   }
 
-  function onLoadingDone() {
+  async function onLoadingDone() {
+    if(!sceneGltf) {
+      console.log('awaiting scene gltf...');
+    }
+    while (true) {
+      if (sceneGltf) { 
+        initScene(); 
+        return;
+      }
+      await null;
+    }
+  }
+
+  function initScene() {
 
     console.log("on loading done!");
+
+    const loadingScreen = document.getElementById("loading-screen");
+    loadingScreen.classList.add("fade-out");
+
+    // optional: remove loader from DOM via event listener
+    loadingScreen.addEventListener("transitionend", (event) => {
+      //@ts-ignore
+      event.target.remove();
+    });
+
+    // // @ts-ignore
+    // if (loadingBar.ldBar) {
+    //   // @ts-ignore
+    //   loadingBar.ldBar.set(100)
+    // }
+
     scene.add(sceneGltf.scene);
 
     camera = sceneGltf.cameras[0];
@@ -343,15 +371,15 @@ export function startScene() {
     let blockersParents: THREE.Object3D[] = [];
     scene.traverse(function (obj: THREE.Object3D) {
 
-      occlusionZoneDefs.forEach((zoneDef)=> {
+      occlusionZoneDefs.forEach((zoneDef) => {
         zoneDef.objNames.forEach((objName) => {
-          if(objName == obj.name) {
+          if (objName == obj.name) {
             console.log('adding ', obj.name, ' to zone: ', zoneDef.zoneName);
             occlusionZones.addObject(zoneDef.zoneName, obj);
           }
         })
       })
-      
+
       var body;
       if (obj.name == "Player") {
         obj.position.y = .54;
@@ -438,7 +466,6 @@ export function startScene() {
     });
 
     loadedAudio.forEach((aud) => {
-      console.log('playing ', aud.name, ' at ', aud.pos);
       var audObj = new THREE.Group();
       scene.add(audObj);
       audObj.position.copy(aud.pos);
@@ -449,6 +476,9 @@ export function startScene() {
       sound.setMaxDistance(3);
       audObj.add(sound);
       sounds.push(sound);
+
+      console.log('playing ', aud.name, ' at ', aud.pos);
+      console.log('distModel: ', sound.getDistanceModel(), sound.getMaxDistance(), sound.getRefDistance(), sound.getRolloffFactor(), sound.getVolume());
     });
 
     blockersParents.forEach((parent) => {
@@ -462,7 +492,7 @@ export function startScene() {
     addLights();
 
     const startButton = document.getElementById("start-button") as HTMLButtonElement;
-    startButton.addEventListener("click", ()=>{ startButton.disabled = true; });
+    startButton.addEventListener("click", () => { startButton.disabled = true; });
     startButton.addEventListener("click", startGame);
   }
 
@@ -511,7 +541,7 @@ export function startScene() {
   }
 
   function createStaticCollider(obj: THREE.Object3D, type: ShapeType): CANNON.Body {
-    
+
     console.log("adding ", type, " collider to ", obj.name);
     const result = threeToCannon(obj, { type: type });
     const body = new CANNON.Body({
@@ -604,7 +634,7 @@ function addControls() {
 
 function createRenderer() {
   console.log("creating renderer");
-  
+
   //@ts-ignore
   renderer = new THREE.WebGLRenderer({ antialias: false, logarithmicDepthBuffer: !window.IS_MOBILE });
   // renderer.outputEncoding = THREE.sRGBEncoding;
