@@ -844,7 +844,7 @@ function onWindowResize() {
 
 function updateFocusWarningScreen() {
   //@ts-ignore
-  const shouldShowFocusWarning = !window.IS_MOBILE && controls?.pointerLock.isLocked && !window.IS_DEV_BUILD;
+  const shouldShowFocusWarning = !window.IS_MOBILE && controls?.pointerLock.isLocked;// && !window.IS_DEV_BUILD;
 
   const focusWarningScreen = document.getElementById('focus-warning-screen');
   focusWarningScreen.style.display = (shouldShowFocusWarning) ? 'block' : 'none';
