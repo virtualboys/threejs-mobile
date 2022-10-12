@@ -20,7 +20,7 @@ export class FPSMultiplatformControls {
   pointerLock: PointerLockControls;
 
   playerHeight = 0.5;
-  playerSpeed = 50;
+  playerSpeed = 40;
   jumpEnabled = false;
   jumpSpeed = 10;
   gravity = 20;

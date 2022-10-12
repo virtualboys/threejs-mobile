@@ -64,3 +64,34 @@ export function bloomModEffect(pos: THREE.Vector3, player: THREE.Object3D, bloom
     },
   };
 }
+
+export function shoeEffect(shoe: THREE.Object3D, camera: THREE.Object3D): Effect {
+  const proximity = 6;
+  const startScale = shoe.scale.clone();
+  const scaleAmt = 1.8;
+  const shoeWorld = new THREE.Vector3();
+
+  shoe.getWorldPosition(shoeWorld);
+  // const shoeBox = new THREE.Box3();
+  // shoe.updateWorldMatrix(false, true);
+  // shoeBox.setFromObject(shoe);
+  // shoeBox.getCenter(shoeWorld);
+
+  const cameraWorld = new THREE.Vector3();
+  const d = new THREE.Vector3();
+  return {
+    update: (dt) => {
+      camera.getWorldPosition(cameraWorld);
+      d.copy(shoeWorld).sub(cameraWorld);
+      d.y = 0;
+      
+      if(d.lengthSq() < proximity * proximity) {
+        shoe.scale.copy(startScale).multiplyScalar(scaleAmt);
+        // console.log('scaling ', shoe.name);
+      }
+      else {
+        shoe.scale.copy(startScale);
+      }
+    }
+  };
+}

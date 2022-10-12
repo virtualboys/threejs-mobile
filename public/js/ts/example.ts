@@ -1,6 +1,6 @@
 // import { GLTFLoader } from './libs/threejs/GLTFLoader.js';
 
-import { rotateEffect, Effect, hoverEffect, bloomModEffect } from "./effects.js";
+import { rotateEffect, Effect, hoverEffect, bloomModEffect, shoeEffect } from "./effects.js";
 import { FPSMultiplatformControls } from "./fps-multiplatform-controls.js";
 import { JoystickControls } from "./joystick/JoystickControls.js";
 import { threeToCannon, ShapeType } from './three-to-cannon/src/index.js';
@@ -116,6 +116,16 @@ let occlusionZones = new OcclusionZones();
 occlusionZoneDefs.forEach((zoneDef) => {
   occlusionZones.addZone(zoneDef.bounds, zoneDef.zoneName);
 });
+
+const shoeNames = [
+  "shoe_brown_sawglb",
+  "shoe_flesh_blackglb",
+  "shoe_white_fleshglb",
+  "shoe_flesh_militaryglb",
+  "shoe_brown_sandalglb",
+  "shoe_tan_sandalglb",
+  "shoe_white_sawglb",
+]
 
 const fixedTimeStep = 1.0 / 60.0; // seconds
 const maxSubSteps = 3;
@@ -281,6 +291,7 @@ export function startScene() {
   }
 
   async function onLoadingDone() {
+    // return;
     if (!sceneGltf) {
       console.log('awaiting scene gltf...');
     }
@@ -308,6 +319,7 @@ export function startScene() {
 
 
     scene.add(sceneGltf.scene);
+    scene.updateWorldMatrix(true, true);
 
     camera = sceneGltf.cameras[0];
     camera.far = 100;
@@ -333,6 +345,7 @@ export function startScene() {
     world.addContactMaterial(default_default_cm);
 
     let blockersParents: THREE.Object3D[] = [];
+    let shoesObjs: THREE.Object3D[] = [];
     scene.traverse(function (obj: THREE.Object3D) {
 
       occlusionZoneDefs.forEach((zoneDef) => {
@@ -342,7 +355,13 @@ export function startScene() {
             occlusionZones.addObject(zoneDef.zoneName, obj);
           }
         })
-      })
+      });
+
+      shoeNames.forEach((shoeName) => {
+        if(obj.name == shoeName) {
+          shoesObjs.push(obj);
+        }
+      });
 
       var body;
       if (obj.name == "Player") {
@@ -412,9 +431,6 @@ export function startScene() {
           rps = .006;
         }
         effects.push(rotateEffect(obj, rps, axis));
-        // if(!obj.name.includes("tree")) {
-        // effects.push(hoverEffect(obj, 0.001, 0.1, hoverAxis));
-        // }
       }
 
       if (obj.userData.hover) {
@@ -432,6 +448,12 @@ export function startScene() {
     blockersParents.forEach((parent) => {
       addColliders(parent);
     });
+
+    shoesObjs.forEach((shoeObj)=>{
+
+      // const shoeParent = createParentAtCenter(shoeObj)
+      // effects.push(shoeEffect(shoeParent, camera));
+    })
 
     copyMeshTransform(playerBody, camera);
 
@@ -625,7 +647,7 @@ function createRenderer() {
     .3,
     .8,
     1.3,
-    10));
+    6.2));
 
   //@ts-ignore
   window.BLOOMPASS = bloomPass;
@@ -752,12 +774,15 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 
   if (leftJoystick) {
+    const newJoyScale = (aspect > 1) ? 5 : 9;
     joystickCam.aspect = aspect;
     joystickCam.updateProjectionMatrix();
 
+    leftJoystick.joystickScale = newJoyScale;
     leftJoystick.viewPos = getJoystickOffset(false);
     leftJoystick.onResize(width, height);
 
+    rightJoystick.joystickScale = newJoyScale;
     rightJoystick.viewPos = getJoystickOffset(true);
     rightJoystick.onResize(width, height);
 
