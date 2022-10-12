@@ -78,5 +78,10 @@ export class TouchEventHandler {
     window.addEventListener('mousemove', _onMouseMove, {passive: false});
     window.addEventListener('mouseup', _onMouseUp, {passive: false});
     window.addEventListener("blur", _screenBlurred);
+    document.addEventListener("visibilitychange", () => { 
+      if(document.hidden) {
+        _screenBlurred();
+      }
+    }, false);
   }
 }

@@ -6,7 +6,7 @@ interface UniVec {
 
 export function isMobileBrowser(): boolean {
   console.log(window.navigator.userAgent);
-  // return true;
+  return true;
   //@ts-ignore
   var md = new MobileDetect(window.navigator.userAgent);
 

@@ -47,7 +47,7 @@ var textureUrls: { url: string, key: KnobKey }[] = [
   }
 ]
 
-var audioElements: { elementId: string, pos: THREE.Vector3 }[] = [
+var audioMap: { elementId: string, pos: THREE.Vector3 }[] = [
   {
     elementId: "lab-audio",
     pos: new THREE.Vector3(-.5, 0, 25)
@@ -137,6 +137,7 @@ var renderer: THREE.WebGLRenderer,
   playerBody: CANNON.Body,
   // audioListener: THREE.AudioListener,
   effects: Effect[],
+  audioElements: HTMLAudioElement[] = [],
   container: JQuery<HTMLElement>;
 
 const physicsBodyMap = new Map<CANNON.Body, THREE.Object3D>();
@@ -217,7 +218,6 @@ export function startScene() {
 
   const loadingManager = new THREE.LoadingManager(onLoadingDone);
 
-  const audioLoader = new THREE.AudioLoader(loadingManager);
   const textureLoader = new THREE.TextureLoader(loadingManager);
 
   let lastProgressUpdate = 0;
@@ -356,17 +356,17 @@ export function startScene() {
         playerBody.fixedRotation = true;
         playerBody.updateMassProperties();
 
-        //@ts-ignore
-        if (window.IS_DEV_BUILD) {
-          playerBody.addEventListener("collide", function (e) {
-            const threeObj = physicsBodyMap.get(e.body);
-            if (threeObj) {
-              console.log("three onj: ", threeObj.name);
-            } else {
-              console.log("unknown collider ", playerBody.position)
-            }
-          });
-        }
+        // //@ts-ignore
+        // if (window.IS_DEV_BUILD) {
+        //   playerBody.addEventListener("collide", function (e) {
+        //     const threeObj = physicsBodyMap.get(e.body);
+        //     if (threeObj) {
+        //       console.log("three onj: ", threeObj.name);
+        //     } else {
+        //       console.log("unknown collider ", playerBody.position)
+        //     }
+        //   });
+        // }
 
         playerBody.collisionFilterGroup = PLAYER_GROUP;
         playerBody.collisionFilterMask = STATIC_GROUP | DYNAMIC_GROUP;
@@ -590,10 +590,6 @@ function createRenderer() {
   // renderer.toneMapping = THREE.NoToneMapping;
   renderer.toneMapping = THREE.CineonToneMapping;
 
-  // const color = 0x000000;  // white
-  // const near = 15;
-  // const far = 50;
-  // scene.fog = new THREE.Fog(color, near, far);
 
   renderer.setSize(width, height);
   container.append(renderer.domElement);
@@ -623,7 +619,7 @@ function createRenderer() {
   bloomPass.clear = true;
 
   effects.push(bloomModEffect(
-    new THREE.Vector3(-28.1, 0, -2.829), 
+    new THREE.Vector3(-28.1, 0, -2.829),
     camera,
     bloomPass,
     .3,
@@ -660,14 +656,30 @@ function playAudio() {
 
   camera.add(listener);
 
-  audioElements.forEach((audioElement) => {
+  audioMap.forEach((audioElement) => {
     const elem = document.getElementById(audioElement.elementId) as HTMLAudioElement;
+    audioElements.push(elem);
     elem.play();
 
     const audio = new AudioSource3D(listener, elem);
     audio.position.copy(audioElement.pos);
     scene.add(audio);
   });
+
+  //@ts-ignore
+  if (window.IS_MOBILE) {
+    document.addEventListener("visibilitychange", () => {
+      console.log('visibility change');
+      audioElements.forEach((elem) => {
+        if (document.hidden) {
+          elem.pause();
+        } else {
+          elem.play();
+        }
+      }
+      )
+    }, false);
+  }
 }
 
 function startGame() {
@@ -684,6 +696,7 @@ function startGame() {
   addControls();
 
   $(window).on("resize", debounce(onWindowResize));
+
   // screen.orientation.addEventListener('change', onWindowResize);
   onWindowResize();
 
