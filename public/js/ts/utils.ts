@@ -6,7 +6,7 @@ interface UniVec {
 
 export function isMobileBrowser(): boolean {
   console.log(window.navigator.userAgent);
-  return true;
+  // return true;
   //@ts-ignore
   var md = new MobileDetect(window.navigator.userAgent);
 
@@ -89,6 +89,7 @@ export function createParentAtCenter(obj: THREE.Object3D) : THREE.Object3D {
   // return obj;
 
   // obj.geometry.computeBoundingBox();
+
   const bbox = new THREE.Box3();
   bbox.setFromObject(obj, true);
   console.log("bbox: ", bbox);
@@ -103,17 +104,11 @@ export function createParentAtCenter(obj: THREE.Object3D) : THREE.Object3D {
   const newParent = new THREE.Group();
   newParent.position.copy(center);
 
-  newParent.add(obj);
-
-  obj.traverse((child)=>{
-    if((child as THREE.Mesh).isMesh) {
-      const m = child as THREE.Mesh;
-      m.geometry.center();
-    }
-  });
-
+  newParent.attach(obj);
+  
   // obj.geometry.center();
-  oldParent.add(newParent);
+  oldParent.attach(newParent);
+  // oldParent.add(newParent);
   console.log("ppos ", newParent.position, " pos; ", obj.position);
 
   return newParent;
