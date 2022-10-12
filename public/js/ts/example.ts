@@ -604,7 +604,9 @@ function addControls() {
 
 function createRenderer() {
   console.log("creating renderer");
-  renderer = new THREE.WebGLRenderer({ antialias: false, logarithmicDepthBuffer: true });
+  
+  //@ts-ignore
+  renderer = new THREE.WebGLRenderer({ antialias: false, logarithmicDepthBuffer: !window.IS_MOBILE });
   // renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.outputEncoding = THREE.LinearEncoding;
   renderer.autoClear = false;
