@@ -53,7 +53,7 @@ export class AudioSource3D extends THREE.Object3D {
 
         // // keep volume within the range of 0 and 1
         // this.audio.volume = Math.min(1, Math.max(0, 1 - ((distance - this.minRadius) / (this.maxRadius - this.minRadius))));
-        let vol = (this.falloffDist / dLen) * (1 + (dot / 2) * this.lookAwayDamping);
+        let vol = (this.falloffDist / (Math.max(.01, dLen - 2)) - .5) * (1 + (dot / 2) * this.lookAwayDamping);
         // console.log('voL: ', vol);
         vol = Math.min(1, Math.max(0, vol));
         this.audio.volume = vol;
