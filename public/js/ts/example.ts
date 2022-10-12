@@ -54,22 +54,22 @@ type AudioMap = {
 type AudioKey = "labAmbience" | "sandal" | "flesh" | "saw";
 var audioUrls: { url: string, key: AudioKey, pos: THREE.Vector3 }[] = [
   {
-    url: "../../audio/labAmbience.mp3",
+    url: "../../audio/labAmbience_reduced.mp3",
     key: "labAmbience",
     pos: new THREE.Vector3(-.5, 0, 25)
   },
   {
-    url: "../../audio/sandal_seamless.mp3",
+    url: "../../audio/sandal_seamless_reduced.mp3",
     key: "sandal",
     pos: new THREE.Vector3(-27, .6, -23)
   },
   {
-    url: "../../audio/flesh_seamless.mp3",
+    url: "../../audio/flesh_seamless_reduced.mp3",
     key: "flesh",
     pos: new THREE.Vector3(23, .6, -29)
   },
   {
-    url: "../../audio/saw_seamless.mp3",
+    url: "../../audio/saw_seamless_reduced.mp3",
     key: "saw",
     pos: new THREE.Vector3(29, .6, 19)
   },
@@ -79,7 +79,15 @@ type TextureMap = {
 };
 
 var loadedTextures: TextureMap = {};
-var loadedAudio: { buffer: AudioBuffer, pos: THREE.Vector3 }[] = [];
+var loadedAudio: { buffer: AudioBuffer, pos: THREE.Vector3, name: string }[] = [];
+
+var occlusionZoneDefs: {bounds: THREE.Box3, objNames: string[]}[] = [
+  {
+    //sandal
+    bounds: new THREE.Box3(new THREE.Vector3(-50, -27, -45), new THREE.Vector3(-10, 40, 7)),
+    objNames: []
+  }
+]
 
 const fixedTimeStep = 1.0 / 60.0; // seconds
 const maxSubSteps = 3;
@@ -278,11 +286,11 @@ export function startScene() {
     const promises = audioUrls.map(({ url }) => audioLoader.loadAsync(url));
     const audios = await Promise.all(promises);
     console.log('audio loaded');
-    // audios.reduce((AudioMap, audio, index) => {
-    //   loadedAudio.push({ buffer: audio, pos: audioUrls[index].pos });
-    //   const newKey = audioUrls[index].key;
-    //   return { ...AudioMap, [newKey]: audio }
-    // }, {})
+    audios.reduce((AudioMap, audio, index) => {
+      const newKey = audioUrls[index].key;
+      loadedAudio.push({ buffer: audio, pos: audioUrls[index].pos, name: newKey });
+      return { ...AudioMap, [newKey]: audio }
+    }, {})
   }
 
   function loadOtherAssets() {
@@ -321,9 +329,12 @@ export function startScene() {
     let blockersParents: THREE.Object3D[] = [];
     scene.traverse(function (obj: THREE.Object3D) {
 
-      if(obj.name.includes('tree')) {
-        obj.visible = false;
+      if(obj instanceof THREE.Mesh) {
+        const objMesh = obj as THREE.Mesh;
+        // @ts-ignore
+        console.log(objMesh.name, ' transparent: ', objMesh.material.transparent);
       }
+     
       var body;
       if (obj.name == "Player") {
         obj.position.y = .54;
@@ -409,18 +420,19 @@ export function startScene() {
       }
     });
 
-    // loadedAudio.forEach((aud) => {
-    //   var audObj = new THREE.Group();
-    //   scene.add(audObj);
-    //   audObj.position.copy(aud.pos);
-    //   const sound = new THREE.PositionalAudio(audioListener);
-    //   sound.loop = true;
-    //   sound.setBuffer(aud.buffer);
-    //   sound.setRefDistance(4);
-    //   sound.setMaxDistance(6);
-    //   audObj.add(sound);
-    //   sounds.push(sound);
-    // });
+    loadedAudio.forEach((aud) => {
+      console.log('playing ', aud.name, ' at ', aud.pos);
+      var audObj = new THREE.Group();
+      scene.add(audObj);
+      audObj.position.copy(aud.pos);
+      const sound = new THREE.PositionalAudio(audioListener);
+      sound.loop = true;
+      sound.setBuffer(aud.buffer);
+      sound.setRefDistance(4);
+      sound.setMaxDistance(6);
+      audObj.add(sound);
+      sounds.push(sound);
+    });
 
     blockersParents.forEach((parent) => {
       addColliders(parent);
@@ -482,11 +494,8 @@ export function startScene() {
   }
 
   function createStaticCollider(obj: THREE.Object3D, type: ShapeType): CANNON.Body {
-
-    // console.log("adding ", type, " collider to ", obj.name);
-    // const originalRot = obj.quaternion.clone();
-    // obj.quaternion.identity();
-    // obj.updateWorldMatrix(false, true);
+    
+    console.log("adding ", type, " collider to ", obj.name);
     const result = threeToCannon(obj, { type: type });
     const body = new CANNON.Body({
       mass: 0, // kg
