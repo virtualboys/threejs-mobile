@@ -3,10 +3,11 @@ export class TouchEventHandler {
     this.touchStart = function (event) {};
     this.touchMove = function (event) {};
     this.touchEnd = function (event) {};
-
+    
     this.clickOrTouchStart = function(x, y, id){};
     this.clickOrTouchMove = function(x, y, id){};
     this.clickOrTouchEnd = function(id){};
+    this.clicksOrTouchesCancelled = function() {};
 
     function preventGestures(event) {
       event.stopPropagation();
@@ -56,6 +57,10 @@ export class TouchEventHandler {
       this.clickOrTouchEnd(0);
     }
 
+    function onScreenBlurred() {
+      this.clicksOrTouchesCancelled();
+    }
+
     const _onTouchStart = onTouchStart.bind(this);
     const _onTouchEnd = onTouchEnd.bind(this);
     const _onTouchMove = onTouchMove.bind(this);
@@ -63,6 +68,8 @@ export class TouchEventHandler {
     const _onMouseDown = onMouseDown.bind(this);
     const _onMouseMove = onMouseMove.bind(this);
     const _onMouseUp = onMouseUp.bind(this);
+    const _screenBlurred = onScreenBlurred.bind(this);
+
 
     window.addEventListener("touchstart", _onTouchStart, { passive: false });
     window.addEventListener("touchend", _onTouchEnd, { passive: false });
@@ -70,5 +77,6 @@ export class TouchEventHandler {
     window.addEventListener('mousedown', _onMouseDown, {passive: false});
     window.addEventListener('mousemove', _onMouseMove, {passive: false});
     window.addEventListener('mouseup', _onMouseUp, {passive: false});
+    window.addEventListener("blur", _screenBlurred);
   }
 }

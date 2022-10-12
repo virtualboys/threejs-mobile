@@ -41,6 +41,7 @@ export class FPSMultiplatformControls {
   onClickOrTouchStart: (x: number, y: number, id: number) => void;
   onClickOrTouchMove: (x: number, y: number, id: number) => void;
   onClickOrTouchEnd: (id: number) => void;
+  onClicksOrTouchesCancelled: () => void;
 
   moveForward: (distance: THREE.Vector3) => void;
   update: (delta: number) => void;
@@ -147,7 +148,7 @@ export class FPSMultiplatformControls {
       }
     };
 
-    this.resetKeysDown = function() {
+    this.resetKeysDown = function () {
       moveForward = false;
       moveLeft = false;
       moveRight = false;
@@ -163,7 +164,7 @@ export class FPSMultiplatformControls {
           usingAxisMovement = true;
 
           moveJoystick?.onStart(x, y);
-          
+
           if (canJump === true && this.jumpEnabled) velocity.y += this.jumpSpeed;
           canJump = false;
         }
@@ -211,6 +212,20 @@ export class FPSMultiplatformControls {
 
         lookJoystick?.onEnd();
       }
+    }
+
+    this.onClicksOrTouchesCancelled = function () {
+      moveTouchId = -1;
+      axisMovement.x = 0;
+      axisMovement.y = 0;
+      usingAxisMovement = false;
+
+      moveJoystick?.onEnd();
+      rotTouchId = -1;
+      camRot.x = 0;
+      camRot.y = 0;
+
+      lookJoystick?.onEnd();
     }
 
     function getTouchVec(touchStart, x, y, deadZone) {
@@ -307,7 +322,7 @@ export class FPSMultiplatformControls {
     const _onKeyDown = this.onKeyDown.bind(this);
     const _onKeyUp = this.onKeyUp.bind(this);
     const _resetKeysDown = this.resetKeysDown.bind(this);
-    
+
     window.addEventListener("keydown", _onKeyDown);
     window.addEventListener("keyup", _onKeyUp);
     document.addEventListener('pointerlockchange', _resetKeysDown);
@@ -316,5 +331,6 @@ export class FPSMultiplatformControls {
     touchEventHandler.clickOrTouchStart = this.onClickOrTouchStart.bind(this);
     touchEventHandler.clickOrTouchMove = this.onClickOrTouchMove.bind(this);
     touchEventHandler.clickOrTouchEnd = this.onClickOrTouchEnd.bind(this);
+    touchEventHandler.clicksOrTouchesCancelled = this.onClicksOrTouchesCancelled.bind(this);
   }
 }
