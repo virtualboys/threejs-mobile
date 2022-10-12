@@ -798,6 +798,12 @@ function animate() {
   renderer.render(uiScene, joystickCam);
 
   occlusionZones.update(camera.position);
+
+  let volumeLog = "volumes: ";
+  audioElements.forEach((elem)=>{
+    volumeLog += elem.volume.toFixed(2) + ", ";
+  });
+  console.log(volumeLog);
 }
 
 function onWindowResize() {

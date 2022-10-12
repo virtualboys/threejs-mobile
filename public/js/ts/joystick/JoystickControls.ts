@@ -129,6 +129,7 @@ export class JoystickControls {
   }
 
   public onResize(width: number, height: number) {
+    this.onEnd();
     this.updateBaseAnchorPoint(width, height);
 
     const positionInScene = getPositionInScene(
