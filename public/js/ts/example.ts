@@ -165,6 +165,8 @@ let sceneGltf;
 
 const defaultCannonMat = new CANNON.Material("defaultMat");
 
+let showingRotateNote = false;
+
 export const PLAYER_GROUP = 1;
 export const STATIC_GROUP = 2;
 export const DYNAMIC_GROUP = 4;
@@ -317,6 +319,42 @@ export function startScene() {
       event.target.remove();
     });
 
+    // @ts-ignore
+    if (window.IS_MOBILE && window.innerHeight > window.innerWidth) {
+      const rotateNote = document.getElementById("rotate-note");
+      rotateNote.style.display = "block";
+      rotateNote.classList.add("fade-in");
+      rotateNote.addEventListener("transitionend", (event) => {
+        //@ts-ignore
+        event.target.remove();
+      });
+
+      showingRotateNote = true;
+
+      function checkForLandscape() {
+        // @ts-ignore
+        if (showingRotateNote && window.innerWidth > window.innerHeight) {
+          rotateNote.classList.add("fade-out");
+          rotateNote.addEventListener("transitionend", (event) => {
+            //@ts-ignore
+            event.target.remove();
+            rotateNote.style.display = "none";
+            showingRotateNote = false;
+          });
+
+          window.removeEventListener('resize', checkForLandscape);
+        }
+      }
+
+      window.addEventListener('resize', checkForLandscape);
+    }
+
+    // optional: remove loader from DOM via event listener
+    loadingScreen.addEventListener("transitionend", (event) => {
+      //@ts-ignore
+      event.target.remove();
+    });
+
 
     scene.add(sceneGltf.scene);
     scene.updateWorldMatrix(true, true);
@@ -358,7 +396,7 @@ export function startScene() {
       });
 
       shoeNames.forEach((shoeName) => {
-        if(obj.name == shoeName) {
+        if (obj.name == shoeName) {
           shoesObjs.push(obj);
         }
       });
@@ -449,7 +487,7 @@ export function startScene() {
       addColliders(parent);
     });
 
-    shoesObjs.forEach((shoeObj)=>{
+    shoesObjs.forEach((shoeObj) => {
 
       // const shoeParent = createParentAtCenter(shoeObj)
       // effects.push(shoeEffect(shoeParent, camera));
@@ -719,7 +757,6 @@ function startGame() {
 
   $(window).on("resize", debounce(onWindowResize));
 
-  // screen.orientation.addEventListener('change', onWindowResize);
   onWindowResize();
 
   playAudio();
@@ -802,6 +839,7 @@ function onWindowResize() {
 
   fxaaPass.material.uniforms['resolution'].value.x = 1 / (width * pixelRatio);
   fxaaPass.material.uniforms['resolution'].value.y = 1 / (height * pixelRatio);
+
 }
 
 function updateFocusWarningScreen() {

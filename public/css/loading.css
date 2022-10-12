@@ -13,7 +13,6 @@
     background-color: #000000;
     opacity: 1;
     transition: 1s opacity;
-    display: none;
 }
 
 #start-screen {
@@ -141,6 +140,9 @@
     max-height:10vh;
     position: fixed;
     bottom: 30px;
+    opacity: 0;
+    display: none;
+    transition: 1s opacity;
 }
 
 #stopPreviewButton {
@@ -153,7 +155,7 @@
     width:100%;
 
     position: relative;
-    top:40vh;
+    top:30vh;
     /* display: flex; */
     justify-content: center;
     align-items: center;
@@ -219,6 +221,15 @@
 }
 
 #start-screen.fade-out {
+    opacity: 0;
+}
+
+#rotate-note.fade-in {
+    transition-delay: 500ms;
+    opacity: 1;
+}
+
+#rotate-note.fade-out {
     opacity: 0;
 }
 
