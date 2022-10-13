@@ -319,17 +319,17 @@ export function startScene() {
         loadedTextures[texUrl.key] = tex;
       });
     });
-  }  
-  
+  }
+
   function loadAudio() {
-      console.log('loading audio...');
-      audioUrls.forEach((audioUrl) => {
-        audioLoader.load(audioUrl.url, (audioBuffer) => {
-          console.log('loaded ', audioUrl.url);
-          loadedAudio.push({ buffer: audioBuffer, pos: audioUrl.pos, name: audioUrl.key });
-        });
-      })
-    }
+    console.log('loading audio...');
+    audioUrls.forEach((audioUrl) => {
+      audioLoader.load(audioUrl.url, (audioBuffer) => {
+        console.log('loaded ', audioUrl.url);
+        loadedAudio.push({ buffer: audioBuffer, pos: audioUrl.pos, name: audioUrl.key });
+      });
+    })
+  }
 
   function loadOtherAssets() {
     loadKnobs();
@@ -751,18 +751,27 @@ function createRenderer() {
   composer.setSize(width, height);
 }
 
+let audioSources: THREE.Audio[] = [];
 function playNewAudioAttempt() {
   const listener = new THREE.AudioListener();
-  camera.add( listener );
+  camera.add(listener);
 
-  loadedAudio.forEach((loadedAud)=>{
-    const sound = new THREE.Audio( listener );
-    sound.setBuffer( loadedAud.buffer );
-    sound.setLoop( true );
-    const vol = Math.random();
-    sound.setVolume(vol);
+  const listener3d = new AudioListener3D();
+  camera.add(listener3d);
+
+  loadedAudio.forEach((loadedAud) => {
+    const sound = new THREE.Audio(listener);
+    sound.setBuffer(loadedAud.buffer);
+    sound.setLoop(true);
+    // const vol = Math.random();
+    sound.setVolume(0);
     sound.play();
-    console.log('playing NEW audio: ', loadedAud.name, ' at vol ', vol);
+
+    const source3d = new AudioSource3D(listener, sound);
+    source3d.position.copy(loadedAud.pos);
+    scene.add(source3d);
+    audioSources.push(sound);
+    console.log('playing NEW audio: ', loadedAud.name, ' at pos ', source3d.position);
   });
 
 }
@@ -770,7 +779,7 @@ function playNewAudioAttempt() {
 function playAudio() {
 
   // positional audio not working on mobile rn
-  if(IS_MOBILE) {
+  if (IS_MOBILE) {
     // remove sandal bubbly audio;
     audioMap.splice(1, 1);
     audioMap.forEach((audioElement) => {
@@ -795,16 +804,16 @@ function playAudio() {
     const listener = new AudioListener3D();
 
     camera.add(listener);
-  
-    audioMap.forEach((audioElement) => {
-      const elem = document.getElementById(audioElement.elementId) as HTMLAudioElement;
-      audioElements.push(elem);
-      elem.play();
-  
-      const audio = new AudioSource3D(listener, elem);
-      audio.position.copy(audioElement.pos);
-      scene.add(audio);
-    });
+
+    // audioMap.forEach((audioElement) => {
+    //   const elem = document.getElementById(audioElement.elementId) as HTMLAudioElement;
+    //   audioElements.push(elem);
+    //   elem.play();
+
+    //   const audio = new AudioSource3D(listener, elem);
+    //   audio.position.copy(audioElement.pos);
+    //   scene.add(audio);
+    // });
   }
 }
 
@@ -866,11 +875,14 @@ function animate() {
 
   occlusionZones.update(camera.position);
 
-  // let volumeLog = "volumes: ";
+  let volumeLog = "volumes: ";
   // audioElements.forEach((elem)=>{
   //   volumeLog += elem.volume.toFixed(2) + ", ";
   // });
-  // console.log(volumeLog);
+  audioSources.forEach((source) => {
+    volumeLog += source.getVolume().toFixed(2) + ", ";
+  });
+  console.log(volumeLog);
 }
 
 function onWindowResize() {

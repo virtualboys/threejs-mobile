@@ -8,12 +8,12 @@ export class AudioSource3D extends THREE.Object3D {
     ignoreY = true;
 
     listenerParent: THREE.Object3D;
-    audio: HTMLAudioElement;
+    audio: THREE.Audio;
 
     private d = new THREE.Vector3();
     private listenerForward = new THREE.Vector3();
 
-    constructor(listener: THREE.Object3D, audio: HTMLAudioElement) {
+    constructor(listener: THREE.Object3D, audio: THREE.Audio) {
         super();
         this.listenerParent = listener.parent;
         this.audio = audio;
@@ -56,7 +56,8 @@ export class AudioSource3D extends THREE.Object3D {
         let vol = (this.falloffDist / (Math.max(.01, dLen))) * (1 + (dot / 2) * this.lookAwayDamping);
         // console.log('voL: ', vol);
         vol = Math.min(1, Math.max(0, vol));
-        this.audio.volume = vol;
+        this.audio.setVolume(vol);
+        // this.audio.volume = vol;
     }
 }
 
