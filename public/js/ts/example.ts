@@ -22,6 +22,9 @@ import { off } from "process";
 
 const texturesPath = "../../textures/";
 
+let IS_MOBILE: boolean;
+let IS_DEV_BUILD: boolean;
+
 var width, height;
 var viewAngle = 45,
   near = 1,
@@ -188,10 +191,14 @@ const colliderTypeOverrides = {
 $(function () { });
 
 export function startScene() {
-  //
   if (!window.Detector.webgl) window.Detector.addGetWebGLMessage();
 
   console.log("starting scene");
+
+  // @ts-ignore
+  IS_MOBILE = window.IS_MOBILE;
+  // @ts-ignore
+  IS_DEV_BUILD = window.IS_DEV_BUILD;
 
   container = $("#container_3d");
 
@@ -320,7 +327,7 @@ export function startScene() {
     });
 
     // @ts-ignore
-    if (window.IS_MOBILE && window.innerHeight > window.innerWidth) {
+    if (IS_MOBILE && window.innerHeight > window.innerWidth) {
       const rotateNote = document.getElementById("rotate-note");
       rotateNote.style.display = "block";
       rotateNote.classList.add("fade-in");
@@ -584,8 +591,7 @@ function getJoystickOffset(isRight): THREE.Vector2 {
 function addControls() {
   touchEventHandler = new TouchEventHandler(document);
 
-  //@ts-ignore
-  if (window.IS_MOBILE) {
+  if (IS_MOBILE) {
     leftJoystick = new JoystickControls(
       joystickCam,
       uiScene,
@@ -630,8 +636,7 @@ function addControls() {
 
   scene.add(controls.getObject());
 
-  //@ts-ignore
-  if (window.IS_DEV_BUILD) {
+  if (IS_DEV_BUILD) {
     controls.jumpEnabled = true;
     // controls.playerSpeed = 150;
   }
@@ -641,8 +646,7 @@ function addControls() {
 function createRenderer() {
   console.log("creating renderer");
 
-  //@ts-ignore
-  renderer = new THREE.WebGLRenderer({ antialias: false, logarithmicDepthBuffer: !window.IS_MOBILE });
+  renderer = new THREE.WebGLRenderer({ antialias: false, logarithmicDepthBuffer: !IS_MOBILE });
   // renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.outputEncoding = THREE.LinearEncoding;
   renderer.autoClear = false;
@@ -712,6 +716,7 @@ function createRenderer() {
 
 function playAudio() {
 
+
   const listener = new AudioListener3D();
 
   camera.add(listener);
@@ -726,8 +731,7 @@ function playAudio() {
     scene.add(audio);
   });
 
-  //@ts-ignore
-  if (window.IS_MOBILE) {
+  if (IS_MOBILE) {
     document.addEventListener("visibilitychange", () => {
       console.log('visibility change');
       audioElements.forEach((elem) => {
@@ -799,11 +803,11 @@ function animate() {
 
   occlusionZones.update(camera.position);
 
-  let volumeLog = "volumes: ";
-  audioElements.forEach((elem)=>{
-    volumeLog += elem.volume.toFixed(2) + ", ";
-  });
-  console.log(volumeLog);
+  // let volumeLog = "volumes: ";
+  // audioElements.forEach((elem)=>{
+  //   volumeLog += elem.volume.toFixed(2) + ", ";
+  // });
+  // console.log(volumeLog);
 }
 
 function onWindowResize() {
@@ -849,8 +853,8 @@ function onWindowResize() {
 }
 
 function updateFocusWarningScreen() {
-  //@ts-ignore
-  const shouldShowFocusWarning = !window.IS_MOBILE && controls?.pointerLock.isLocked;// && !window.IS_DEV_BUILD;
+
+  const shouldShowFocusWarning = !IS_MOBILE && controls?.pointerLock.isLocked;// && !window.IS_DEV_BUILD;
 
   const focusWarningScreen = document.getElementById('focus-warning-screen');
   focusWarningScreen.style.display = (shouldShowFocusWarning) ? 'block' : 'none';

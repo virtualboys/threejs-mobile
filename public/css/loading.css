@@ -175,6 +175,7 @@
     -webkit-flex-shrink: 0;
     width: 400px;
     max-width: 80vw;
+    max-height: 50vh;
     height: auto;
     /* max-width: 70%;
     max-height: 90%; */
@@ -228,7 +229,7 @@
 }
 
 #rotate-note.fade-in {
-    transition-delay: 500ms;
+    transition-delay: 100ms;
     opacity: 1;
 }
 
