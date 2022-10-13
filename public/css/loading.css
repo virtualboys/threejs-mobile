@@ -13,6 +13,8 @@
     background-color: #000000;
     opacity: 1;
     transition: 1s opacity;
+    -webkit-transition: 1s opacity;
+
 }
 
 #start-screen {
@@ -25,6 +27,7 @@
     background-color: #000000;
     opacity: 1;
     transition: 1s opacity;
+    -webkit-transition: 1s opacity;
     text-align: center;
 }
 
@@ -86,6 +89,7 @@
         4px 4px 8px 0 rgba(0, 0, 0, .25);
 
     transition: 0.2s;
+    -webkit-transition: .2s;
     /* border-radius: 4px; */
 
 }
@@ -145,6 +149,7 @@
     opacity: 0;
     display: none;
     transition: 1s opacity;
+    -webkit-transition: 1s opacity;
 }
 
 #stopPreviewButton {
@@ -230,6 +235,7 @@
 
 #rotate-note.fade-in {
     transition-delay: 100ms;
+    -webkit-transition-delay: 100ms;
     opacity: 1;
 }
 
