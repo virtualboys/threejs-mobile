@@ -9,6 +9,8 @@ export class TouchEventHandler {
     this.clickOrTouchEnd = function(id){};
     this.clicksOrTouchesCancelled = function() {};
 
+    this.numTouches = 0;
+
     function preventGestures(event) {
       event.stopPropagation();
       event.preventDefault(); // prevent scrolling
@@ -16,7 +18,16 @@ export class TouchEventHandler {
     }
 
     function onTouchStart(event) {
-      preventGestures(event); 
+      preventGestures(event);
+      
+      this.numTouches += event.changedTouches.length;
+      if(this.numTouches != event.touches.length) {
+        console.log('num touches discrepancy, canceling');
+        this.numTouches = 0;
+        this.clicksOrTouchesCancelled();
+        return;
+      }
+      
       this.touchStart(event);
 
       for (let i = 0; i < event.changedTouches.length; i++) {
@@ -37,6 +48,13 @@ export class TouchEventHandler {
 
     function onTouchEnd(event) {
       preventGestures(event);
+
+      this.numTouches -= event.changedTouches.length;
+      if(this.numTouches < 0) {
+        console.log('num touches negative...');
+        this.numTouches = 0;
+      }
+
       this.touchEnd(event);
 
       for (let i = 0; i < event.changedTouches.length; i++) {
