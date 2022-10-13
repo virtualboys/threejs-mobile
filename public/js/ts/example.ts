@@ -845,6 +845,8 @@ function animate() {
 
   const delta = clock.getDelta();
 
+  console.log('delta: ', delta);
+
   rightJoystick?.update((input) => {
     if (input) {
       controls.rotInputVec.set(-input.moveX, input.moveY);
@@ -879,10 +881,10 @@ function animate() {
   // audioElements.forEach((elem)=>{
   //   volumeLog += elem.volume.toFixed(2) + ", ";
   // });
-  audioSources.forEach((source) => {
-    volumeLog += source.getVolume().toFixed(2) + ", ";
-  });
-  console.log(volumeLog);
+  // audioSources.forEach((source) => {
+  //   volumeLog += source.getVolume().toFixed(2) + ", ";
+  // });
+  // console.log(volumeLog);
 }
 
 function onWindowResize() {
