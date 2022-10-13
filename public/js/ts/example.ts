@@ -69,6 +69,31 @@ var audioMap: { elementId: string, pos: THREE.Vector3 }[] = [
   },
 ]
 
+var loadedAudio: { buffer: AudioBuffer, pos: THREE.Vector3, name: string }[] = [];
+type AudioKey = "labAmbience" | "sandal" | "flesh" | "saw";
+var audioUrls: { url: string, key: AudioKey, pos: THREE.Vector3 }[] = [
+  {
+    url: "../../audio/labAmbience_reduced.mp3",
+    key: "labAmbience",
+    pos: new THREE.Vector3(-.5, 0, 25)
+  },
+  {
+    url: "../../audio/sandal_seamless_reduced.mp3",
+    key: "sandal",
+    pos: new THREE.Vector3(-27, .6, -23)
+  },
+  {
+    url: "../../audio/flesh_seamless_reduced.mp3",
+    key: "flesh",
+    pos: new THREE.Vector3(23, .6, -29)
+  },
+  {
+    url: "../../audio/saw_seamless_reduced.mp3",
+    key: "saw",
+    pos: new THREE.Vector3(29, .6, 19)
+  },
+]
+
 type TextureMap = {
   [key in KnobKey]?: THREE.Texture;
 };
@@ -238,6 +263,7 @@ export function startScene() {
   const loadingManager = new THREE.LoadingManager(onLoadingDone);
 
   const textureLoader = new THREE.TextureLoader(loadingManager);
+  const audioLoader = new THREE.AudioLoader(loadingManager);
 
   let lastProgressUpdate = 0;
 
@@ -293,10 +319,21 @@ export function startScene() {
         loadedTextures[texUrl.key] = tex;
       });
     });
-  }
+  }  
+  
+  function loadAudio() {
+      console.log('loading audio...');
+      audioUrls.forEach((audioUrl) => {
+        audioLoader.load(audioUrl.url, (audioBuffer) => {
+          console.log('loaded ', audioUrl.url);
+          loadedAudio.push({ buffer: audioBuffer, pos: audioUrl.pos, name: audioUrl.key });
+        });
+      })
+    }
 
   function loadOtherAssets() {
     loadKnobs();
+    loadAudio();
   }
 
   async function onLoadingDone() {
@@ -714,6 +751,22 @@ function createRenderer() {
   composer.setSize(width, height);
 }
 
+function playNewAudioAttempt() {
+  const listener = new THREE.AudioListener();
+  camera.add( listener );
+
+  loadedAudio.forEach((loadedAud)=>{
+    const sound = new THREE.Audio( listener );
+    sound.setBuffer( loadedAud.buffer );
+    sound.setLoop( true );
+    const vol = Math.random();
+    sound.setVolume(vol);
+    sound.play();
+    console.log('playing NEW audio: ', loadedAud.name, ' at vol ', vol);
+  });
+
+}
+
 function playAudio() {
 
   // positional audio not working on mobile rn
@@ -772,7 +825,8 @@ function startGame() {
 
   onWindowResize();
 
-  playAudio();
+  // playAudio();
+  playNewAudioAttempt();
 
   animate();
 }
