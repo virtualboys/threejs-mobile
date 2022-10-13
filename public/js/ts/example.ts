@@ -716,22 +716,16 @@ function createRenderer() {
 
 function playAudio() {
 
+  // positional audio not working on mobile rn
+  if(IS_MOBILE) {
+    // remove sandal bubbly audio;
+    audioMap.splice(1, 1);
+    audioMap.forEach((audioElement) => {
+      const elem = document.getElementById(audioElement.elementId) as HTMLAudioElement;
+      audioElements.push(elem);
+      elem.play();
+    });
 
-  const listener = new AudioListener3D();
-
-  camera.add(listener);
-
-  audioMap.forEach((audioElement) => {
-    const elem = document.getElementById(audioElement.elementId) as HTMLAudioElement;
-    audioElements.push(elem);
-    elem.play();
-
-    const audio = new AudioSource3D(listener, elem);
-    audio.position.copy(audioElement.pos);
-    scene.add(audio);
-  });
-
-  if (IS_MOBILE) {
     document.addEventListener("visibilitychange", () => {
       console.log('visibility change');
       audioElements.forEach((elem) => {
@@ -743,6 +737,21 @@ function playAudio() {
       }
       )
     }, false);
+  }
+  else {
+    const listener = new AudioListener3D();
+
+    camera.add(listener);
+  
+    audioMap.forEach((audioElement) => {
+      const elem = document.getElementById(audioElement.elementId) as HTMLAudioElement;
+      audioElements.push(elem);
+      elem.play();
+  
+      const audio = new AudioSource3D(listener, elem);
+      audio.position.copy(audioElement.pos);
+      scene.add(audio);
+    });
   }
 }
 
