@@ -843,9 +843,10 @@ function startGame() {
 function animate() {
   requestAnimationFrame(animate);
 
-  const delta = clock.getDelta();
+  let delta = clock.getDelta();
+  delta = Math.min(delta, .045);
 
-  console.log('delta: ', delta);
+  // console.log('delta: ', delta);
 
   rightJoystick?.update((input) => {
     if (input) {
