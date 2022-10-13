@@ -516,9 +516,11 @@ export function startScene() {
       }
 
       if (obj.userData.hover) {
+        // hack to move hovered object down a little
+        obj.position.add(new THREE.Vector3(0,-.1,0));
 
         console.log('hovering ', obj.name)
-        effects.push(hoverEffect(obj, 0.001, 0.1, hoverAxis));
+        effects.push(hoverEffect(obj, 0.065, 0.1, hoverAxis));
       }
 
       if (body) {

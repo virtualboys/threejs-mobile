@@ -23,14 +23,19 @@ export const rotateEffect = (
 };
 
 export function hoverEffect(obj, height, frequency, axis): Effect {
-  const d = new THREE.Vector3();
+  const startPos = obj.position.clone();
+  const newPos = new THREE.Vector3();
   let t = 0.5;
   return {
     update: (dt) => {
-      d.copy(axis);
+      // d.copy(axis);
       t += frequency * dt;
-      d.multiplyScalar(height * Math.sin(2 * Math.PI * t));
-      obj.position.add(d);
+      // d.multiplyScalar(height * Math.sin(2 * Math.PI * t));
+      // obj.position.add(d);
+      newPos.copy(axis);
+      newPos.multiplyScalar(height * Math.sin(2 * Math.PI * t));
+      newPos.add(startPos);
+      obj.position.copy(newPos);
     },
   };
 }
