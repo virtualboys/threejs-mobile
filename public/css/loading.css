@@ -45,15 +45,16 @@
     overflow: hidden
 }
 
-#use-chrome-or-safari-warning {
+#loading-failed-warning {
     width: 100%;
     text-align: center;
     position: absolute;
     top: 20vh;
     color:white;
     font-family: industrial;
-    font-size: 2em;
+    font-size: 1.7em;
     font-weight: 1100;
+    line-height: 1em;
 }
 
 #focus-warning-label {

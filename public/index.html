@@ -37,8 +37,9 @@
 	</audio>
 
 	<section id="loading-screen">
-		<div id="use-chrome-or-safari-warning" style="display: none;">
-			PLEASE USE CHROME OR SAFARI
+		<div id="loading-failed-warning" style="display: none;">
+			LOADING ERROR:</br>
+			PLEASE TRY CHROME OR SAFARI
 		</div>
 		<div id="loading-logo-container">
 			<div id="loading-img-container">
@@ -147,11 +148,6 @@
 		window.GLTF_URL = "https://storage.googleapis.com/oakley-drop/scene.gltf";
 
 		console.log('is mobile: ', window.IS_MOBILE);
-
-		if(!isChromeOrSafari()) {
-			console.log('not chrome or safari!');
-			document.getElementById('use-chrome-or-safari-warning').style.display = 'block';
-		}
 
 		if (window.STORAGE) {
 			console.log('found storage');

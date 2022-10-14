@@ -301,6 +301,8 @@ export function startScene() {
       function (error) {
         console.log('An error happened loading the gltf!!');
         console.log(error);
+
+			  document.getElementById('loading-failed-warning').style.display = 'block';
       }
     );
   }
@@ -336,18 +338,14 @@ export function startScene() {
     loadAudio();
   }
 
-  async function onLoadingDone() {
+  function onLoadingDone() {
     // return;
     if (!sceneGltf) {
-      console.log('awaiting scene gltf...');
+      console.log('no scene! exiting');
+      return;
     }
-    while (true) {
-      if (sceneGltf) {
-        initScene();
-        return;
-      }
-      await null;
-    }
+    
+    initScene();
   }
 
   function initScene() {
