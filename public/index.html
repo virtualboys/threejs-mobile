@@ -37,6 +37,9 @@
 	</audio>
 
 	<section id="loading-screen">
+		<div id="use-chrome-or-safari-warning" style="display: none;">
+			PLEASE USE CHROME OR SAFARI
+		</div>
 		<div id="loading-logo-container">
 			<div id="loading-img-container">
 				<img id="loading-logo" src="images/factory_team.jpg" />
@@ -127,14 +130,15 @@
 	</script>
 
 	<script type="module">
-		import { Storage as _Storage } from './threejs-source/editor/js/Storage.js';
-		window.STORAGE = _Storage;
+		// import { Storage as _Storage } from './threejs-source/editor/js/Storage.js';
+		// window.STORAGE = _Storage;
 	</script>
 
 
 	<script type="module">
 		import { startScene } from './js/ts/example.js';
 		import { isMobileBrowser } from './js/ts/utils.js';
+		import { isChromeOrSafari } from './js/ts/utils.js';
 
 		console.log('entry point');
 
@@ -143,6 +147,11 @@
 		window.GLTF_URL = "https://storage.googleapis.com/oakley-drop/scene.gltf";
 
 		console.log('is mobile: ', window.IS_MOBILE);
+
+		if(!isChromeOrSafari()) {
+			console.log('not chrome or safari!');
+			document.getElementById('use-chrome-or-safari-warning').style.display = 'block';
+		}
 
 		if (window.STORAGE) {
 			console.log('found storage');

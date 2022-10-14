@@ -42,6 +42,9 @@ http.createServer(function (request, response) {
         case '.ttf':
             contentType = 'font/ttf';
             break;
+        case '.gltf':
+            contentType = 'model/gltf-binary';
+            break;
     }
 
     fs.readFile(filePath, function (error, content) {
