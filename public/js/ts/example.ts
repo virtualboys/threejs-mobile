@@ -1,6 +1,6 @@
 // import { GLTFLoader } from './libs/threejs/GLTFLoader.js';
 
-import { rotateEffect, Effect, hoverEffect, bloomModEffect, shoeEffect } from "./effects.js";
+import { RotateEffect, Effect, HoverEffect, BloomModEffect, ShoeFocusEffect } from "./effects.js";
 import { FPSMultiplatformControls } from "./fps-multiplatform-controls.js";
 import { JoystickControls } from "./joystick/JoystickControls.js";
 import { threeToCannon, ShapeType } from './three-to-cannon/src/index.js';
@@ -510,7 +510,7 @@ export function startScene() {
         } else if (obj.name == 'Cylinder') {
           rps = .006;
         }
-        effects.push(rotateEffect(obj, rps, axis));
+        effects.push(new RotateEffect(obj, rps, axis));
       }
 
       if (obj.userData.hover) {
@@ -518,7 +518,7 @@ export function startScene() {
         obj.position.add(new THREE.Vector3(0,-.1,0));
 
         console.log('hovering ', obj.name)
-        effects.push(hoverEffect(obj, 0.065, 0.1, hoverAxis));
+        effects.push(new HoverEffect(obj, 0.065, 0.1, hoverAxis));
       }
 
       if (body) {
@@ -533,8 +533,8 @@ export function startScene() {
 
     shoesObjs.forEach((shoeObj) => {
 
-      // const shoeParent = createParentAtCenter(shoeObj)
-      // effects.push(shoeEffect(shoeParent, camera));
+      const shoeParent = createParentAtCenter(shoeObj)
+      effects.push(new ShoeFocusEffect(shoeParent, camera));
     })
 
     copyMeshTransform(playerBody, camera);
@@ -719,7 +719,7 @@ function createRenderer() {
   bloomPass.radius = bloomParams.bloomRadius;
   bloomPass.clear = true;
 
-  effects.push(bloomModEffect(
+  effects.push(new BloomModEffect(
     new THREE.Vector3(-28.1, 0, -2.829),
     camera,
     bloomPass,
