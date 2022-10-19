@@ -995,16 +995,17 @@ function updateFocusWarningScreen() {
 }
 
 function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
+  console.log('updating purchase link: ', show, shoe?.purchaseURL);
   focusedShoe = shoe;
-  // const linkElem = document.getElementById('purchase-link') as HTMLLinkElement;
-  // linkElem.href = shoe?.purchaseURL;
   const linkImg = document.getElementById('purchase-link-img') as HTMLImageElement;
   linkImg.style.opacity = ((show) ? 1 : 0).toString();
 
   if (IS_MOBILE) {
     if (show) {
+      console.log('adding purch listener');
       linkImg.addEventListener('click', openPurchaseLinkMobile, {passive: false});
     } else {
+      console.log('removing purch list');
       linkImg.removeEventListener('click', openPurchaseLinkMobile);
     }
   }
@@ -1030,6 +1031,7 @@ function openPurchaseLinkDesktop(e) {
   }
 }
 function openPurchaseLinkMobile(event) {
+  console.log('open purch link mobile');
   if(!focusedShoe) {
     return;
   }
