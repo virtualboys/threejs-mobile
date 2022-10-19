@@ -62,6 +62,11 @@ input {
   display: flex;
   justify-content: center;
 }
+#purchase-img-container {
+  max-height: 10%;
+  display: flex;
+  justify-content: center;
+}
 #purchase-link-img {
   visibility: visible;
   max-width: 50%;
