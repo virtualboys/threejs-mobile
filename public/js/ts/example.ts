@@ -8,6 +8,7 @@ import { OcclusionZones } from './occlusion-zones.js';
 import { AudioSource3D, AudioListener3D } from './Audio3D.js';
 
 import {
+  isHighDensityDisplay,
   CANNONVec,
   copyMeshRot,
   copyMeshTransform,
@@ -786,11 +787,14 @@ function createRenderer() {
   pixelatePass = new THREE.ShaderPass(THREE.PixelShader);
   pixelatePass.uniforms['resolution'].value = new THREE.Vector2(width, height);
   pixelatePass.uniforms['resolution'].value.multiplyScalar(window.devicePixelRatio);
-  pixelatePass.uniforms[ 'pixelSize' ].value = 6;
+  console.log('is high density display: ', isHighDensityDisplay());
+  const pixelateAmt = (isHighDensityDisplay()) ? 6 : 3;
+  // const pixelateAmt = 6;
+  pixelatePass.uniforms['pixelSize'].value = pixelateAmt;
 
   // @ts-ignore;
   window.PIXELATE = pixelatePass;
-  
+
   // @ts-ignore
   composer = new THREE.EffectComposer(renderer);
   composer.addPass(renderPass);
@@ -978,7 +982,7 @@ function onWindowResize() {
 
   fxaaPass.material.uniforms['resolution'].value.x = 1 / (width * pixelRatio);
   fxaaPass.material.uniforms['resolution'].value.y = 1 / (height * pixelRatio);
-  pixelatePass.uniforms[ 'resolution' ].value.set( width, height ).multiplyScalar( pixelRatio );
+  pixelatePass.uniforms['resolution'].value.set(width, height).multiplyScalar(pixelRatio);
 
 }
 
