@@ -57,7 +57,7 @@ input {
   /* justify-content: center; */
   /* align-items: center; */
 }
-a {
+#purchase-link {
   color:white;
   display: flex;
   justify-content: center;

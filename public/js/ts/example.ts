@@ -190,6 +190,8 @@ const shoeDefs: ShoeDef[] = [
   }
 ]
 
+let focusedShoe: ShoeDef;
+
 const fixedTimeStep = 1.0 / 60.0; // seconds
 const maxSubSteps = 3;
 
@@ -993,28 +995,49 @@ function updateFocusWarningScreen() {
 }
 
 function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
-  const linkElem = document.getElementById('purchase-link') as HTMLLinkElement;
-  linkElem.href = shoe?.purchaseURL;
+  focusedShoe = shoe;
+  // const linkElem = document.getElementById('purchase-link') as HTMLLinkElement;
+  // linkElem.href = shoe?.purchaseURL;
   const linkImg = document.getElementById('purchase-link-img') as HTMLImageElement;
   linkImg.style.opacity = ((show) ? 1 : 0).toString();
 
-  if(!IS_MOBILE) {
-    if(show) {
-      window.addEventListener('keydown', openPurchaseLink);
+  if (IS_MOBILE) {
+    if (show) {
+      linkImg.addEventListener('click', openPurchaseLinkMobile, {passive: false});
     } else {
-      window.removeEventListener('keydown', openPurchaseLink);
+      linkImg.removeEventListener('click', openPurchaseLinkMobile);
+    }
+  }
+  else {
+    if (show) {
+      window.addEventListener('keydown', openPurchaseLinkDesktop);
+    } else {
+      window.removeEventListener('keydown', openPurchaseLinkDesktop);
     }
   }
 }
 
-function openPurchaseLink(e) {
-  if (e.key == " " ||
-      e.code == "Space" ||      
-      e.keyCode == 32      
-  ) {
-    const linkElem = document.getElementById('purchase-link') as HTMLLinkElement;
-    window.open(linkElem.href);
+function openPurchaseLinkDesktop(e) {
+  if(!focusedShoe) {
+    return;
   }
+
+  if (e.key == " " ||
+    e.code == "Space" ||
+    e.keyCode == 32
+  ) {
+    window.open(focusedShoe.purchaseURL);
+  }
+}
+function openPurchaseLinkMobile(event) {
+  if(!focusedShoe) {
+    return;
+  }
+  window.open(focusedShoe.purchaseURL);
+
+  event.stopPropagation();
+  event.preventDefault(); // prevent scrolling
+  event.stopImmediatePropagation();
 }
 
 function toggleFullScreen() {

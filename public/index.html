@@ -72,9 +72,9 @@
 
 	<section id="purchase-link-area">
 		<div id="purchase-link-container">
-			<a id="purchase-link" href="https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267" target="_blank">
+			<div id="purchase-link">
 				<img id="purchase-link-img" src="images/shop_link_button.png" />
-			</a>
+			</div>
 		</div>
 	</section>
 
@@ -154,6 +154,9 @@
 		window.GLTF_URL = "https://storage.googleapis.com/oakley-drop/scene.gltf";
 
 		console.log('is mobile: ', window.IS_MOBILE);
+
+		const purchaseImgUrl = (window.IS_MOBILE) ? "images/shop_link_button.png" : "images/shop_link_button_space.png";
+		document.getElementById("purchase-link-img").src = purchaseImgUrl;
 
 		if (window.STORAGE) {
 			console.log('found storage');
