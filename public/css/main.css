@@ -63,16 +63,12 @@ a {
   justify-content: center;
 }
 #purchase-link-img {
+  max-width: 50%;
   /* opacity: 1; */
   transition: .3s opacity;
   -webkit-transition: .3s opacity;
 }
-.fade-out {
-  opacity: 0;
-}
-.fade-in {
-  opacity: 1;
-}
+
 
 body,
 div,
