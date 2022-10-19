@@ -1004,9 +1004,11 @@ function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
     if (show) {
       console.log('adding purch listener');
       linkImg.addEventListener('click', openPurchaseLinkMobile, {passive: false});
+      linkImg.addEventListener('touchstart', openPurchaseLinkMobile, {passive: false});
     } else {
       console.log('removing purch list');
       linkImg.removeEventListener('click', openPurchaseLinkMobile);
+      linkImg.removeEventListener('touchstart', openPurchaseLinkMobile);
     }
   }
   else {
