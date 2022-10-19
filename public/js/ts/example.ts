@@ -465,7 +465,11 @@ export function startScene() {
 
     let blockersParents: THREE.Object3D[] = [];
     scene.traverse(function (obj: THREE.Object3D) {
-
+      if (obj.name == "Box") {
+        console.log("box!!!!", obj);
+        const sawBlocker = createStaticCollider(obj, ShapeType.BOX);
+        world.addBody(sawBlocker);
+      }
       occlusionZoneDefs.forEach((zoneDef) => {
         zoneDef.objNames.forEach((objName) => {
           if (objName == obj.name) {
@@ -1003,8 +1007,8 @@ function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
   if (IS_MOBILE) {
     if (show) {
       console.log('adding purch listener');
-      linkImg.addEventListener('click', openPurchaseLinkMobile, {passive: false});
-      linkImg.addEventListener('touchstart', openPurchaseLinkMobile, {passive: false});
+      linkImg.addEventListener('click', openPurchaseLinkMobile, { passive: false });
+      linkImg.addEventListener('touchstart', openPurchaseLinkMobile, { passive: false });
     } else {
       console.log('removing purch list');
       linkImg.removeEventListener('click', openPurchaseLinkMobile);
@@ -1021,7 +1025,7 @@ function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
 }
 
 function openPurchaseLinkDesktop(e) {
-  if(!focusedShoe) {
+  if (!focusedShoe) {
     return;
   }
 
@@ -1034,7 +1038,7 @@ function openPurchaseLinkDesktop(e) {
 }
 function openPurchaseLinkMobile(event) {
   console.log('open purch link mobile');
-  if(!focusedShoe) {
+  if (!focusedShoe) {
     return;
   }
   window.open(focusedShoe.purchaseURL);

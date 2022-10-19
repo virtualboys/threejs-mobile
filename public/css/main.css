@@ -63,6 +63,7 @@ input {
   justify-content: center;
 }
 #purchase-link-img {
+  visibility: visible;
   max-width: 50%;
   /* opacity: 1; */
   transition: .3s opacity;
