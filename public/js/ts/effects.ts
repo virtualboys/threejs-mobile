@@ -33,7 +33,7 @@ export class RotateEffect extends Effect {
     this.rotQuat.setFromAxisAngle(this.axis, 2 * Math.PI * dt * this.rotsPerSec);
     this.obj.quaternion.multiply(this.rotQuat);
   }
-} 
+}
 
 export class HoverEffect extends Effect {
 
@@ -56,13 +56,13 @@ export class HoverEffect extends Effect {
   }
 
   update(dt: number): void {
-      this.t += this.frequency * dt;
-      // d.multiplyScalar(height * Math.sin(2 * Math.PI * t));
-      // obj.position.add(d);
-      this.newPos.copy(this.axis);
-      this.newPos.multiplyScalar(this.height * Math.sin(2 * Math.PI * this.t));
-      this.newPos.add(this.startPos);
-      this.obj.position.copy(this.newPos);
+    this.t += this.frequency * dt;
+    // d.multiplyScalar(height * Math.sin(2 * Math.PI * t));
+    // obj.position.add(d);
+    this.newPos.copy(this.axis);
+    this.newPos.multiplyScalar(this.height * Math.sin(2 * Math.PI * this.t));
+    this.newPos.add(this.startPos);
+    this.obj.position.copy(this.newPos);
   }
 }
 
@@ -91,7 +91,8 @@ export class BloomModEffect extends Effect {
     this.targetThreshold = targetThreshold;
     this.targetStrength = targetStrength;
     this.targetRadius = targetRadius;
-    
+    this.effectRadius = effectRadius;
+
     this.startThreshold = bloomPass.threshold;
     this.startStrength = bloomPass.strength;
     this.startRadius = bloomPass.radius;
@@ -125,17 +126,20 @@ export class ShoeFocusEffect extends Effect {
   scaleAmt = 1.8;
 
   camera: THREE.Object3D;
+  onShowHide: (show: boolean) => void;
 
   private startScale = new THREE.Vector3();
   private shoeWorld = new THREE.Vector3();
   private cameraWorld = new THREE.Vector3();
   private d = new THREE.Vector3();
+  private isFocused = false;
 
-  constructor(shoe: THREE.Object3D, camera: THREE.Object3D) {
+  constructor(shoe: THREE.Object3D, camera: THREE.Object3D, onShowHide: (show: boolean) => void) {
     super(shoe);
 
     this.camera = camera;
     this.startScale.copy(shoe.scale);
+    this.onShowHide = onShowHide;
     shoe.getWorldPosition(this.shoeWorld);
   }
 
@@ -144,12 +148,17 @@ export class ShoeFocusEffect extends Effect {
     this.d.copy(this.shoeWorld).sub(this.cameraWorld);
     this.d.y = 0;
 
-    if (this.d.lengthSq() < this.proximity * this.proximity) {
+    const shouldFocus = this.d.lengthSq() < this.proximity * this.proximity;
+    if (shouldFocus && !this.isFocused) {
       this.obj.scale.copy(this.startScale).multiplyScalar(this.scaleAmt);
+      this.onShowHide(true);
+      this.isFocused = true;
       // console.log('scaling ', shoe.name);
     }
-    else {
+    else if (!shouldFocus && this.isFocused) {
       this.obj.scale.copy(this.startScale);
+      this.onShowHide(false);
+      this.isFocused = false;
     }
   }
 }

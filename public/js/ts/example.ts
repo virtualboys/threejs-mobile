@@ -145,14 +145,48 @@ occlusionZoneDefs.forEach((zoneDef) => {
   occlusionZones.addZone(zoneDef.bounds, zoneDef.zoneName);
 });
 
-const shoeNames = [
-  "shoe_brown_sawglb",
-  "shoe_flesh_blackglb",
-  "shoe_white_fleshglb",
-  "shoe_flesh_militaryglb",
-  "shoe_brown_sandalglb",
-  "shoe_tan_sandalglb",
-  "shoe_white_sawglb",
+interface ShoeDef {
+  objName: string,
+  purchaseURL: string,
+  obj: THREE.Object3D,
+}
+
+const shoeDefs: ShoeDef[] = [
+  {
+    objName: "shoe_brown_sawglb",
+    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    obj: undefined,
+  },
+  {
+    objName: "shoe_flesh_blackglb",
+    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    obj: undefined,
+  },
+  {
+    objName: "shoe_white_fleshglb",
+    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    obj: undefined,
+  },
+  {
+    objName: "shoe_flesh_militaryglb",
+    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    obj: undefined,
+  },
+  {
+    objName: "shoe_brown_sandalglb",
+    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    obj: undefined,
+  },
+  {
+    objName: "shoe_tan_sandalglb",
+    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    obj: undefined,
+  },
+  {
+    objName: "shoe_white_sawglb",
+    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    obj: undefined,
+  }
 ]
 
 const fixedTimeStep = 1.0 / 60.0; // seconds
@@ -161,6 +195,7 @@ const maxSubSteps = 3;
 var renderer: THREE.WebGLRenderer,
   composer,
   fxaaPass,
+  pixelatePass,
   camera: THREE.PerspectiveCamera,
   joystickCam: THREE.PerspectiveCamera,
   uiCam: THREE.OrthographicCamera,
@@ -198,6 +233,7 @@ let showingRotateNote = false;
 export const PLAYER_GROUP = 1;
 export const STATIC_GROUP = 2;
 export const DYNAMIC_GROUP = 4;
+
 
 const colliderTypeOverrides = {
   pCube19: ShapeType.HULL,
@@ -302,7 +338,7 @@ export function startScene() {
         console.log('An error happened loading the gltf!!');
         console.log(error);
 
-			  document.getElementById('loading-failed-warning').style.display = 'block';
+        document.getElementById('loading-failed-warning').style.display = 'block';
       }
     );
   }
@@ -344,7 +380,7 @@ export function startScene() {
       console.log('no scene! exiting');
       return;
     }
-    
+
     initScene();
   }
 
@@ -425,7 +461,6 @@ export function startScene() {
     world.addContactMaterial(default_default_cm);
 
     let blockersParents: THREE.Object3D[] = [];
-    let shoesObjs: THREE.Object3D[] = [];
     scene.traverse(function (obj: THREE.Object3D) {
 
       occlusionZoneDefs.forEach((zoneDef) => {
@@ -437,9 +472,10 @@ export function startScene() {
         })
       });
 
-      shoeNames.forEach((shoeName) => {
-        if (obj.name == shoeName) {
-          shoesObjs.push(obj);
+      shoeDefs.forEach((shoeDef) => {
+        if (obj.name == shoeDef.objName) {
+          shoeDef.obj = obj;
+          // shoesObjs.push(obj);
         }
       });
 
@@ -515,7 +551,7 @@ export function startScene() {
 
       if (obj.userData.hover) {
         // hack to move hovered object down a little
-        obj.position.add(new THREE.Vector3(0,-.1,0));
+        obj.position.add(new THREE.Vector3(0, -.1, 0));
 
         console.log('hovering ', obj.name)
         effects.push(new HoverEffect(obj, 0.065, 0.1, hoverAxis));
@@ -531,11 +567,16 @@ export function startScene() {
       addColliders(parent);
     });
 
-    shoesObjs.forEach((shoeObj) => {
+    shoeDefs.forEach((shoeDef) => {
+      const shoeParent = createParentAtCenter(shoeDef.obj);
+      effects.push(new ShoeFocusEffect(shoeParent, camera, (show) => { updatePurchaseLink(shoeDef, show); }));
+      shoeDef.obj = shoeParent;
+    });
+    updatePurchaseLink(undefined, false);
 
-      const shoeParent = createParentAtCenter(shoeObj)
-      effects.push(new ShoeFocusEffect(shoeParent, camera));
-    })
+    // shoesObjs.forEach((shoeObj) => {
+
+    // })
 
     copyMeshTransform(playerBody, camera);
 
@@ -675,7 +716,7 @@ function addControls() {
 
   if (IS_DEV_BUILD) {
     controls.jumpEnabled = true;
-    // controls.playerSpeed = 150;
+    controls.playerSpeed = 150;
   }
 
 }
@@ -742,11 +783,21 @@ function createRenderer() {
   const gammaCorrectionPass = new THREE.ShaderPass(THREE.GammaCorrectionShader);
 
   // @ts-ignore
+  pixelatePass = new THREE.ShaderPass(THREE.PixelShader);
+  pixelatePass.uniforms['resolution'].value = new THREE.Vector2(width, height);
+  pixelatePass.uniforms['resolution'].value.multiplyScalar(window.devicePixelRatio);
+  pixelatePass.uniforms[ 'pixelSize' ].value = 6;
+
+  // @ts-ignore;
+  window.PIXELATE = pixelatePass;
+  
+  // @ts-ignore
   composer = new THREE.EffectComposer(renderer);
   composer.addPass(renderPass);
   // composer.addPass(fxaaPass);
   composer.addPass(bloomPass);
   composer.addPass(gammaCorrectionPass);
+  composer.addPass(pixelatePass);
 
   composer.setSize(width, height);
 }
@@ -927,6 +978,7 @@ function onWindowResize() {
 
   fxaaPass.material.uniforms['resolution'].value.x = 1 / (width * pixelRatio);
   fxaaPass.material.uniforms['resolution'].value.y = 1 / (height * pixelRatio);
+  pixelatePass.uniforms[ 'resolution' ].value.set( width, height ).multiplyScalar( pixelRatio );
 
 }
 
@@ -938,6 +990,12 @@ function updateFocusWarningScreen() {
   focusWarningScreen.style.display = (shouldShowFocusWarning) ? 'block' : 'none';
 
   console.log('showing focus message: ', shouldShowFocusWarning);
+}
+
+function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
+  const linkElem = document.getElementById('purchase-link') as HTMLLinkElement;
+  linkElem.href = shoe?.purchaseURL;
+  document.getElementById('purchase-link-area').style.display = (show) ? 'block' : 'none';
 }
 
 function toggleFullScreen() {
