@@ -196,7 +196,7 @@ const maxSubSteps = 3;
 var renderer: THREE.WebGLRenderer,
   composer,
   fxaaPass,
-  pixelatePass,
+  // pixelatePass,
   camera: THREE.PerspectiveCamera,
   joystickCam: THREE.PerspectiveCamera,
   uiCam: THREE.OrthographicCamera,
@@ -575,10 +575,6 @@ export function startScene() {
     });
     updatePurchaseLink(undefined, false);
 
-    // shoesObjs.forEach((shoeObj) => {
-
-    // })
-
     copyMeshTransform(playerBody, camera);
 
     addLights();
@@ -784,16 +780,16 @@ function createRenderer() {
   const gammaCorrectionPass = new THREE.ShaderPass(THREE.GammaCorrectionShader);
 
   // @ts-ignore
-  pixelatePass = new THREE.ShaderPass(THREE.PixelShader);
-  pixelatePass.uniforms['resolution'].value = new THREE.Vector2(width, height);
-  pixelatePass.uniforms['resolution'].value.multiplyScalar(window.devicePixelRatio);
-  console.log('is high density display: ', isHighDensityDisplay());
-  const pixelateAmt = (isHighDensityDisplay()) ? 6 : 3;
-  // const pixelateAmt = 6;
-  pixelatePass.uniforms['pixelSize'].value = pixelateAmt;
+  // pixelatePass = new THREE.ShaderPass(THREE.PixelShader);
+  // pixelatePass.uniforms['resolution'].value = new THREE.Vector2(width, height);
+  // pixelatePass.uniforms['resolution'].value.multiplyScalar(window.devicePixelRatio);
+  // console.log('is high density display: ', isHighDensityDisplay());
+  // const pixelateAmt = (isHighDensityDisplay()) ? 6 : 3;
+  // // const pixelateAmt = 6;
+  // pixelatePass.uniforms['pixelSize'].value = pixelateAmt;
 
-  // @ts-ignore;
-  window.PIXELATE = pixelatePass;
+  // // @ts-ignore;
+  // window.PIXELATE = pixelatePass;
 
   // @ts-ignore
   composer = new THREE.EffectComposer(renderer);
@@ -801,7 +797,7 @@ function createRenderer() {
   // composer.addPass(fxaaPass);
   composer.addPass(bloomPass);
   composer.addPass(gammaCorrectionPass);
-  composer.addPass(pixelatePass);
+  // composer.addPass(pixelatePass);
 
   composer.setSize(width, height);
 }
@@ -921,9 +917,9 @@ function animate() {
     copyBodyTransform(dynamicPhysicsBodies[i].body, dynamicPhysicsBodies[i].mesh);
   }
 
-  effects.forEach((effect) => effect.update(delta));
-
   camera.position.y += playerHeight;
+
+  effects.forEach((effect) => effect.update(delta));
 
   renderer.clear();
   // renderer.render(scene, camera);
@@ -982,7 +978,7 @@ function onWindowResize() {
 
   fxaaPass.material.uniforms['resolution'].value.x = 1 / (width * pixelRatio);
   fxaaPass.material.uniforms['resolution'].value.y = 1 / (height * pixelRatio);
-  pixelatePass.uniforms['resolution'].value.set(width, height).multiplyScalar(pixelRatio);
+  // pixelatePass.uniforms['resolution'].value.set(width, height).multiplyScalar(pixelRatio);
 
 }
 
@@ -999,7 +995,26 @@ function updateFocusWarningScreen() {
 function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
   const linkElem = document.getElementById('purchase-link') as HTMLLinkElement;
   linkElem.href = shoe?.purchaseURL;
-  document.getElementById('purchase-link-area').style.display = (show) ? 'block' : 'none';
+  const linkImg = document.getElementById('purchase-link-img') as HTMLImageElement;
+  linkImg.style.opacity = ((show) ? 1 : 0).toString();
+
+  if(!IS_MOBILE) {
+    if(show) {
+      window.addEventListener('keydown', openPurchaseLink);
+    } else {
+      window.removeEventListener('keydown', openPurchaseLink);
+    }
+  }
+}
+
+function openPurchaseLink(e) {
+  if (e.key == " " ||
+      e.code == "Space" ||      
+      e.keyCode == 32      
+  ) {
+    const linkElem = document.getElementById('purchase-link') as HTMLLinkElement;
+    window.open(linkElem.href);
+  }
 }
 
 function toggleFullScreen() {

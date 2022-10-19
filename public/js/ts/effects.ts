@@ -122,10 +122,11 @@ export class BloomModEffect extends Effect {
 
 export class ShoeFocusEffect extends Effect {
 
-  proximity = 6;
-  scaleAmt = 1.8;
+  proximity = 3;
+  // scaleAmt = 1.8;
+  scaleAmt = 1;
 
-  camera: THREE.Object3D;
+  camera: THREE.PerspectiveCamera;
   onShowHide: (show: boolean) => void;
 
   private startScale = new THREE.Vector3();
@@ -134,21 +135,34 @@ export class ShoeFocusEffect extends Effect {
   private d = new THREE.Vector3();
   private isFocused = false;
 
-  constructor(shoe: THREE.Object3D, camera: THREE.Object3D, onShowHide: (show: boolean) => void) {
+  constructor(shoe: THREE.Object3D, camera: THREE.PerspectiveCamera, onShowHide: (show: boolean) => void) {
     super(shoe);
 
     this.camera = camera;
     this.startScale.copy(shoe.scale);
     this.onShowHide = onShowHide;
-    shoe.getWorldPosition(this.shoeWorld);
   }
 
   update(dt: number): void {
+    this.obj.getWorldPosition(this.shoeWorld);
     this.camera.getWorldPosition(this.cameraWorld);
     this.d.copy(this.shoeWorld).sub(this.cameraWorld);
+    
     this.d.y = 0;
+    const inRange = this.d.lengthSq() < this.proximity * this.proximity;
 
-    const shouldFocus = this.d.lengthSq() < this.proximity * this.proximity;
+    let lookingAt = false;
+    if(inRange) {
+      var frustum = new THREE.Frustum();
+      var projScreenMatrix = new THREE.Matrix4();
+      projScreenMatrix.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
+    
+      frustum.setFromProjectionMatrix(projScreenMatrix);
+      lookingAt = frustum.containsPoint(this.shoeWorld);
+    }
+
+    const shouldFocus = lookingAt && inRange;
+
     if (shouldFocus && !this.isFocused) {
       this.obj.scale.copy(this.startScale).multiplyScalar(this.scaleAmt);
       this.onShowHide(true);
