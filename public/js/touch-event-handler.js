@@ -12,6 +12,7 @@ export class TouchEventHandler {
     this.numTouches = 0;
 
     function preventGestures(event) {
+      event.target.dispatchEvent(event)
       event.stopPropagation();
       event.preventDefault(); // prevent scrolling
       event.stopImmediatePropagation();
