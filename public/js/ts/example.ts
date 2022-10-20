@@ -260,7 +260,7 @@ export function startScene() {
   if (!window.Detector.webgl) window.Detector.addGetWebGLMessage();
 
   console.log("starting scene");
-
+  touchEventHandler = new TouchEventHandler(document);
   // @ts-ignore
   IS_MOBILE = window.IS_MOBILE;
   // @ts-ignore
@@ -392,20 +392,27 @@ export function startScene() {
 
   function initScene() {
     const el = document.getElementById("container");
-    const stopTouchGestures = (event) => {
-      console.log(event.target);
+
+    
+    const stopTouchGestures = (event: TouchEvent) => {
       event.stopPropagation();
       event.preventDefault(); // prevent scrolling
-      //event.stopImmediatePropagation();
+      event.stopImmediatePropagation();
     }
-    el.addEventListener("touchstart", stopTouchGestures, { passive: false });
-    el.addEventListener("touchend", stopTouchGestures, { passive: false });
-    el.addEventListener("touchmove",stopTouchGestures, { passive: false });
-    el.addEventListener('mousedown', stopTouchGestures, {passive: false});
-    el.addEventListener('mousemove', stopTouchGestures, {passive: false});
-    el.addEventListener('mouseup', stopTouchGestures, {passive: false});
 
-    console.log("on loading done!");
+    function stopTouchGesturesSpecial(event){
+      console.log('special', event.target);
+      event.target.dispatchEvent(event);
+      event.stopPropagation();
+      event.preventDefault(); // prevent scrolling
+      event.stopImmediatePropagation();
+    }
+    const startButton = document.getElementById("start-button") as HTMLButtonElement;
+
+    startButton.addEventListener("click", () => {
+      console.log('101clicked!!!!!!!')
+    });
+
 
     const loadingScreen = document.getElementById("loading-screen");
     loadingScreen.classList.add("fade-out");
@@ -624,20 +631,7 @@ export function startScene() {
     copyMeshTransform(playerBody, camera);
 
     addLights();
-    const startButton = document.getElementById("start-button") as HTMLButtonElement;
-    startButton.addEventListener("click", () => { 
-      el.removeEventListener("touchstart", stopTouchGestures);
-      el.removeEventListener("touchend", stopTouchGestures);
-      el.removeEventListener("touchmove",stopTouchGestures);
-      el.removeEventListener('mousedown', stopTouchGestures);
-      el.removeEventListener('mousemove', stopTouchGestures);
-      el.removeEventListener('mouseup', stopTouchGestures);
-      startButton.disabled = true; 
-      startGame();
-    });
-
-
-
+    startButton.addEventListener("ontouchstart", () => { startButton.disabled = true; startGame();})
     startButton.addEventListener("click", () => { startButton.disabled = true; });
     startButton.addEventListener("click", startGame);
   }
@@ -723,7 +717,7 @@ function getJoystickOffset(isRight): THREE.Vector2 {
 }
 
 function addControls() {
-  touchEventHandler = new TouchEventHandler(document);
+
 
   if (IS_MOBILE) {
     leftJoystick = new JoystickControls(
