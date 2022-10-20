@@ -1020,9 +1020,9 @@ function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
   }
   else {
     if (show) {
-      //window.addEventListener('keydown', openPurchaseLinkDesktop);
+      window.addEventListener('keydown', openPurchaseLinkDesktop);
     } else {
-      //window.removeEventListener('keydown', openPurchaseLinkDesktop);
+      window.removeEventListener('keydown', openPurchaseLinkDesktop);
     }
   }
 }
