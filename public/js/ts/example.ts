@@ -1008,6 +1008,7 @@ function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
 
   if (IS_MOBILE) {
     if (show) {
+      window.open(focusedShoe.purchaseURL);
       console.log('adding purch listener');
       //linkImg.addEventListener('click', openPurchaseLinkMobile, { passive: false });
       //linkImg.addEventListener('touchstart', openPurchaseLinkMobile, { passive: false });
