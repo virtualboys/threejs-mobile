@@ -1001,7 +1001,8 @@ function updateFocusWarningScreen() {
 function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
   console.log('updating purchase link: ', show, shoe?.purchaseURL);
   focusedShoe = shoe;
-  const container = document.getElementById('purchase-img-container');
+  const container = document.getElementById('purchase-img-container') as HTMLAnchorElement;
+  container.href = shoe.purchaseURL;
   const linkImg = document.getElementById('purchase-link-img') as HTMLImageElement;
   if(container.className === "hide" && !show) {
     // keep hiding..
