@@ -262,7 +262,7 @@ export class ShoeFocusEffect extends Effect {
       this.animScaleTarget.multiplyScalar(this.scaleAmt);
       this.animOpacityTarget = .9;
       this.animTime = 0;
-      this.rotateEffect.rotsPerSec = .6 * this.baseRotSpeed;
+      this.rotateEffect.rotsPerSec = 1.3 * this.baseRotSpeed;
       // this.rotateEffect.spinTo(this.d);
       this.hoverEffect.slow = true;
       this.meshes.forEach((mesh) => {

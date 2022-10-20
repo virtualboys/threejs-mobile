@@ -67,7 +67,7 @@ input {
 #purchase-img-container {
   z-index: 999;
   position: absolute;
-  --maxw: calc(min(300px, 15vw));
+  --maxw: calc(max(min(300px, 15vw), 200px));
   --halfmax: calc(var(--maxw) / 2);
   width: var(--maxw);
   --size: calc(50vw - var(--halfmax));
