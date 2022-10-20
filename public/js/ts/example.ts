@@ -392,7 +392,13 @@ export function startScene() {
 
     
     const stopTouchGestures = (event: TouchEvent) => {
-      console.log((event as any).toElement);
+      event.stopPropagation();
+      event.preventDefault(); // prevent scrolling
+      event.stopImmediatePropagation();
+    }
+
+    function stopTouchGesturesSpecial(event: MouseEvent){
+      event.target.dispatchEvent(new Event("click"));
       event.stopPropagation();
       event.preventDefault(); // prevent scrolling
       event.stopImmediatePropagation();
@@ -404,12 +410,12 @@ export function startScene() {
     });
 
     console.log("on loading done!");
-    el.addEventListener("touchstart", stopTouchGestures, { passive: false });
-    el.addEventListener("touchend", stopTouchGestures, { passive: false });
+    el.addEventListener("touchstart", stopTouchGesturesSpecial, { passive: false });
+    el.addEventListener("touchend", stopTouchGesturesSpecial, { passive: false });
     el.addEventListener("touchmove",stopTouchGestures, { passive: false });
-    //el.addEventListener('mousedown', stopTouchGestures, {passive: false});
+    el.addEventListener('mousedown', stopTouchGesturesSpecial, {passive: false});
     el.addEventListener('mousemove', stopTouchGestures, {passive: false});
-    //el.addEventListener('mouseup', stopTouchGestures, {passive: false});
+    el.addEventListener('mouseup', stopTouchGestures, {passive: false});
 
 
     const loadingScreen = document.getElementById("loading-screen");
