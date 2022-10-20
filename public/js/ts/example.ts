@@ -463,8 +463,14 @@ export function startScene() {
     // Add contact material to the world
     world.addContactMaterial(default_default_cm);
 
+    interface RotatingObj extends THREE.Object3D {
+      rotateEffect: RotateEffect
+    }
+
     let blockersParents: THREE.Object3D[] = [];
-    scene.traverse(function (obj: THREE.Object3D) {
+    scene.traverse(function (_obj: THREE.Object3D) {
+      const obj = _obj as RotatingObj;
+      
       if (obj.name == "Box") {
         console.log("box!!!!", obj);
         const sawBlocker = createStaticCollider(obj, ShapeType.BOX);
@@ -553,7 +559,9 @@ export function startScene() {
         } else if (obj.name == 'Cylinder') {
           rps = .006;
         }
-        effects.push(new RotateEffect(obj, rps, axis));
+        const rotEffect = new RotateEffect(obj, rps, axis);
+        obj.rotateEffect = rotEffect;
+        effects.push(rotEffect);
       }
 
       if (obj.userData.hover) {
@@ -576,7 +584,14 @@ export function startScene() {
 
     shoeDefs.forEach((shoeDef) => {
       const shoeParent = createParentAtCenter(shoeDef.obj);
-      effects.push(new ShoeFocusEffect(shoeParent, camera, (show) => { updatePurchaseLink(shoeDef, show); }));
+      let rotateEffect: RotateEffect;
+      shoeParent.traverse((shoeChild)=> {
+        const shoeRot = shoeChild as RotatingObj;
+        if(shoeRot.rotateEffect) {
+          rotateEffect = shoeRot.rotateEffect;
+        } 
+      })
+      effects.push(new ShoeFocusEffect(shoeParent, camera, rotateEffect, (show) => { updatePurchaseLink(shoeDef, show); }));
       shoeDef.obj = shoeParent;
     });
     updatePurchaseLink(undefined, false);

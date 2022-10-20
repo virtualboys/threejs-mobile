@@ -124,28 +124,31 @@ export class BloomModEffect extends Effect {
 export class ShoeFocusEffect extends Effect {
 
   proximity = 3;
-  scaleAmt = 1.3;
+  scaleAmt = 1.8;
   animDuration = 1;
   // scaleAmt = 1;
 
   camera: THREE.PerspectiveCamera;
   onShowHide: (show: boolean) => void;
 
+  private rotateEffect: RotateEffect;
   private baseScale = new THREE.Vector3();
   private shoeWorld = new THREE.Vector3();
   private cameraWorld = new THREE.Vector3();
   private d = new THREE.Vector3();
   private isFocused = false;
+  private baseRotSpeed: number;
 
-  private animTime = 0;
-  private animStartScale = new THREE.Vector3();
-  private animScaleDiff = new THREE.Vector3(this.scaleAmt, this.scaleAmt, this.scaleAmt);
+  private animTime = this.animDuration;
+  private animScaleTarget = new THREE.Vector3();
 
 
-  constructor(shoe: THREE.Object3D, camera: THREE.PerspectiveCamera, onShowHide: (show: boolean) => void) {
+  constructor(shoe: THREE.Object3D, camera: THREE.PerspectiveCamera, rotateEffect: RotateEffect, onShowHide: (show: boolean) => void) {
     super(shoe);
 
     this.camera = camera;
+    this.rotateEffect = rotateEffect;
+    this.baseRotSpeed = rotateEffect.rotsPerSec;
     this.baseScale.copy(shoe.scale);
     this.onShowHide = onShowHide;
   }
@@ -159,7 +162,12 @@ export class ShoeFocusEffect extends Effect {
     const inRange = this.d.lengthSq() < this.proximity * this.proximity;
 
     if(this.animTime < this.animDuration) {
-      // easeVec(this.animStartScale, this.animScaleDiff, this.obj.scale, this.animTime / this.animDuration, easeInQuad);
+      
+      this.obj.scale.lerp(this.animScaleTarget, this.animTime / this.animDuration);
+      this.animTime += dt;
+      if(this.animTime >= this.animDuration) {
+        this.obj.scale.copy(this.animScaleTarget);
+      }
     }
 
     let lookingAt = false;
@@ -175,22 +183,26 @@ export class ShoeFocusEffect extends Effect {
     const shouldFocus = lookingAt && inRange;
 
     if (shouldFocus && !this.isFocused) {
-      this.obj.scale.copy(this.baseScale).multiplyScalar(this.scaleAmt);
+      // this.obj.scale.copy(this.baseScale).multiplyScalar(this.scaleAmt);
       this.onShowHide(true);
       this.isFocused = true;
-
+      
+      this.animScaleTarget.copy(this.baseScale);
+      this.animScaleTarget.multiplyScalar(this.scaleAmt);
       this.animTime = 0;
+      this.rotateEffect.rotsPerSec = .3 * this.baseRotSpeed;
       // this.animStartScale.copy(this.obj.scale);
       // this.animTargetScale.copy(this.baseScale);
       // console.log('scaling ', shoe.name);
     }
     else if (!shouldFocus && this.isFocused) {
-      this.obj.scale.copy(this.baseScale);
+      // this.obj.scale.copy(this.baseScale);
       this.onShowHide(false);
       this.isFocused = false;
 
+      this.animScaleTarget.copy(this.baseScale);
       this.animTime = 0;
-      this.animStartScale.copy(this.obj.scale);
+      this.rotateEffect.rotsPerSec = this.baseRotSpeed;
       // this.ani
     }
 
