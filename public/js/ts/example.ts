@@ -1001,25 +1001,27 @@ function updateFocusWarningScreen() {
 function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
   console.log('updating purchase link: ', show, shoe?.purchaseURL);
   focusedShoe = shoe;
+  const container = document.getElementById('purchase-link-container');
+  container.style.display = show ? 'block' : 'none';
   const linkImg = document.getElementById('purchase-link-img') as HTMLImageElement;
   linkImg.style.opacity = ((show) ? 1 : 0).toString();
 
   if (IS_MOBILE) {
     if (show) {
       console.log('adding purch listener');
-      linkImg.addEventListener('click', openPurchaseLinkMobile, { passive: false });
-      linkImg.addEventListener('touchstart', openPurchaseLinkMobile, { passive: false });
+      //linkImg.addEventListener('click', openPurchaseLinkMobile, { passive: false });
+      //linkImg.addEventListener('touchstart', openPurchaseLinkMobile, { passive: false });
     } else {
       console.log('removing purch list');
-      linkImg.removeEventListener('click', openPurchaseLinkMobile);
-      linkImg.removeEventListener('touchstart', openPurchaseLinkMobile);
+      //linkImg.removeEventListener('click', openPurchaseLinkMobile);
+      //linkImg.removeEventListener('touchstart', openPurchaseLinkMobile);
     }
   }
   else {
     if (show) {
-      window.addEventListener('keydown', openPurchaseLinkDesktop);
+      //window.addEventListener('keydown', openPurchaseLinkDesktop);
     } else {
-      window.removeEventListener('keydown', openPurchaseLinkDesktop);
+      //window.removeEventListener('keydown', openPurchaseLinkDesktop);
     }
   }
 }
