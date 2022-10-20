@@ -410,14 +410,6 @@ export function startScene() {
       console.log('101clicked!!!!!!!')
     });
 
-    console.log("on loading done!");
-    el.addEventListener("touchstart", stopTouchGesturesSpecial, { passive: false });
-    el.addEventListener("touchend", stopTouchGesturesSpecial, { passive: false });
-    el.addEventListener("touchmove",stopTouchGesturesSpecial, { passive: false });
-    el.addEventListener('mousedown', stopTouchGesturesSpecial, {passive: false});
-    el.addEventListener('mousemove', stopTouchGestures, {passive: false});
-    el.addEventListener('mouseup', stopTouchGestures, {passive: false});
-
 
     const loadingScreen = document.getElementById("loading-screen");
     loadingScreen.classList.add("fade-out");
@@ -633,20 +625,6 @@ export function startScene() {
 
     addLights();
     startButton.addEventListener("click", () => {
-      console.log('removing :)');
-      const el = document.getElementById("container");
-        // @ts-ignore
-      el.removeEventListener("touchstart", stopTouchGesturesSpecial, { passive: false });
-        // @ts-ignore
-      el.removeEventListener("touchend", stopTouchGesturesSpecial, { passive: false });
-        // @ts-ignore
-      el.removeEventListener("touchmove",stopTouchGestures, { passive: false });
-        // @ts-ignore
-      el.removeEventListener('mousedown', stopTouchGesturesSpecial, {passive: false});
-        // @ts-ignore
-      el.removeEventListener('mousemove', stopTouchGestures, {passive: false});
-        // @ts-ignore
-      el.removeEventListener('mouseup', stopTouchGestures, {passive: false});
       startButton.disabled = true; 
       startGame();
     });
