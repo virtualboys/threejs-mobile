@@ -853,4 +853,5 @@ body {
   opacity: .5;
 }
 
+html { touch-action: pan-x pan-y; height: 100% }
 /*# sourceMappingURL=style.css.map */
