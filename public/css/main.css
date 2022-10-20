@@ -66,7 +66,6 @@ input {
 }
 #purchase-img-container {
   z-index: 999;
-  display: none;
   position: absolute;
   max-width: 300px;
   width: 50%;
@@ -74,16 +73,30 @@ input {
   left: max(25vw, var(--size));
   bottom: -1px;
 }
+@keyframes fadeIn {
+  0% { opacity: 0; visibility: hidden;}
+  100% { opacity: 1; visibility: visible;}
+}
+@keyframes fadeOut {
+  0% { opacity: 1; visibility: visible;}
+  100% { opacity: 0; visibility: hidden;}
+}
 #purchase-link-img {
-  visibility: visible;
   width: 100%;
   /* opacity: 1; */
-  transition: .3s opacity;
-  -webkit-transition: .3s opacity;
-  transition-property: opacity;
-  transition-duration: .3s;
-  -webkit-transition-property: opacity;
-  -webkit-transition-duration: .3s;
+}
+
+.fade-out-animation {
+  animation: fadeOut .3s;
+  opacity: 0;
+}
+
+.fade-in-animation {
+  animation: fadeIn .3s;
+}
+
+.hide {
+  visibility: hidden;
 }
 
 
