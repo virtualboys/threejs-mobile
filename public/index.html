@@ -122,13 +122,19 @@
 	<script type="module" src="./js/ts/effects.js"></script>
 
 	<script type="text/javascript">
-		function pdef(e) {
-
-			e.stopPropagation();
-			e.preventDefault(); // prevent scrolling
-			e.stopImmediatePropagation();
-		}
-
+    console.log('shhhhhhhh')
+    const el = document.getElementById("container");
+    const stopTouchGestures = (event) => {
+      event.stopPropagation();
+      event.preventDefault(); // prevent scrolling
+      event.stopImmediatePropagation();
+    }
+    el.addEventListener("touchstart", stopTouchGestures, { passive: false });
+    el.addEventListener("touchend", stopTouchGestures, { passive: false });
+    el.addEventListener("touchmove",stopTouchGestures, { passive: false });
+    el.addEventListener('mousedown', stopTouchGestures, {passive: false});
+    el.addEventListener('mousemove', stopTouchGestures, {passive: false});
+    el.addEventListener('mouseup', stopTouchGestures, {passive: false});
 	</script>
 
 	<script type="module">
