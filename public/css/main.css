@@ -67,16 +67,16 @@ input {
 #purchase-img-container {
   z-index: 999;
   display: none;
-  max-height: 10%;
   position: absolute;
+  max-width: 300px;
   width: 50%;
-  height: 10%;
-  left: 25vw;
-  bottom: 0;
+  --size: calc(50vw - 150px);
+  left: max(25vw, var(--size));
+  bottom: -1px;
 }
 #purchase-link-img {
   visibility: visible;
-  max-width: 100%;
+  width: 100%;
   /* opacity: 1; */
   transition: .3s opacity;
   -webkit-transition: .3s opacity;
