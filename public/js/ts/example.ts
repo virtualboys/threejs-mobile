@@ -393,7 +393,7 @@ export function startScene() {
       console.log(event.target);
       event.stopPropagation();
       event.preventDefault(); // prevent scrolling
-      event.stopImmediatePropagation();
+      //event.stopImmediatePropagation();
     }
     el.addEventListener("touchstart", stopTouchGestures, { passive: false });
     el.addEventListener("touchend", stopTouchGestures, { passive: false });
@@ -617,15 +617,20 @@ export function startScene() {
     copyMeshTransform(playerBody, camera);
 
     addLights();
-
-    el.removeEventListener("touchstart", stopTouchGestures);
-    el.removeEventListener("touchend", stopTouchGestures);
-    el.removeEventListener("touchmove",stopTouchGestures);
-    el.removeEventListener('mousedown', stopTouchGestures);
-    el.removeEventListener('mousemove', stopTouchGestures);
-    el.removeEventListener('mouseup', stopTouchGestures);
-
     const startButton = document.getElementById("start-button") as HTMLButtonElement;
+    startButton.addEventListener("click", () => { 
+      el.removeEventListener("touchstart", stopTouchGestures);
+      el.removeEventListener("touchend", stopTouchGestures);
+      el.removeEventListener("touchmove",stopTouchGestures);
+      el.removeEventListener('mousedown', stopTouchGestures);
+      el.removeEventListener('mousemove', stopTouchGestures);
+      el.removeEventListener('mouseup', stopTouchGestures);
+      startButton.disabled = true; 
+      startGame();
+    });
+
+
+
     startButton.addEventListener("click", () => { startButton.disabled = true; });
     startButton.addEventListener("click", startGame);
   }
