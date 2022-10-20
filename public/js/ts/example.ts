@@ -205,7 +205,6 @@ var renderer: THREE.WebGLRenderer,
   uiCam: THREE.OrthographicCamera,
   scene: THREE.Scene,
   uiScene: THREE.Scene,
-  shoeScene: THREE.Scene,
   controls: FPSMultiplatformControls,
   leftJoystick: JoystickControls,
   rightJoystick: JoystickControls,
@@ -276,7 +275,6 @@ export function startScene() {
   aspect = width / height;
 
   scene = new THREE.Scene();
-  shoeScene = new THREE.Scene();
 
   uiScene = new THREE.Scene();
   uiCam = new THREE.OrthographicCamera(
@@ -623,7 +621,7 @@ export function startScene() {
           hoverEffect = shoeRot.hoverEffect;
         } 
       })
-      effects.push(new ShoeFocusEffect(shoeParent, camera, shoeScene, rotateEffect, hoverEffect, (show) => { updatePurchaseLink(shoeDef, show); }));
+      effects.push(new ShoeFocusEffect(shoeParent, camera, rotateEffect, hoverEffect, (show) => { updatePurchaseLink(shoeDef, show); }));
       shoeDef.obj = shoeParent;
     });
     updatePurchaseLink(undefined, false);

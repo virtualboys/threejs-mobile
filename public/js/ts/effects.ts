@@ -141,14 +141,14 @@ export class ShoeFocusEffect extends Effect {
   private isFocused = false;
   private baseRotSpeed: number;
   private meshes: THREE.Mesh[] = [];
-  private shoeScene: THREE.Scene;
-  private overlayShoes: THREE.Object3D;
 
   private animTime = this.animDuration;
   private animScaleTarget = new THREE.Vector3();
 
+  private setPos = false;
 
-  constructor(shoe: THREE.Object3D, camera: THREE.PerspectiveCamera, shoeScene: THREE.Scene, rotateEffect: RotateEffect, hoverEffect: HoverEffect, onShowHide: (show: boolean) => void) {
+
+  constructor(shoe: THREE.Object3D, camera: THREE.PerspectiveCamera, rotateEffect: RotateEffect, hoverEffect: HoverEffect, onShowHide: (show: boolean) => void) {
     super(shoe);
 
     this.camera = camera;
@@ -156,7 +156,6 @@ export class ShoeFocusEffect extends Effect {
     this.hoverEffect = hoverEffect;
     this.baseRotSpeed = rotateEffect.rotsPerSec;
     this.baseScale.copy(shoe.scale);
-    this.shoeScene = shoeScene;
     this.onShowHide = onShowHide;
 
     shoe.traverse((child) => {
@@ -190,7 +189,11 @@ export class ShoeFocusEffect extends Effect {
   }
 
   update(dt: number): void {
-    this.obj.getWorldPosition(this.shoeWorld);
+
+    if(!this.setPos) {
+      this.obj.getWorldPosition(this.shoeWorld);
+      this.setPos = true;
+    }
     this.camera.getWorldPosition(this.cameraWorld);
     this.d.copy(this.shoeWorld).sub(this.cameraWorld);
 
@@ -211,7 +214,7 @@ export class ShoeFocusEffect extends Effect {
       this.d.normalize();
       let camLook = new THREE.Vector3();
       this.camera.getWorldDirection(camLook);
-      if (this.d.dot(camLook) > .95) {
+      if (this.d.dot(camLook) > .92) {
         var frustum = new THREE.Frustum();
         var projScreenMatrix = new THREE.Matrix4();
         projScreenMatrix.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
