@@ -477,7 +477,8 @@ export function startScene() {
     world.addContactMaterial(default_default_cm);
 
     interface RotatingObj extends THREE.Object3D {
-      rotateEffect: RotateEffect
+      rotateEffect: RotateEffect,
+      hoverEffect: HoverEffect,
     }
 
     let blockersParents: THREE.Object3D[] = [];
@@ -582,7 +583,9 @@ export function startScene() {
         obj.position.add(new THREE.Vector3(0, -.1, 0));
 
         console.log('hovering ', obj.name)
-        effects.push(new HoverEffect(obj, 0.065, 0.1, hoverAxis));
+        const hoverEffect = new HoverEffect(obj, 0.065, 0.1, hoverAxis);
+        effects.push(hoverEffect);
+        obj.hoverEffect = hoverEffect;
       }
 
       if (body) {
@@ -598,13 +601,15 @@ export function startScene() {
     shoeDefs.forEach((shoeDef) => {
       const shoeParent = createParentAtCenter(shoeDef.obj);
       let rotateEffect: RotateEffect;
+      let hoverEffect: HoverEffect;
       shoeParent.traverse((shoeChild)=> {
         const shoeRot = shoeChild as RotatingObj;
         if(shoeRot.rotateEffect) {
           rotateEffect = shoeRot.rotateEffect;
+          hoverEffect = shoeRot.hoverEffect;
         } 
       })
-      effects.push(new ShoeFocusEffect(shoeParent, camera, rotateEffect, (show) => { updatePurchaseLink(shoeDef, show); }));
+      effects.push(new ShoeFocusEffect(shoeParent, camera, rotateEffect, hoverEffect, (show) => { updatePurchaseLink(shoeDef, show); }));
       shoeDef.obj = shoeParent;
     });
     updatePurchaseLink(undefined, false);
