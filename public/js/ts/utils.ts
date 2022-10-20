@@ -142,4 +142,11 @@ export function easeVec(start: THREE.Vector3, diff: THREE.Vector3, val: THREE.Ve
   val.z = ease(t, start.z, diff.z, 1);
 }
 
+export function forEachMat(mesh: THREE.Mesh, op: (mat: THREE.Material) => void) {
+  if (Array.isArray(mesh.material)) {
+    mesh.material.forEach(op);
+  } else {
+    op(mesh.material);
+  }
+}
 

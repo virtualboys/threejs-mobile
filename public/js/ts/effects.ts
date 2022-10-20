@@ -1,5 +1,5 @@
 import { easeInQuad, easeOutQuad, easeOutQuart } from "./easing-functions.js";
-import { easeVec } from "./utils.js";
+import { easeVec, forEachMat } from "./utils.js";
 
 export abstract class Effect {
 
@@ -124,7 +124,7 @@ export class BloomModEffect extends Effect {
 
 export class ShoeFocusEffect extends Effect {
 
-  proximity = 3;
+  proximity = 4;
   scaleAmt = 1.6;
   animDuration = 1;
   // scaleAmt = 1;
@@ -141,12 +141,14 @@ export class ShoeFocusEffect extends Effect {
   private isFocused = false;
   private baseRotSpeed: number;
   private meshes: THREE.Mesh[] = [];
+  private shoeScene: THREE.Scene;
+  private overlayShoes: THREE.Object3D;
 
   private animTime = this.animDuration;
   private animScaleTarget = new THREE.Vector3();
 
 
-  constructor(shoe: THREE.Object3D, camera: THREE.PerspectiveCamera, rotateEffect: RotateEffect, hoverEffect: HoverEffect, onShowHide: (show: boolean) => void) {
+  constructor(shoe: THREE.Object3D, camera: THREE.PerspectiveCamera, shoeScene: THREE.Scene, rotateEffect: RotateEffect, hoverEffect: HoverEffect, onShowHide: (show: boolean) => void) {
     super(shoe);
 
     this.camera = camera;
@@ -154,13 +156,37 @@ export class ShoeFocusEffect extends Effect {
     this.hoverEffect = hoverEffect;
     this.baseRotSpeed = rotateEffect.rotsPerSec;
     this.baseScale.copy(shoe.scale);
+    this.shoeScene = shoeScene;
     this.onShowHide = onShowHide;
 
     shoe.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         this.meshes.push(child);
+        forEachMat(child, (mat) => {
+          mat.transparent = true;
+          console.log(mat);
+        });
+        child.renderOrder = 9;
       }
-    })
+    });
+
+    // const ghostMat =  new THREE.ShaderMaterial({
+    //   fragmentShader: fragmentShader(),
+    //   vertexShader: vertexShader(),
+    // });
+    // this.overlayShoes = new THREE.Group();
+    this.meshes.forEach((mesh) => {
+      console.log(mesh.material);
+      // mesh.layers.set(8);
+      // this.overlayShoes.add(mesh);
+
+        // ghostMesh.position.copy(mesh.getWorldPosition());
+        // ghostMesh.scale.copy()
+
+      //   mesh.add(ghostMesh);
+      //   ghostMesh.renderOrder = 2;
+    });
+    // this.shoeScene.add(this.overlayShoes);
   }
 
   update(dt: number): void {
@@ -182,12 +208,17 @@ export class ShoeFocusEffect extends Effect {
 
     let lookingAt = false;
     if (inRange) {
-      var frustum = new THREE.Frustum();
-      var projScreenMatrix = new THREE.Matrix4();
-      projScreenMatrix.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
+      this.d.normalize();
+      let camLook = new THREE.Vector3();
+      this.camera.getWorldDirection(camLook);
+      if (this.d.dot(camLook) > .95) {
+        var frustum = new THREE.Frustum();
+        var projScreenMatrix = new THREE.Matrix4();
+        projScreenMatrix.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
 
-      frustum.setFromProjectionMatrix(projScreenMatrix);
-      lookingAt = frustum.containsPoint(this.shoeWorld);
+        frustum.setFromProjectionMatrix(projScreenMatrix);
+        lookingAt = frustum.containsPoint(this.shoeWorld);
+      }
     }
 
     const shouldFocus = lookingAt && inRange;
@@ -200,17 +231,10 @@ export class ShoeFocusEffect extends Effect {
       this.animScaleTarget.copy(this.baseScale);
       this.animScaleTarget.multiplyScalar(this.scaleAmt);
       this.animTime = 0;
-      this.rotateEffect.rotsPerSec = .3 * this.baseRotSpeed;
+      this.rotateEffect.rotsPerSec = .7 * this.baseRotSpeed;
       this.hoverEffect.slow = true;
-      const mesh = this.obj as THREE.Mesh;
       this.meshes.forEach((mesh) => {
-        if (Array.isArray(mesh.material)) {
-          mesh.material.forEach((mat) => {
-            mat.depthTest = false;
-          })
-        } else {
-          mesh.material.depthTest = false;
-        }
+        mesh.layers.set(8);
       });
       // this.animStartScale.copy(this.obj.scale);
       // this.animTargetScale.copy(this.baseScale);
@@ -228,13 +252,7 @@ export class ShoeFocusEffect extends Effect {
       // this.ani
 
       this.meshes.forEach((mesh) => {
-        if (Array.isArray(mesh.material)) {
-          mesh.material.forEach((mat) => {
-            mat.depthTest = true;
-          })
-        } else {
-          mesh.material.depthTest = true;
-        }
+        mesh.layers.set(1);
       });
     }
 
@@ -247,4 +265,97 @@ export class ShoeFocusEffect extends Effect {
       }
     }
   }
+}
+
+function vertexShader() {
+  return `
+  #include <common>
+  #include <uv_pars_vertex>
+  #include <uv2_pars_vertex>
+  #include <envmap_pars_vertex>
+  #include <color_pars_vertex>
+  #include <fog_pars_vertex>
+  #include <morphtarget_pars_vertex>
+  #include <skinning_pars_vertex>
+  #include <logdepthbuf_pars_vertex>
+  #include <clipping_planes_pars_vertex>
+  void main() {
+    #include <uv_vertex>
+    #include <uv2_vertex>
+    #include <color_vertex>
+    #include <morphcolor_vertex>
+    #if defined ( USE_ENVMAP ) || defined ( USE_SKINNING )
+      #include <beginnormal_vertex>
+      #include <morphnormal_vertex>
+      #include <skinbase_vertex>
+      #include <skinnormal_vertex>
+      #include <defaultnormal_vertex>
+    #endif
+    #include <begin_vertex>
+    #include <morphtarget_vertex>
+    #include <skinning_vertex>
+    #include <project_vertex>
+    #include <logdepthbuf_vertex>
+    #include <clipping_planes_vertex>
+    #include <worldpos_vertex>
+    #include <envmap_vertex>
+    #include <fog_vertex>
+  }
+  `;
+}
+  
+function fragmentShader() {
+  return `
+  uniform vec3 diffuse;
+  uniform float opacity;
+  #ifndef FLAT_SHADED
+    varying vec3 vNormal;
+  #endif
+  #include <common>
+  #include <dithering_pars_fragment>
+  #include <color_pars_fragment>
+  #include <uv_pars_fragment>
+  #include <uv2_pars_fragment>
+  #include <map_pars_fragment>
+  #include <alphamap_pars_fragment>
+  #include <alphatest_pars_fragment>
+  #include <aomap_pars_fragment>
+  #include <lightmap_pars_fragment>
+  #include <envmap_common_pars_fragment>
+  #include <envmap_pars_fragment>
+  #include <cube_uv_reflection_fragment>
+  #include <fog_pars_fragment>
+  #include <specularmap_pars_fragment>
+  #include <logdepthbuf_pars_fragment>
+  #include <clipping_planes_pars_fragment>
+  void main() {
+    #include <clipping_planes_fragment>
+    vec4 diffuseColor = vec4( diffuse, opacity );
+    #include <logdepthbuf_fragment>
+    #include <map_fragment>
+    #include <color_fragment>
+    #include <alphamap_fragment>
+    #include <alphatest_fragment>
+    #include <specularmap_fragment>
+    ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
+    // accumulation (baked indirect lighting only)
+    #ifdef USE_LIGHTMAP
+      vec4 lightMapTexel = texture2D( lightMap, vUv2 );
+      reflectedLight.indirectDiffuse += lightMapTexel.rgb * lightMapIntensity * RECIPROCAL_PI;
+    #else
+      reflectedLight.indirectDiffuse += vec3( 1.0 );
+    #endif
+    // modulation
+    #include <aomap_fragment>
+    reflectedLight.indirectDiffuse *= diffuseColor.rgb;
+    vec3 outgoingLight = reflectedLight.indirectDiffuse;
+    #include <envmap_fragment>
+    #include <output_fragment>
+    #include <tonemapping_fragment>
+    #include <encodings_fragment>
+    #include <fog_fragment>
+    #include <premultiplied_alpha_fragment>
+    #include <dithering_fragment>
+  }
+  `
 }

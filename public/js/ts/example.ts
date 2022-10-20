@@ -197,6 +197,7 @@ const maxSubSteps = 3;
 
 var renderer: THREE.WebGLRenderer,
   composer,
+  renderPass,
   fxaaPass,
   // pixelatePass,
   camera: THREE.PerspectiveCamera,
@@ -204,6 +205,7 @@ var renderer: THREE.WebGLRenderer,
   uiCam: THREE.OrthographicCamera,
   scene: THREE.Scene,
   uiScene: THREE.Scene,
+  shoeScene: THREE.Scene,
   controls: FPSMultiplatformControls,
   leftJoystick: JoystickControls,
   rightJoystick: JoystickControls,
@@ -274,6 +276,7 @@ export function startScene() {
   aspect = width / height;
 
   scene = new THREE.Scene();
+  shoeScene = new THREE.Scene();
 
   uiScene = new THREE.Scene();
   uiCam = new THREE.OrthographicCamera(
@@ -588,6 +591,10 @@ export function startScene() {
         obj.hoverEffect = hoverEffect;
       }
 
+      if(obj instanceof THREE.Light) {
+        obj.layers.set(3);
+      }
+
       if (body) {
         world.addBody(body);
         dynamicPhysicsBodies.push({ body: body, mesh: obj });
@@ -609,7 +616,7 @@ export function startScene() {
           hoverEffect = shoeRot.hoverEffect;
         } 
       })
-      effects.push(new ShoeFocusEffect(shoeParent, camera, rotateEffect, hoverEffect, (show) => { updatePurchaseLink(shoeDef, show); }));
+      effects.push(new ShoeFocusEffect(shoeParent, camera, shoeScene, rotateEffect, hoverEffect, (show) => { updatePurchaseLink(shoeDef, show); }));
       shoeDef.obj = shoeParent;
     });
     updatePurchaseLink(undefined, false);
@@ -638,6 +645,7 @@ export function startScene() {
   function addLights() {
     // Lights
     var ambient = new THREE.AmbientLight(0x6b6b6b);
+    ambient.layers.set(3);
     scene.add(ambient);
   }
 
@@ -785,7 +793,7 @@ function createRenderer() {
   container.append(renderer.domElement);
 
   // @ts-ignore
-  const renderPass = new THREE.RenderPass(scene, camera);
+  renderPass = new THREE.RenderPass(scene, camera);
   renderPass.clearColor = new THREE.Color(0, 0, 0);
   renderPass.clearAlpha = 0;
   renderPass.clearDepth = true;
@@ -972,10 +980,21 @@ function animate() {
 
   effects.forEach((effect) => effect.update(delta));
 
+  camera.layers.enableAll();
+  camera.layers.disable(8);
   renderer.clear();
   // renderer.render(scene, camera);
   composer.render();
   renderer.clearDepth();
+  if(focusedShoe) {
+    // renderPass.clear = false;
+    renderPass.clearAlpha = 1;
+    camera.layers.disableAll();
+    camera.layers.enable(8);
+    camera.layers.enable(3);
+    composer.render();
+    renderPass.clearAlpha = 0;
+  }
   renderer.render(uiScene, joystickCam);
 
   occlusionZones.update(camera.position);
@@ -1045,7 +1064,7 @@ function updateFocusWarningScreen() {
 
 function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
   console.log('updating purchase link: ', show, shoe?.purchaseURL);
-  focusedShoe = shoe;
+  focusedShoe = (show) ? shoe : undefined;
   const container = document.getElementById('purchase-img-container') as HTMLAnchorElement;
   container.href = shoe?.purchaseURL;
   const linkImg = document.getElementById('purchase-link-img') as HTMLImageElement;
