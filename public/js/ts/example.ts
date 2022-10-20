@@ -398,7 +398,8 @@ export function startScene() {
     }
 
     function stopTouchGesturesSpecial(event){
-      event.target.dispatchEvent(new Event("click"));
+      console.log('special', event.target);
+      event.target.dispatchEvent(event);
       event.stopPropagation();
       event.preventDefault(); // prevent scrolling
       event.stopImmediatePropagation();
@@ -412,7 +413,7 @@ export function startScene() {
     console.log("on loading done!");
     el.addEventListener("touchstart", stopTouchGesturesSpecial, { passive: false });
     el.addEventListener("touchend", stopTouchGesturesSpecial, { passive: false });
-    el.addEventListener("touchmove",stopTouchGestures, { passive: false });
+    el.addEventListener("touchmove",stopTouchGesturesSpecial, { passive: false });
     el.addEventListener('mousedown', stopTouchGesturesSpecial, {passive: false});
     el.addEventListener('mousemove', stopTouchGestures, {passive: false});
     el.addEventListener('mouseup', stopTouchGestures, {passive: false});
@@ -634,12 +635,18 @@ export function startScene() {
     startButton.addEventListener("click", () => {
       console.log('removing :)');
       const el = document.getElementById("container");
-      el.removeEventListener("touchstart", stopTouchGesturesSpecial);
-      el.removeEventListener("touchend", stopTouchGesturesSpecial);
-      el.removeEventListener("touchmove",stopTouchGestures);
-      el.removeEventListener('mousedown', stopTouchGesturesSpecial);
-      el.removeEventListener('mousemove', stopTouchGestures);
-      el.removeEventListener('mouseup', stopTouchGestures);
+        // @ts-ignore
+      el.removeEventListener("touchstart", stopTouchGesturesSpecial, { passive: false });
+        // @ts-ignore
+      el.removeEventListener("touchend", stopTouchGesturesSpecial, { passive: false });
+        // @ts-ignore
+      el.removeEventListener("touchmove",stopTouchGestures, { passive: false });
+        // @ts-ignore
+      el.removeEventListener('mousedown', stopTouchGesturesSpecial, {passive: false});
+        // @ts-ignore
+      el.removeEventListener('mousemove', stopTouchGestures, {passive: false});
+        // @ts-ignore
+      el.removeEventListener('mouseup', stopTouchGestures, {passive: false});
       startButton.disabled = true; 
       startGame();
     });
