@@ -467,6 +467,20 @@ export function startScene() {
 
     createRenderer();
 
+
+    // const backdropGeom = new THREE.BoxGeometry(1,1,1,2,2,2);
+    const backdropGeom = new THREE.PlaneGeometry(2,2);
+    const backdropMat = new THREE.MeshBasicMaterial({color: new THREE.Color(0,0,0), opacity: 0, transparent: true});
+    backdropMat.side = THREE.DoubleSide;
+    const focusedShoeBackdrop = new THREE.Mesh(backdropGeom, backdropMat);
+    camera.add(focusedShoeBackdrop);
+    focusedShoeBackdrop.quaternion.setFromEuler(new THREE.Euler(0,0,0), true);
+    focusedShoeBackdrop.position.z =-10;
+    focusedShoeBackdrop.scale.set(10,10,10);
+    focusedShoeBackdrop.layers.set(8);
+    //@ts-ignore
+    window.focusedshoeback = focusedShoeBackdrop;
+
     // Adjust constraint equation parameters for ground/ground contact
     var default_default_cm = new CANNON.ContactMaterial(
       defaultCannonMat,
@@ -621,7 +635,7 @@ export function startScene() {
           hoverEffect = shoeRot.hoverEffect;
         }
       })
-      effects.push(new ShoeFocusEffect(shoeParent, camera, rotateEffect, hoverEffect, (show) => { updatePurchaseLink(shoeDef, show); }));
+      effects.push(new ShoeFocusEffect(shoeParent, camera,backdropMat, rotateEffect, hoverEffect, (show) => { updatePurchaseLink(shoeDef, show); }));
       shoeDef.obj = shoeParent;
     });
     updatePurchaseLink(undefined, false);
@@ -945,6 +959,15 @@ function startGame() {
   animate();
 }
 
+function renderShoeOnTop() {
+    renderer.render(scene, camera);
+    renderer.clearDepth();
+    camera.layers.disableAll();
+    camera.layers.enable(8);
+    camera.layers.enable(3);
+    renderer.render(scene, camera);
+}
+
 function animate() {
   requestAnimationFrame(animate);
 
@@ -979,20 +1002,14 @@ function animate() {
   camera.layers.disable(8);
   renderer.clear();
   // renderer.render(scene, camera);
-  // if(focusedShoe) {
-  if (false) {
-    renderer.render(scene, camera);
-    renderer.clearDepth();
-    // renderPass.clear = false;
-    renderPass.clearAlpha = 1;
-    camera.layers.disableAll();
-    camera.layers.enable(8);
-    camera.layers.enable(3);
+  if(focusedShoe) {
+    renderPass.customRenderFunc = renderShoeOnTop;
     composer.render();
-    renderPass.clearAlpha = 0;
-    // renderPass.clear = true;
+    renderer.clearDepth();
 
   } else {
+    renderPass.customRenderFunc = undefined;
+    // renderer.outputEncoding = THREE.LinearEncoding;
     composer.render();
     renderer.clearDepth();
 
@@ -1065,7 +1082,7 @@ function updateFocusWarningScreen() {
 }
 
 function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
-  console.log('updating purchase link: ', show, shoe?.purchaseURL);
+  // console.log('updating purchase link: ', show, shoe?.purchaseURL);
   focusedShoe = (show) ? shoe : undefined;
   const container = document.getElementById('purchase-img-container') as HTMLAnchorElement;
   container.href = shoe?.purchaseURL;

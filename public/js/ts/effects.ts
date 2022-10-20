@@ -1,3 +1,4 @@
+// import { MathUtils } from "three";
 import { easeInQuad, easeOutQuad, easeOutQuart } from "./easing-functions.js";
 import { easeVec, forEachMat } from "./utils.js";
 
@@ -16,6 +17,8 @@ export class RotateEffect extends Effect {
 
   rotsPerSec: number;
   axis: THREE.Vector3;
+  spinToDegrees: number;
+  spinDir: number;
 
   private rotQuat: THREE.Quaternion;
 
@@ -31,8 +34,26 @@ export class RotateEffect extends Effect {
     obj.quaternion.multiply(this.rotQuat);
   }
   update(dt: number): void {
-    this.rotQuat.setFromAxisAngle(this.axis, 2 * Math.PI * dt * this.rotsPerSec);
+    if (this.spinToDegrees > 0) {
+      const rotAmt = 20 * 2 * Math.PI * dt * this.rotsPerSec;
+      this.spinToDegrees -= rotAmt;
+      this.rotQuat.setFromAxisAngle(this.axis, this.spinDir * rotAmt);
+    } else {
+      this.rotQuat.setFromAxisAngle(this.axis, 2 * Math.PI * dt * this.rotsPerSec);
+    }
     this.obj.quaternion.multiply(this.rotQuat);
+  }
+
+  spinTo(targetForward: THREE.Vector3) {
+    const objQuat = new THREE.Quaternion();
+    this.obj.children[0].getWorldQuaternion(objQuat);
+    const objForward = new THREE.Vector3(0, 1, 0);
+    objForward.applyQuaternion(objQuat);
+    // this.obj.getWorldDirection(objForward);
+    console.log('obj forward ', objForward, ' target forward: ', targetForward);
+    this.spinToDegrees = objForward.angleTo(targetForward);
+    this.spinDir = objForward.cross(targetForward).y > 0 ? 1 : -1;
+    console.log('spinning to ', this.spinToDegrees);
   }
 }
 
@@ -125,7 +146,7 @@ export class BloomModEffect extends Effect {
 export class ShoeFocusEffect extends Effect {
 
   proximity = 3.4;
-  scaleAmt = 1.2;
+  scaleAmt = 1.9;
   animDuration = 1;
   lookAtDot = .94;
   // scaleAmt = 1;
@@ -133,6 +154,7 @@ export class ShoeFocusEffect extends Effect {
   camera: THREE.PerspectiveCamera;
   onShowHide: (show: boolean) => void;
 
+  private focusedShoeBackdrop: THREE.Material;
   private rotateEffect: RotateEffect;
   private hoverEffect: HoverEffect;
   private baseScale = new THREE.Vector3();
@@ -145,14 +167,16 @@ export class ShoeFocusEffect extends Effect {
 
   private animTime = this.animDuration;
   private animScaleTarget = new THREE.Vector3();
+  private animOpacityTarget = 0;
 
   private setPos = false;
 
 
-  constructor(shoe: THREE.Object3D, camera: THREE.PerspectiveCamera, rotateEffect: RotateEffect, hoverEffect: HoverEffect, onShowHide: (show: boolean) => void) {
+  constructor(shoe: THREE.Object3D, camera: THREE.PerspectiveCamera, focusedShoeBackdrop: THREE.Material, rotateEffect: RotateEffect, hoverEffect: HoverEffect, onShowHide: (show: boolean) => void) {
     super(shoe);
 
     this.camera = camera;
+    this.focusedShoeBackdrop = focusedShoeBackdrop;
     this.rotateEffect = rotateEffect;
     this.hoverEffect = hoverEffect;
     this.baseRotSpeed = rotateEffect.rotsPerSec;
@@ -180,8 +204,8 @@ export class ShoeFocusEffect extends Effect {
       // mesh.layers.set(8);
       // this.overlayShoes.add(mesh);
 
-        // ghostMesh.position.copy(mesh.getWorldPosition());
-        // ghostMesh.scale.copy()
+      // ghostMesh.position.copy(mesh.getWorldPosition());
+      // ghostMesh.scale.copy()
 
       //   mesh.add(ghostMesh);
       //   ghostMesh.renderOrder = 2;
@@ -191,7 +215,7 @@ export class ShoeFocusEffect extends Effect {
 
   update(dt: number): void {
 
-    if(!this.setPos) {
+    if (!this.setPos) {
       this.obj.getWorldPosition(this.shoeWorld);
       this.setPos = true;
     }
@@ -202,8 +226,10 @@ export class ShoeFocusEffect extends Effect {
     const inRange = this.d.lengthSq() < this.proximity * this.proximity;
 
     if (this.animTime < this.animDuration) {
-
-      this.obj.scale.lerp(this.animScaleTarget, this.animTime / this.animDuration);
+      const t = this.animTime / this.animDuration;
+      this.obj.scale.lerp(this.animScaleTarget, t);
+      //@ts-ignore
+      this.focusedShoeBackdrop.opacity = THREE.MathUtils.lerp(this.focusedShoeBackdrop.opacity, this.animOpacityTarget, t);
       this.animTime += dt;
       if (this.animTime >= this.animDuration) {
         this.obj.scale.copy(this.animScaleTarget);
@@ -234,12 +260,14 @@ export class ShoeFocusEffect extends Effect {
 
       this.animScaleTarget.copy(this.baseScale);
       this.animScaleTarget.multiplyScalar(this.scaleAmt);
+      this.animOpacityTarget = .9;
       this.animTime = 0;
-      this.rotateEffect.rotsPerSec = .4 * this.baseRotSpeed;
+      this.rotateEffect.rotsPerSec = .6 * this.baseRotSpeed;
+      // this.rotateEffect.spinTo(this.d);
       this.hoverEffect.slow = true;
-      // this.meshes.forEach((mesh) => {
-      //   mesh.layers.set(8);
-      // });
+      this.meshes.forEach((mesh) => {
+        mesh.layers.set(8);
+      });
       // this.animStartScale.copy(this.obj.scale);
       // this.animTargetScale.copy(this.baseScale);
       // console.log('scaling ', shoe.name);
@@ -250,14 +278,15 @@ export class ShoeFocusEffect extends Effect {
       this.isFocused = false;
 
       this.animScaleTarget.copy(this.baseScale);
+      this.animOpacityTarget = 0;
       this.animTime = 0;
       this.rotateEffect.rotsPerSec = this.baseRotSpeed;
       this.hoverEffect.slow = false;
       // this.ani
 
-      // this.meshes.forEach((mesh) => {
-      //   mesh.layers.set(1);
-      // });
+      this.meshes.forEach((mesh) => {
+        mesh.layers.set(1);
+      });
     }
 
     if (this.animTime < this.animDuration) {
@@ -269,97 +298,4 @@ export class ShoeFocusEffect extends Effect {
       }
     }
   }
-}
-
-function vertexShader() {
-  return `
-  #include <common>
-  #include <uv_pars_vertex>
-  #include <uv2_pars_vertex>
-  #include <envmap_pars_vertex>
-  #include <color_pars_vertex>
-  #include <fog_pars_vertex>
-  #include <morphtarget_pars_vertex>
-  #include <skinning_pars_vertex>
-  #include <logdepthbuf_pars_vertex>
-  #include <clipping_planes_pars_vertex>
-  void main() {
-    #include <uv_vertex>
-    #include <uv2_vertex>
-    #include <color_vertex>
-    #include <morphcolor_vertex>
-    #if defined ( USE_ENVMAP ) || defined ( USE_SKINNING )
-      #include <beginnormal_vertex>
-      #include <morphnormal_vertex>
-      #include <skinbase_vertex>
-      #include <skinnormal_vertex>
-      #include <defaultnormal_vertex>
-    #endif
-    #include <begin_vertex>
-    #include <morphtarget_vertex>
-    #include <skinning_vertex>
-    #include <project_vertex>
-    #include <logdepthbuf_vertex>
-    #include <clipping_planes_vertex>
-    #include <worldpos_vertex>
-    #include <envmap_vertex>
-    #include <fog_vertex>
-  }
-  `;
-}
-  
-function fragmentShader() {
-  return `
-  uniform vec3 diffuse;
-  uniform float opacity;
-  #ifndef FLAT_SHADED
-    varying vec3 vNormal;
-  #endif
-  #include <common>
-  #include <dithering_pars_fragment>
-  #include <color_pars_fragment>
-  #include <uv_pars_fragment>
-  #include <uv2_pars_fragment>
-  #include <map_pars_fragment>
-  #include <alphamap_pars_fragment>
-  #include <alphatest_pars_fragment>
-  #include <aomap_pars_fragment>
-  #include <lightmap_pars_fragment>
-  #include <envmap_common_pars_fragment>
-  #include <envmap_pars_fragment>
-  #include <cube_uv_reflection_fragment>
-  #include <fog_pars_fragment>
-  #include <specularmap_pars_fragment>
-  #include <logdepthbuf_pars_fragment>
-  #include <clipping_planes_pars_fragment>
-  void main() {
-    #include <clipping_planes_fragment>
-    vec4 diffuseColor = vec4( diffuse, opacity );
-    #include <logdepthbuf_fragment>
-    #include <map_fragment>
-    #include <color_fragment>
-    #include <alphamap_fragment>
-    #include <alphatest_fragment>
-    #include <specularmap_fragment>
-    ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
-    // accumulation (baked indirect lighting only)
-    #ifdef USE_LIGHTMAP
-      vec4 lightMapTexel = texture2D( lightMap, vUv2 );
-      reflectedLight.indirectDiffuse += lightMapTexel.rgb * lightMapIntensity * RECIPROCAL_PI;
-    #else
-      reflectedLight.indirectDiffuse += vec3( 1.0 );
-    #endif
-    // modulation
-    #include <aomap_fragment>
-    reflectedLight.indirectDiffuse *= diffuseColor.rgb;
-    vec3 outgoingLight = reflectedLight.indirectDiffuse;
-    #include <envmap_fragment>
-    #include <output_fragment>
-    #include <tonemapping_fragment>
-    #include <encodings_fragment>
-    #include <fog_fragment>
-    #include <premultiplied_alpha_fragment>
-    #include <dithering_fragment>
-  }
-  `
 }
