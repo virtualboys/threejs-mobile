@@ -389,20 +389,28 @@ export function startScene() {
 
   function initScene() {
     const el = document.getElementById("container");
-    const stopTouchGestures = (event) => {
-      console.log(event.target);
+
+    
+    const stopTouchGestures = (event: TouchEvent) => {
+      console.log((event as any).toElement);
       event.stopPropagation();
       event.preventDefault(); // prevent scrolling
-      //event.stopImmediatePropagation();
+      event.stopImmediatePropagation();
     }
+    const startButton = document.getElementById("start-button") as HTMLButtonElement;
+
+    startButton.addEventListener("click", () => {
+      console.log('101clicked!!!!!!!')
+    });
+
+    console.log("on loading done!");
     el.addEventListener("touchstart", stopTouchGestures, { passive: false });
     el.addEventListener("touchend", stopTouchGestures, { passive: false });
     el.addEventListener("touchmove",stopTouchGestures, { passive: false });
-    el.addEventListener('mousedown', stopTouchGestures, {passive: false});
+    //el.addEventListener('mousedown', stopTouchGestures, {passive: false});
     el.addEventListener('mousemove', stopTouchGestures, {passive: false});
-    el.addEventListener('mouseup', stopTouchGestures, {passive: false});
+    //el.addEventListener('mouseup', stopTouchGestures, {passive: false});
 
-    console.log("on loading done!");
 
     const loadingScreen = document.getElementById("loading-screen");
     loadingScreen.classList.add("fade-out");
@@ -617,8 +625,8 @@ export function startScene() {
     copyMeshTransform(playerBody, camera);
 
     addLights();
-    const startButton = document.getElementById("start-button") as HTMLButtonElement;
-    startButton.addEventListener("click", () => { 
+    startButton.addEventListener("click", () => {
+
       el.removeEventListener("touchstart", stopTouchGestures);
       el.removeEventListener("touchend", stopTouchGestures);
       el.removeEventListener("touchmove",stopTouchGestures);
