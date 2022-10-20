@@ -12,7 +12,6 @@ export class TouchEventHandler {
     this.numTouches = 0;
 
     function preventGestures(event) {
-      event.target.dispatchEvent(event)
       event.stopPropagation();
       event.preventDefault(); // prevent scrolling
       event.stopImmediatePropagation();
@@ -89,7 +88,7 @@ export class TouchEventHandler {
     const _onMouseUp = onMouseUp.bind(this);
     const _screenBlurred = onScreenBlurred.bind(this);
 
-    const el = document.getElementById("container");
+    const el = document.getElementById("container_3d");
     el.addEventListener("touchstart", _onTouchStart, { passive: false });
     el.addEventListener("touchend", _onTouchEnd, { passive: false });
     el.addEventListener("touchmove", _onTouchMove, { passive: false });
