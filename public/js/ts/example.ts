@@ -391,14 +391,14 @@ export function startScene() {
   function initScene() {
     const el = document.getElementById("container");
 
-    
+
     const stopTouchGestures = (event: TouchEvent) => {
       event.stopPropagation();
       event.preventDefault(); // prevent scrolling
       event.stopImmediatePropagation();
     }
 
-    function stopTouchGesturesSpecial(event){
+    function stopTouchGesturesSpecial(event) {
       console.log('special', event.target);
       event.target.dispatchEvent(event);
       event.stopPropagation();
@@ -492,7 +492,7 @@ export function startScene() {
     let blockersParents: THREE.Object3D[] = [];
     scene.traverse(function (_obj: THREE.Object3D) {
       const obj = _obj as RotatingObj;
-      
+
       if (obj.name == "Box") {
         console.log("box!!!!", obj);
         const sawBlocker = createStaticCollider(obj, ShapeType.BOX);
@@ -596,7 +596,7 @@ export function startScene() {
         obj.hoverEffect = hoverEffect;
       }
 
-      if(obj instanceof THREE.Light) {
+      if (obj instanceof THREE.Light) {
         obj.layers.set(3);
       }
 
@@ -614,12 +614,12 @@ export function startScene() {
       const shoeParent = createParentAtCenter(shoeDef.obj);
       let rotateEffect: RotateEffect;
       let hoverEffect: HoverEffect;
-      shoeParent.traverse((shoeChild)=> {
+      shoeParent.traverse((shoeChild) => {
         const shoeRot = shoeChild as RotatingObj;
-        if(shoeRot.rotateEffect) {
+        if (shoeRot.rotateEffect) {
           rotateEffect = shoeRot.rotateEffect;
           hoverEffect = shoeRot.hoverEffect;
-        } 
+        }
       })
       effects.push(new ShoeFocusEffect(shoeParent, camera, rotateEffect, hoverEffect, (show) => { updatePurchaseLink(shoeDef, show); }));
       shoeDef.obj = shoeParent;
@@ -630,10 +630,10 @@ export function startScene() {
 
     addLights();
 
-    startButton.addEventListener("click", () => { 
+    startButton.addEventListener("click", () => {
       console.log('hidding...');
-      startButton.style.display ="none"; 
-      setTimeout(startGame, 10); 
+      startButton.style.display = "none";
+      setTimeout(startGame, 10);
     });
   }
 
@@ -979,9 +979,10 @@ function animate() {
   camera.layers.disable(8);
   renderer.clear();
   // renderer.render(scene, camera);
-  composer.render();
-  renderer.clearDepth();
-  if(focusedShoe) {
+  // if(focusedShoe) {
+  if (false) {
+    renderer.render(scene, camera);
+    renderer.clearDepth();
     // renderPass.clear = false;
     renderPass.clearAlpha = 1;
     camera.layers.disableAll();
@@ -989,6 +990,12 @@ function animate() {
     camera.layers.enable(3);
     composer.render();
     renderPass.clearAlpha = 0;
+    // renderPass.clear = true;
+
+  } else {
+    composer.render();
+    renderer.clearDepth();
+
   }
   renderer.render(uiScene, joystickCam);
 
@@ -1063,7 +1070,7 @@ function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
   const container = document.getElementById('purchase-img-container') as HTMLAnchorElement;
   container.href = shoe?.purchaseURL;
   const linkImg = document.getElementById('purchase-link-img') as HTMLImageElement;
-  if(container.className === "hide" && !show) {
+  if (container.className === "hide" && !show) {
     // keep hiding..
   } else {
     container.className = show ? "fade-in-animation" : "fade-out-animation";

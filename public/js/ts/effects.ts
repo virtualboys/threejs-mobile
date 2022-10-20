@@ -124,9 +124,10 @@ export class BloomModEffect extends Effect {
 
 export class ShoeFocusEffect extends Effect {
 
-  proximity = 4;
-  scaleAmt = 1.6;
+  proximity = 3.4;
+  scaleAmt = 1.2;
   animDuration = 1;
+  lookAtDot = .94;
   // scaleAmt = 1;
 
   camera: THREE.PerspectiveCamera;
@@ -214,7 +215,7 @@ export class ShoeFocusEffect extends Effect {
       this.d.normalize();
       let camLook = new THREE.Vector3();
       this.camera.getWorldDirection(camLook);
-      if (this.d.dot(camLook) > .92) {
+      if (this.d.dot(camLook) > this.lookAtDot) {
         var frustum = new THREE.Frustum();
         var projScreenMatrix = new THREE.Matrix4();
         projScreenMatrix.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
@@ -234,11 +235,11 @@ export class ShoeFocusEffect extends Effect {
       this.animScaleTarget.copy(this.baseScale);
       this.animScaleTarget.multiplyScalar(this.scaleAmt);
       this.animTime = 0;
-      this.rotateEffect.rotsPerSec = .7 * this.baseRotSpeed;
+      this.rotateEffect.rotsPerSec = .4 * this.baseRotSpeed;
       this.hoverEffect.slow = true;
-      this.meshes.forEach((mesh) => {
-        mesh.layers.set(8);
-      });
+      // this.meshes.forEach((mesh) => {
+      //   mesh.layers.set(8);
+      // });
       // this.animStartScale.copy(this.obj.scale);
       // this.animTargetScale.copy(this.baseScale);
       // console.log('scaling ', shoe.name);
@@ -254,9 +255,9 @@ export class ShoeFocusEffect extends Effect {
       this.hoverEffect.slow = false;
       // this.ani
 
-      this.meshes.forEach((mesh) => {
-        mesh.layers.set(1);
-      });
+      // this.meshes.forEach((mesh) => {
+      //   mesh.layers.set(1);
+      // });
     }
 
     if (this.animTime < this.animDuration) {
