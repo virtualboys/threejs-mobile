@@ -629,9 +629,12 @@ export function startScene() {
     copyMeshTransform(playerBody, camera);
 
     addLights();
-    startButton.addEventListener("ontouchstart", () => { startButton.disabled = true; startGame();})
-    startButton.addEventListener("click", () => { startButton.disabled = true; });
-    startButton.addEventListener("click", startGame);
+
+    startButton.addEventListener("click", () => { 
+      console.log('hidding...');
+      startButton.style.display ="none"; 
+      setTimeout(startGame, 10); 
+    });
   }
 
   function addLights() {
