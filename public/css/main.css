@@ -89,6 +89,7 @@ input {
 .fade-out-animation {
   animation: fadeOut .3s;
   opacity: 0;
+  visibility: hidden;
 }
 
 .fade-in-animation {
