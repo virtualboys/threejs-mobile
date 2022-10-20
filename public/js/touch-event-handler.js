@@ -88,13 +88,13 @@ export class TouchEventHandler {
     const _onMouseUp = onMouseUp.bind(this);
     const _screenBlurred = onScreenBlurred.bind(this);
 
-
-    window.addEventListener("touchstart", _onTouchStart, { passive: false });
-    window.addEventListener("touchend", _onTouchEnd, { passive: false });
-    window.addEventListener("touchmove", _onTouchMove, { passive: false });
-    window.addEventListener('mousedown', _onMouseDown, {passive: false});
-    window.addEventListener('mousemove', _onMouseMove, {passive: false});
-    window.addEventListener('mouseup', _onMouseUp, {passive: false});
+    const el = document.getElementById("container_3d")
+    el.addEventListener("touchstart", _onTouchStart, { passive: false });
+    el.addEventListener("touchend", _onTouchEnd, { passive: false });
+    el.addEventListener("touchmove", _onTouchMove, { passive: false });
+    el.addEventListener('mousedown', _onMouseDown, {passive: false});
+    el.addEventListener('mousemove', _onMouseMove, {passive: false});
+    el.addEventListener('mouseup', _onMouseUp, {passive: false});
     window.addEventListener("blur", _screenBlurred);
     document.addEventListener("visibilitychange", () => { 
       if(document.hidden) {

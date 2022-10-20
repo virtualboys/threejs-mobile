@@ -1001,7 +1001,7 @@ function updateFocusWarningScreen() {
 function updatePurchaseLink(shoe: ShoeDef, show: boolean) {
   console.log('updating purchase link: ', show, shoe?.purchaseURL);
   focusedShoe = shoe;
-  const container = document.getElementById('purchase-link-container');
+  const container = document.getElementById('purchase-link-area');
   container.style.display = show ? 'block' : 'none';
   const linkImg = document.getElementById('purchase-link-img') as HTMLImageElement;
   linkImg.style.opacity = ((show) ? 1 : 0).toString();
