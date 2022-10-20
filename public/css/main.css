@@ -65,13 +65,18 @@ input {
   justify-content: center;
 }
 #purchase-img-container {
+  z-index: 999;
+  display: none;
   max-height: 10%;
-  display: flex;
-  justify-content: center;
+  position: absolute;
+  width: 50%;
+  height: 10%;
+  left: 25vw;
+  bottom: 0;
 }
 #purchase-link-img {
   visibility: visible;
-  max-width: 50%;
+  max-width: 100%;
   /* opacity: 1; */
   transition: .3s opacity;
   -webkit-transition: .3s opacity;
