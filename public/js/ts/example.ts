@@ -397,7 +397,7 @@ export function startScene() {
       event.stopImmediatePropagation();
     }
 
-    function stopTouchGesturesSpecial(event: MouseEvent){
+    function stopTouchGesturesSpecial(event){
       event.target.dispatchEvent(new Event("click"));
       event.stopPropagation();
       event.preventDefault(); // prevent scrolling
@@ -632,11 +632,12 @@ export function startScene() {
 
     addLights();
     startButton.addEventListener("click", () => {
-
-      el.removeEventListener("touchstart", stopTouchGestures);
-      el.removeEventListener("touchend", stopTouchGestures);
+      console.log('removing :)');
+      const el = document.getElementById("container");
+      el.removeEventListener("touchstart", stopTouchGesturesSpecial);
+      el.removeEventListener("touchend", stopTouchGesturesSpecial);
       el.removeEventListener("touchmove",stopTouchGestures);
-      el.removeEventListener('mousedown', stopTouchGestures);
+      el.removeEventListener('mousedown', stopTouchGesturesSpecial);
       el.removeEventListener('mousemove', stopTouchGestures);
       el.removeEventListener('mouseup', stopTouchGestures);
       startButton.disabled = true; 
