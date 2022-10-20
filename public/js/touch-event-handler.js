@@ -88,7 +88,7 @@ export class TouchEventHandler {
     const _onMouseUp = onMouseUp.bind(this);
     const _screenBlurred = onScreenBlurred.bind(this);
 
-    const el = document.getElementById("container_3d");
+    const el = document.getElementById("container");
     el.addEventListener("touchstart", _onTouchStart, { passive: false });
     el.addEventListener("touchend", _onTouchEnd, { passive: false });
     el.addEventListener("touchmove", _onTouchMove, { passive: false });
