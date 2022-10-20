@@ -123,18 +123,7 @@
 
 	<script type="text/javascript">
     console.log('shhhhhhhh')
-    const el = document.getElementById("container");
-    const stopTouchGestures = (event) => {
-      event.stopPropagation();
-      event.preventDefault(); // prevent scrolling
-      event.stopImmediatePropagation();
-    }
-    el.addEventListener("touchstart", stopTouchGestures, { passive: false });
-    el.addEventListener("touchend", stopTouchGestures, { passive: false });
-    el.addEventListener("touchmove",stopTouchGestures, { passive: false });
-    el.addEventListener('mousedown', stopTouchGestures, {passive: false});
-    el.addEventListener('mousemove', stopTouchGestures, {passive: false});
-    el.addEventListener('mouseup', stopTouchGestures, {passive: false});
+
 	</script>
 
 	<script type="module">
