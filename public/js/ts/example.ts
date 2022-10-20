@@ -388,6 +388,19 @@ export function startScene() {
   }
 
   function initScene() {
+    const el = document.getElementById("container");
+    const stopTouchGestures = (event) => {
+      console.log(event.target);
+      event.stopPropagation();
+      event.preventDefault(); // prevent scrolling
+      event.stopImmediatePropagation();
+    }
+    el.addEventListener("touchstart", stopTouchGestures, { passive: false });
+    el.addEventListener("touchend", stopTouchGestures, { passive: false });
+    el.addEventListener("touchmove",stopTouchGestures, { passive: false });
+    el.addEventListener('mousedown', stopTouchGestures, {passive: false});
+    el.addEventListener('mousemove', stopTouchGestures, {passive: false});
+    el.addEventListener('mouseup', stopTouchGestures, {passive: false});
 
     console.log("on loading done!");
 
@@ -599,6 +612,13 @@ export function startScene() {
     copyMeshTransform(playerBody, camera);
 
     addLights();
+
+    el.removeEventListener("touchstart", stopTouchGestures);
+    el.removeEventListener("touchend", stopTouchGestures);
+    el.removeEventListener("touchmove",stopTouchGestures);
+    el.removeEventListener('mousedown', stopTouchGestures);
+    el.removeEventListener('mousemove', stopTouchGestures);
+    el.removeEventListener('mouseup', stopTouchGestures);
 
     const startButton = document.getElementById("start-button") as HTMLButtonElement;
     startButton.addEventListener("click", () => { startButton.disabled = true; });
