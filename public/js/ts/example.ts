@@ -624,7 +624,7 @@ export function startScene() {
     copyMeshTransform(playerBody, camera);
 
     addLights();
-
+    startButton.addEventListener("ontouchstart", () => { startButton.disabled = true; startGame();})
     startButton.addEventListener("click", () => { startButton.disabled = true; });
     startButton.addEventListener("click", startGame);
   }
