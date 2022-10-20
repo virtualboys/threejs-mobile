@@ -258,7 +258,7 @@ export function startScene() {
   if (!window.Detector.webgl) window.Detector.addGetWebGLMessage();
 
   console.log("starting scene");
-
+  touchEventHandler = new TouchEventHandler(document);
   // @ts-ignore
   IS_MOBILE = window.IS_MOBILE;
   // @ts-ignore
@@ -624,12 +624,6 @@ export function startScene() {
     copyMeshTransform(playerBody, camera);
 
     addLights();
-    startButton.addEventListener("click", () => {
-      startButton.disabled = true; 
-      startGame();
-    });
-
-
 
     startButton.addEventListener("click", () => { startButton.disabled = true; });
     startButton.addEventListener("click", startGame);
@@ -715,7 +709,7 @@ function getJoystickOffset(isRight): THREE.Vector2 {
 }
 
 function addControls() {
-  touchEventHandler = new TouchEventHandler(document);
+
 
   if (IS_MOBILE) {
     leftJoystick = new JoystickControls(
