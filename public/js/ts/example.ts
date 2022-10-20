@@ -467,7 +467,6 @@ export function startScene() {
 
     createRenderer();
 
-
     // const backdropGeom = new THREE.BoxGeometry(1,1,1,2,2,2);
     const backdropGeom = new THREE.PlaneGeometry(2,2);
     const backdropMat = new THREE.MeshBasicMaterial({color: new THREE.Color(0,0,0), opacity: 0, transparent: true});
@@ -476,7 +475,7 @@ export function startScene() {
     camera.add(focusedShoeBackdrop);
     focusedShoeBackdrop.quaternion.setFromEuler(new THREE.Euler(0,0,0), true);
     focusedShoeBackdrop.position.z =-10;
-    focusedShoeBackdrop.scale.set(10,10,10);
+    focusedShoeBackdrop.scale.set(80,80,80);
     focusedShoeBackdrop.layers.set(8);
     //@ts-ignore
     window.focusedshoeback = focusedShoeBackdrop;
