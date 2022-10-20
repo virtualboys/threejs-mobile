@@ -1,3 +1,6 @@
+
+import { easeInQuad } from "./easing-functions.js";
+
 interface UniVec {
   x: number;
   y: number;
@@ -131,6 +134,12 @@ export function createParentAtCenter(obj: THREE.Object3D): THREE.Object3D {
   console.log("ppos ", newParent.position, " pos; ", obj.position);
 
   return newParent;
+}
+
+export function easeVec(start: THREE.Vector3, diff: THREE.Vector3, val: THREE.Vector3, t: number, ease: typeof easeInQuad) {
+  val.x = ease(t, start.x, diff.x, 1);
+  val.y = ease(t, start.y, diff.y, 1);
+  val.z = ease(t, start.z, diff.z, 1);
 }
 
 

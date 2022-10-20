@@ -1,4 +1,5 @@
 import { easeInQuad, easeOutQuad, easeOutQuart } from "./easing-functions.js";
+import { easeVec} from "./utils.js";
 
 export abstract class Effect {
 
@@ -123,23 +124,29 @@ export class BloomModEffect extends Effect {
 export class ShoeFocusEffect extends Effect {
 
   proximity = 3;
-  // scaleAmt = 1.8;
-  scaleAmt = 1;
+  scaleAmt = 1.3;
+  animDuration = 1;
+  // scaleAmt = 1;
 
   camera: THREE.PerspectiveCamera;
   onShowHide: (show: boolean) => void;
 
-  private startScale = new THREE.Vector3();
+  private baseScale = new THREE.Vector3();
   private shoeWorld = new THREE.Vector3();
   private cameraWorld = new THREE.Vector3();
   private d = new THREE.Vector3();
   private isFocused = false;
 
+  private animTime = 0;
+  private animStartScale = new THREE.Vector3();
+  private animScaleDiff = new THREE.Vector3(this.scaleAmt, this.scaleAmt, this.scaleAmt);
+
+
   constructor(shoe: THREE.Object3D, camera: THREE.PerspectiveCamera, onShowHide: (show: boolean) => void) {
     super(shoe);
 
     this.camera = camera;
-    this.startScale.copy(shoe.scale);
+    this.baseScale.copy(shoe.scale);
     this.onShowHide = onShowHide;
   }
 
@@ -150,6 +157,10 @@ export class ShoeFocusEffect extends Effect {
     
     this.d.y = 0;
     const inRange = this.d.lengthSq() < this.proximity * this.proximity;
+
+    if(this.animTime < this.animDuration) {
+      // easeVec(this.animStartScale, this.animScaleDiff, this.obj.scale, this.animTime / this.animDuration, easeInQuad);
+    }
 
     let lookingAt = false;
     if(inRange) {
@@ -164,15 +175,32 @@ export class ShoeFocusEffect extends Effect {
     const shouldFocus = lookingAt && inRange;
 
     if (shouldFocus && !this.isFocused) {
-      this.obj.scale.copy(this.startScale).multiplyScalar(this.scaleAmt);
+      this.obj.scale.copy(this.baseScale).multiplyScalar(this.scaleAmt);
       this.onShowHide(true);
       this.isFocused = true;
+
+      this.animTime = 0;
+      // this.animStartScale.copy(this.obj.scale);
+      // this.animTargetScale.copy(this.baseScale);
       // console.log('scaling ', shoe.name);
     }
     else if (!shouldFocus && this.isFocused) {
-      this.obj.scale.copy(this.startScale);
+      this.obj.scale.copy(this.baseScale);
       this.onShowHide(false);
       this.isFocused = false;
+
+      this.animTime = 0;
+      this.animStartScale.copy(this.obj.scale);
+      // this.ani
+    }
+
+    if(this.animTime < this.animDuration) {
+      
+      this.animTime += dt;
+      // easeInQuad()
+      if(this.animTime >= this.animDuration) {
+
+      }
     }
   }
 }
