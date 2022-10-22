@@ -11,6 +11,10 @@
     width: 100%;
     height: 100%;
     background-color: #000000;
+
+    background-image: url("../images/vines_bg.jpg");
+    background-position: center;
+    background-size:     cover;   
     opacity: 1;
     transition: 1s opacity;
     -webkit-transition: 1s opacity;
@@ -168,35 +172,55 @@
 }
 
 #loading-logo-container {
-    /* width: 100%;
-    height: 80%; */
+    /* width: 100%; */
+    height: 100%;
     width: 100%;
 
     position: relative;
-    top: 27vh;
+    /* top: 27vh; */
     /* display: flex; */
     justify-content: center;
     align-items: center;
     /* overflow: hidden */
 }
 
+/* #loading-logo-bottom {
+    height: 100%;
+    width: 100%;
+    position:absolute;
+
+} */
+
 #loading-img-container {
-    margin: auto;
+    height:100%;
     display: flex;
     justify-content: center;
+    flex-direction: column;
+    align-items: center;
 }
 
 #loading-logo {
+    /* background-image: url("../images/computer_logo.png"); */
     flex-shrink: 0;
+    top:0;
     -webkit-flex-shrink: 0;
-    width: 400px;
-    max-width: 80vw;
-    max-height: 50vh;
-    height: auto;
-    /* max-width: 70%;
-    max-height: 90%; */
+    width: 170%; /* or any custom size */
+    height: 100%; 
+    object-fit: contain;
+    object-position: 50% 0%; 
 }
+#loading-logo-bottom {    
+    position: absolute;
+    /* bottom: 0; */
+    flex-shrink: 0;
+    top:0;
+    -webkit-flex-shrink: 0;
+    width: 170%; /* or any custom size */
+    height: 100%; 
+    object-fit: contain;
+    object-position: 50% 100%; 
 
+}
 #loading-text {
     padding: 10px;
     margin: auto;
@@ -208,9 +232,13 @@
 }
 
 #loading-bar {
+    position: absolute;
+    top: 100%;
     margin: auto;
     width: 100%;
-    padding-top: 20px;
+    filter: drop-shadow(4px 4px 4px black);
+
+    /* padding-top: 20px; */
 }
 
 .ldBar path.baseline {
@@ -218,19 +246,21 @@
     stroke-width: 14;
     stroke: #f1f2f3;
     stroke-linecap: round;
+    
     filter: url(#custom-shadow);
 }
 
 .ldBar path.mainline {
 
     padding-top: 10px;
-    stroke-width: 10;
+    stroke-width: 7;
     stroke: rgb(255, 255, 41);
     stroke-linecap: round;
 }
 
 .ldBar-label {
-    color: rgb(138, 138, 138);
+    color: rgb(255, 255, 41);
+    text-shadow: 0 0 5px rgba(0, 0, 0, .5);
     font-size: 1.5em;
     font-weight: 900;
     padding-top: .4em;
