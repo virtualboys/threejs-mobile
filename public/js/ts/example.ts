@@ -155,32 +155,32 @@ interface ShoeDef {
 const shoeDefs: ShoeDef[] = [
   {
     objName: "shoe_brown_sawglb",
-    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    purchaseURL: "https://wearebraindead.com/products/brain-dead-x-oakley-factory-team-chop-saw-brown-mint-black",
     obj: undefined,
   },
   {
     objName: "shoe_flesh_blackglb",
-    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    purchaseURL: "https://wearebraindead.com/products/oakley-factory-team-flesh-black-ostrich",
     obj: undefined,
   },
   {
     objName: "shoe_white_fleshglb",
-    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    purchaseURL: "https://wearebraindead.com/products/oakley-factory-team-flesh-milk-black",
     obj: undefined,
   },
   {
     objName: "shoe_flesh_militaryglb",
-    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    purchaseURL: "https://wearebraindead.com/products/brain-dead-x-oakley-factory-team-chop-saw-brown-mint-black",
     obj: undefined,
   },
   {
     objName: "shoe_brown_sandalglb",
-    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    purchaseURL: "https://wearebraindead.com/products/brain-dead-x-oakley-factory-team-flesh-sandal-iron-brown-dark-grey",
     obj: undefined,
   },
   {
     objName: "shoe_tan_sandalglb",
-    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    purchaseURL: "https://wearebraindead.com/products/oakley-factory-team-flesh-sandal-sand-blue",
     obj: undefined,
   },
   {
