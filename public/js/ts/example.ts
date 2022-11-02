@@ -155,7 +155,7 @@ interface ShoeDef {
 const shoeDefs: ShoeDef[] = [
   {
     objName: "shoe_brown_sawglb",
-    purchaseURL: "https://wearebraindead.com/products/brain-dead-x-oakley-factory-team-chop-saw-brown-mint-black",
+    purchaseURL: "https://wearebraindead.com/",//products/brain-dead-x-oakley-factory-team-chop-saw-brown-mint-black",
     obj: undefined,
   },
   {
@@ -170,7 +170,7 @@ const shoeDefs: ShoeDef[] = [
   },
   {
     objName: "shoe_flesh_militaryglb",
-    purchaseURL: "https://wearebraindead.com/products/brain-dead-x-oakley-factory-team-chop-saw-brown-mint-black",
+    purchaseURL: "https://wearebraindead.com/products/brain-dead-x-oakley-factory-team-flesh-sage-sand-grey",
     obj: undefined,
   },
   {
@@ -185,7 +185,7 @@ const shoeDefs: ShoeDef[] = [
   },
   {
     objName: "shoe_white_sawglb",
-    purchaseURL: "https://wearebraindead.com/products/rush-hour-fanny-pack-tan?variant=42748860891267",
+    purchaseURL: "https://wearebraindead.com/",//products/rush-hour-fanny-pack-tan?variant=42748860891267",
     obj: undefined,
   }
 ]
