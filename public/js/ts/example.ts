@@ -247,6 +247,7 @@ const colliderTypeOverrides = {
   pCube9: ShapeType.HULL,
   pCube33: ShapeType.HULL,
   pCube34: ShapeType.HULL,
+  pCube35: ShapeType.HULL,
   polySurface52: undefined,
   pCube3: undefined,
   pCube4: undefined,
@@ -589,17 +590,17 @@ export function startScene() {
         playerBody.fixedRotation = true;
         playerBody.updateMassProperties();
 
-        // //@ts-ignore
-        // if (window.IS_DEV_BUILD) {
-        //   playerBody.addEventListener("collide", function (e) {
-        //     const threeObj = physicsBodyMap.get(e.body);
-        //     if (threeObj) {
-        //       console.log("three onj: ", threeObj.name);
-        //     } else {
-        //       console.log("unknown collider ", playerBody.position)
-        //     }
-        //   });
-        // }
+        // @ts-ignore
+        if (window.IS_DEV_BUILD) {
+          playerBody.addEventListener("collide", function (e) {
+            const threeObj = physicsBodyMap.get(e.body);
+            if (threeObj) {
+              console.log("three onj: ", threeObj.name);
+            } else {
+              console.log("unknown collider ", playerBody.position)
+            }
+          });
+        }
 
         playerBody.collisionFilterGroup = PLAYER_GROUP;
         playerBody.collisionFilterMask = STATIC_GROUP | DYNAMIC_GROUP;
